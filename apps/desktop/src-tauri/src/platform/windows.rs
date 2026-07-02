@@ -1,6 +1,7 @@
 use super::{Platform, PlatformError};
 use crate::display::domain::DisplayInfo;
 use super::models::NativeDisplay;
+use crate::platform::capabilities::PlatformCapabilities;
 
 use std::ffi::OsString;
 use std::os::windows::ffi::OsStringExt;
@@ -61,6 +62,21 @@ unsafe extern "system" fn monitor_enum_proc(
 }
 
 impl Platform for WindowsPlatform {
+    fn get_capabilities(&self) -> Result<PlatformCapabilities, PlatformError> {
+        Ok(PlatformCapabilities {
+            ambient_sensor: true,
+            desktop_duplication: true,
+            ddc_ci: true,
+            internal_monitor_brightness: true,
+            hdr: true,
+            night_light_detection: true,
+            refresh_rate_query: true,
+            power_state: true,
+            window_tracking: true,
+            display_enumeration: true,
+        })
+    }
+
     fn discover_displays(&self) -> Result<Vec<DisplayInfo>, PlatformError> {
         let mut native_displays: Vec<NativeDisplay> = Vec::new();
         
