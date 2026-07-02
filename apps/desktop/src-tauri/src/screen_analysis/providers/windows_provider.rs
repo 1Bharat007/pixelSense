@@ -35,15 +35,20 @@ use crate::screen_analysis::config::AnalysisConfig;
 use crate::screen_analysis::error::ScreenAnalysisError;
 use crate::screen_analysis::frame::scaler::RawFrameBuffer;
 use crate::screen_analysis::provider::ScreenProvider;
+use crate::platform::factory::create_platform;
+use crate::platform::facade::PlatformFacade;
+use crate::platform::windows::WindowsPlatform;
 
 pub struct WindowsScreenProvider {
     provider_id: String,
+    platform: WindowsPlatform,
 }
 
 impl WindowsScreenProvider {
     pub fn new() -> Self {
         Self {
             provider_id: "windows_dxgi_desktop_duplication".into(),
+            platform: WindowsPlatform::new(),
         }
     }
 }
@@ -80,14 +85,9 @@ impl ScreenProvider for WindowsScreenProvider {
         // Until the full DXGI pipeline is wired, return a synthetic buffer at
         // the configured resolution so the downstream pipeline can be validated.
 
-        let (w, h) = config.sample_resolution.dimensions();
-        let pixel_count = (w * h * 4) as usize;
-
-        // Synthetic placeholder: a mid-grey frame (representative of a typical screen).
-        // Luminance ≈ 50. Replace with DXGI capture when native path is ready.
-        let pixels = vec![128u8; pixel_count];
-
-        Ok(RawFrameBuffer::new(pixels, w, h))
+        // Delegate to PlatformFacade
+        self.platform.capture().acquire_next_frame(display_id)
+            .map_err(|e| ScreenAnalysisError::CaptureFailed(e.to_string()))
     }
 
     fn get_provider_id(&self) -> &str {
