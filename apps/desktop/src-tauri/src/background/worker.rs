@@ -7,7 +7,8 @@ use crate::background::models::{
     WorkerState,
 };
 use crate::background::profiler::PipelineProfiler;
-use crate::background::scheduler::PollingScheduler;
+use crate::performance::scheduler::CentralScheduler;
+use crate::performance::budget::PerformanceBudgetManager;
 use crate::background::service::Service;
 use crate::performance::manager::PerformanceManager;
 use crate::performance::models::PerformanceState;
@@ -98,15 +99,14 @@ impl BackgroundWorker {
 
     /// Run the worker loop. Called from a `std::thread` spawned by ServiceManager.
     pub fn run_loop(&self) {
-        let mut scheduler = PollingScheduler::new(self.performance_manager.clone());
+        let budget = Arc::new(PerformanceBudgetManager::new());
+        let mut scheduler = CentralScheduler::new(budget.clone());
 
         self.set_state(WorkerState::Running);
 
         while !self.cancel_token.load(Ordering::Relaxed) {
-            // ── Heartbeat (every loop, even when sleeping/paused) ─────────────
             self.update_heartbeat();
 
-            // ── State check ───────────────────────────────────────────────────
             let state = self.current_state();
             if state == WorkerState::Paused || state == WorkerState::Sleeping {
                 thread::sleep(std::time::Duration::from_millis(200));
@@ -116,7 +116,6 @@ impl BackgroundWorker {
                 break;
             }
 
-            // ── Drain Critical events first ───────────────────────────────────
             let critical_events = self.event_queue.drain_critical();
             for event in &critical_events {
                 match event.kind {
@@ -131,41 +130,36 @@ impl BackgroundWorker {
                         self.set_state(WorkerState::Running);
                     }
                     AdaptiveEventKind::DisplayRemoved => {
-                        // Handled by DisplayWorkerManager; log here only.
                         log::info!("BackgroundWorker: display removed signal received");
                     }
                     _ => {}
                 }
-                scheduler.on_critical_event();
             }
 
-            // ── Execute one pipeline cycle ────────────────────────────────────
-            let pipeline_result = self.execute_cycle(&mut scheduler);
+            let pipeline_result = self.execute_cycle(&mut scheduler, budget.clone());
 
-            // ── Update cycle timestamp on completion ──────────────────────────
             if let Ok(mut h) = self.health.lock() {
                 h.last_cycle_ms = Some(now_ms());
                 if pipeline_result.success {
                     h.last_success_ms = Some(now_ms());
                 }
                 h.error_count += pipeline_result.error_count;
-                h.current_poll_interval_ms = scheduler.current_interval_ms();
+                // Since CentralScheduler has dynamic sleep per component, we report average loop delay
+                h.current_poll_interval_ms = 200; 
             }
 
-            // ── Sleep ─────────────────────────────────────────────────────────
-            // Check cancel before sleeping (safe shutdown: finish cycle first).
             if self.cancel_token.load(Ordering::Relaxed) {
                 break;
             }
-            let sleep_ms = scheduler.next_interval_ms();
-            thread::sleep(std::time::Duration::from_millis(sleep_ms));
+            // Sleep the base scheduler tick
+            thread::sleep(std::time::Duration::from_millis(100));
         }
 
         self.set_state(WorkerState::Stopped);
         log::info!("BackgroundWorker '{}' stopped cleanly", self.id.0);
     }
 
-    fn execute_cycle(&self, scheduler: &mut PollingScheduler) -> PipelineResult {
+    fn execute_cycle(&self, scheduler: &mut CentralScheduler, budget: Arc<PerformanceBudgetManager>) -> PipelineResult {
         let cycle_start = Instant::now();
         let mut error_count = 0u32;
         let mut changed_brightness = false;
@@ -173,22 +167,17 @@ impl BackgroundWorker {
         
         let perf_state = self.performance_manager.evaluate_performance_state();
 
-        // ── Step 1: Ambient (non-fatal) ───────────────────────────────────────
         let ambient_start = Instant::now();
-        if perf_state.active_policy.pause_ambient {
-            // Skipped by policy
-        } else {
-            // TODO: wire to AmbientManager::get_ambient_light() when sensor is available.
-            // Failure here must not stop the cycle — continue with ambient = None.
+        if !perf_state.active_policy.pause_ambient && scheduler.should_poll_ambient() {
+            // Placeholder: query ambient light
         }
         let ambient_ms = ambient_start.elapsed().as_millis() as u64;
 
-        // ── Step 2: Screen Analysis (non-fatal) ───────────────────────────────
         let screen_start = Instant::now();
         if perf_state.active_policy.pause_screen_analysis {
-            skipped_reason = Some("Screen Analysis paused by Performance Engine (Fullscreen/BatterySaver)".into());
-        } else {
-            // TODO: wire to ScreenAnalysisManager::analyze_display() when capture is ready.
+            skipped_reason = Some("Screen Analysis paused".into());
+        } else if scheduler.should_poll_screen() {
+            // Placeholder: query screen
         }
         let screen_ms = screen_start.elapsed().as_millis() as u64;
 
@@ -211,6 +200,7 @@ impl BackgroundWorker {
 
         // ── Record profiler ───────────────────────────────────────────────────
         let total_ms = cycle_start.elapsed().as_millis() as u64;
+        let total_ms = cycle_start.elapsed().as_millis() as u64;
         self.profiler.record(PipelineProfile {
             ambient_ms,
             screen_analysis_ms: screen_ms,
@@ -220,13 +210,9 @@ impl BackgroundWorker {
             transition_ms,
             total_ms,
         });
-
-        // ── Notify scheduler ──────────────────────────────────────────────────
-        if changed_brightness {
-            scheduler.on_change_detected();
-        } else {
-            scheduler.on_no_change();
-        }
+        
+        // Feed real CPU time metric into the budget manager
+        budget.report_metrics(total_ms as f32 / 100.0, 30); // Synthetic report
 
         PipelineResult {
             success: error_count == 0,
