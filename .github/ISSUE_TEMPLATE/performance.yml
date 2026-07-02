@@ -1,0 +1,10 @@
+name: Performance Issue
+description: Report performance degradation or resource usage
+labels: ["performance"]
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+    validations:
+      required: true

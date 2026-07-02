@@ -1,0 +1,66 @@
+import React, { createContext, useContext, useEffect, useState } from 'react';
+import { OverviewState } from './models/OverviewState';
+
+const defaultState: OverviewState = {
+  hero: {
+    comfortStatus: 'Comfortable',
+    recommendation: 'Stable',
+    reason: 'Screen content and room lighting are matched.',
+    confidence: 1.0,
+  },
+  ambient: {
+    currentLux: 150.2,
+    environment: 'Indoor',
+    confidence: 0.95,
+    sensorStatus: 'Active',
+  },
+  screen: {
+    averageLuminance: 45.5,
+    peakLuminance: 80.0,
+  },
+  display: {
+    currentBrightness: 65,
+    recommendedBrightness: 65,
+    transitionStatus: 'Idle',
+  },
+  health: {
+    platform: 'Windows 11',
+    engineStatus: 'Running',
+    sensorStatus: 'Healthy',
+    applicationVersion: '0.1.0-alpha',
+    overallHealth: 'Healthy',
+  }
+};
+
+const OverviewContext = createContext<OverviewState>(defaultState);
+
+export const useOverview = () => useContext(OverviewContext);
+
+export const OverviewProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [state, setState] = useState<OverviewState>(defaultState);
+
+  useEffect(() => {
+    // Mock live updates every 1 second
+    const interval = setInterval(() => {
+      setState(prev => ({
+        ...prev,
+        ambient: {
+          ...prev.ambient,
+          currentLux: prev.ambient.currentLux + (Math.random() * 4 - 2),
+        },
+        screen: {
+          ...prev.screen,
+          averageLuminance: prev.screen.averageLuminance + (Math.random() * 2 - 1),
+        }
+      }));
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <OverviewContext.Provider value={state}>
+      {children}
+    </OverviewContext.Provider>
+  );
+};

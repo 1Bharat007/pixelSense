@@ -1,0 +1,9 @@
+{
+  "name": "pixelsense",
+  "private": true,
+  "scripts": {
+    "lint": "pnpm --filter \"./apps/desktop\" lint",
+    "build": "pnpm --filter \"./apps/desktop\" build",
+    "tauri": "pnpm --filter \"./apps/desktop\" tauri"
+  }
+}

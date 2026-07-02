@@ -1,0 +1,24 @@
+import React from 'react';
+import { OverviewProvider } from './OverviewContext';
+import { HeroCard } from './components/HeroCard';
+import { RoomCard } from './components/RoomCard';
+import { ScreenCard } from './components/ScreenCard';
+import { DisplayCard } from './components/DisplayCard';
+import { SystemHealthCard } from './components/SystemHealthCard';
+
+export const OverviewView = () => {
+  return (
+    <OverviewProvider>
+      <div className="overview-layout">
+        <h1>Overview</h1>
+        <HeroCard />
+        <div className="overview-grid">
+          <RoomCard />
+          <ScreenCard />
+          <DisplayCard />
+          <SystemHealthCard />
+        </div>
+      </div>
+    </OverviewProvider>
+  );
+};

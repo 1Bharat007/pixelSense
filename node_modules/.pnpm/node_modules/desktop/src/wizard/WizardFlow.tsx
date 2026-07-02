@@ -1,0 +1,104 @@
+import React, { useState, useEffect } from 'react';
+import { useConfigStore } from '../store/configStore';
+
+export const WizardFlow = () => {
+  const [step, setStep] = useState(0);
+  const [sliderValue, setSliderValue] = useState(50);
+  const { previewBrightness, lockCurrentComfort, updateConfig } = useConfigStore();
+
+  const handleNext = () => setStep(s => s + 1);
+  const handleBack = () => setStep(s => s - 1);
+
+  const handleSliderChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = parseInt(e.target.value, 10);
+    setSliderValue(val);
+    previewBrightness("primary", val);
+  };
+
+  const handleRemember = async () => {
+    await lockCurrentComfort("primary", "Initial Wizard");
+    handleNext();
+  };
+
+  const handleFinish = async () => {
+    await updateConfig(draft => {
+      draft.onboarding.completed = true;
+      draft.onboarding.last_completed = Date.now();
+    });
+  };
+
+  return (
+    <div className="wizard-container">
+      <div className="wizard-content">
+        {step === 0 && (
+          <div className="wizard-step fade-in">
+            <h1>Welcome to PixelSense</h1>
+            <p>Let's make your screen feel comfortable.</p>
+            <div className="wizard-actions">
+              <button className="btn-primary" onClick={handleNext}>Get Started</button>
+            </div>
+          </div>
+        )}
+
+        {step === 1 && (
+          <div className="wizard-step fade-in">
+            <h1>Comfort Adjustment</h1>
+            <p>Move the slider until your eyes feel relaxed.</p>
+            
+            <div className="wizard-slider-container">
+              <span className="slider-label">Less Light</span>
+              <input 
+                type="range" 
+                min="0" 
+                max="100" 
+                value={sliderValue} 
+                onChange={handleSliderChange} 
+                className="wizard-slider"
+                aria-label="Adjust screen comfort"
+              />
+              <span className="slider-label">More Light</span>
+            </div>
+
+            <div className="wizard-actions">
+              <button className="btn-secondary" onClick={handleBack}>Back</button>
+              <button className="btn-primary" onClick={handleNext}>Next</button>
+            </div>
+          </div>
+        )}
+
+        {step === 2 && (
+          <div className="wizard-step fade-in">
+            <h1>Confirmation</h1>
+            <p>Does this feel comfortable?</p>
+            <div className="wizard-actions">
+              <button className="btn-secondary" onClick={handleBack}>Adjust Again</button>
+              <button className="btn-primary" onClick={handleNext}>Yes</button>
+            </div>
+          </div>
+        )}
+
+        {step === 3 && (
+          <div className="wizard-step fade-in">
+            <h1>Remember</h1>
+            <p>PixelSense will remember this comfort.</p>
+            <div className="wizard-actions">
+              <button className="btn-secondary" onClick={handleBack}>Back</button>
+              <button className="btn-primary" onClick={handleRemember}>Remember This Comfort</button>
+            </div>
+          </div>
+        )}
+
+        {step === 4 && (
+          <div className="wizard-step fade-in">
+            <h1>Success</h1>
+            <p>Comfort remembered.</p>
+            <p>Enjoy your screen.</p>
+            <div className="wizard-actions">
+              <button className="btn-primary" onClick={handleFinish}>Finish</button>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};

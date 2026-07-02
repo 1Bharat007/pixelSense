@@ -1,0 +1,30 @@
+name: Rust CI
+
+on:
+  push:
+    branches: [ "main", "develop" ]
+  pull_request:
+    branches: [ "main", "develop" ]
+
+jobs:
+  build_and_test:
+    name: Rust Build & Test
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [windows-latest, ubuntu-latest, macos-latest]
+    steps:
+    - uses: actions/checkout@v3
+    - name: Install Rust
+      uses: dtolnay/rust-toolchain@stable
+      with:
+        components: rustfmt, clippy
+    - name: Rustfmt Check
+      run: cargo fmt --check
+      working-directory: apps/desktop/src-tauri
+    - name: Clippy Check
+      run: cargo clippy -- -D warnings
+      working-directory: apps/desktop/src-tauri
+    - name: Run Tests
+      run: cargo test
+      working-directory: apps/desktop/src-tauri

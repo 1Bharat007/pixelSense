@@ -1,0 +1,7 @@
+name: Security Report
+description: Report a security vulnerability
+labels: ["security"]
+body:
+  - type: markdown
+    attributes:
+      value: "Please DO NOT report security vulnerabilities here. Check our [SECURITY.md](../SECURITY.md) for instructions."

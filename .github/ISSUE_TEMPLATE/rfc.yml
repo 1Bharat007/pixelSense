@@ -1,0 +1,10 @@
+name: Request For Comments (RFC)
+description: Propose an architecture or design change before implementation
+labels: ["architecture", "design", "discussion"]
+body:
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposal
+    validations:
+      required: true
