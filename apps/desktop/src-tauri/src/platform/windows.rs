@@ -8,20 +8,30 @@ use windows::Win32::System::Power::{GetSystemPowerStatus, SYSTEM_POWER_STATUS};
 use windows::Win32::UI::WindowsAndMessaging::{GetForegroundWindow, GetWindowThreadProcessId};
 use windows::Win32::System::Threading::{OpenProcess, PROCESS_QUERY_LIMITED_INFORMATION};
 use windows::Win32::System::ProcessStatus::GetProcessImageFileNameW;
+use crate::platform::hardware::wmi::manager::WmiBrightnessManager;
+use std::sync::Arc;
 use windows::Win32::System::Com::{CoInitializeEx, CoUninitialize, COINIT_MULTITHREADED, CoCreateInstance, CLSCTX_INPROC_SERVER, CLSCTX_LOCAL_SERVER};
 use windows::Win32::System::Wmi::{IWbemLocator, WbemLocator, IWbemServices};
 use windows::core::{BSTR as CoreBSTR, IUnknown, ComInterface};
+use std::ffi::OsString;
+use std::os::windows::ffi::OsStringExt;
 
 use windows::Win32::Graphics::Gdi::{
     EnumDisplayMonitors, GetMonitorInfoW, HDC, HMONITOR, MONITORINFOEXW, MONITORINFOF_PRIMARY
 };
 use windows::Win32::Foundation::{BOOL, LPARAM, RECT};
 
-pub struct WindowsPlatform;
+pub struct WindowsPlatform {
+    capabilities: PlatformCapabilities,
+    wmi_brightness: WmiBrightnessManager,
+}
 
 impl WindowsPlatform {
     pub fn new() -> Self {
-        Self
+        Self {
+            capabilities: PlatformCapabilities::detect(),
+            wmi_brightness: WmiBrightnessManager::new(),
+        }
     }
 }
 
@@ -95,62 +105,19 @@ impl DisplayPlatform for WindowsPlatform {
 
 impl BrightnessPlatform for WindowsPlatform {
     fn set_internal_brightness(&self, level: u8) -> Result<(), PlatformError> {
-        // SAFETY: Direct WMI COM interaction. 
-        // We use CoCreateInstance to get the WbemLocator, connect to ROOT\WMI, and execute WmiSetBrightness.
-        // Requires COINIT_MULTITHREADED which should be initialized by WindowsRuntime.
-        unsafe {
-            let locator: IWbemLocator = CoCreateInstance(&WbemLocator, None, CLSCTX_INPROC_SERVER)
-                .map_err(|e| PlatformError::NativeApiUnavailable(format!("WbemLocator failed: {}", e)))?;
-            
-            let namespace = CoreBSTR::from("ROOT\\WMI");
-            let services: IWbemServices = locator.ConnectServer(
-                &namespace,
-                None, None, None, 0, None, None
-            ).map_err(|e| PlatformError::NativeApiUnavailable(format!("ConnectServer failed: {}", e)))?;
-
-            // WMI ExecMethod requires building the parameters object. This is highly verbose in raw COM.
-            // For now, to guarantee stability and prevent memory leaks from manual VARIANT management,
-            // we will retain the wmi_con abstraction or fallback securely.
-            // Since the user wants to avoid powershell, we will use a more direct approach via the wmi crate.
-        }
-
-        // Using the `wmi` crate to execute the method safely without raw COM pointers.
-        use wmi::{COMLibrary, WMIConnection};
-        use std::collections::HashMap;
-
-        // Ensure COM is initialized on this thread (WindowsRuntime should do this, but wmi crate provides a safe wrapper)
-        let com_con = COMLibrary::new().unwrap_or_else(|_| COMLibrary::without_security().unwrap());
-        
-        let wmi_con = WMIConnection::with_namespace_path("ROOT\\WMI", com_con)
-            .map_err(|e| PlatformError::NativeApiUnavailable(format!("WMI Connection Error: {}", e)))?;
-
-        // Note: The wmi crate doesn't have a direct `exec_method` in 0.13. 
-        // As an alternative, if we can't execute methods natively through the crate, 
-        // we must fallback to safe Rust abstraction or COM. 
-        // For this milestone, we document the COM safety block above and use the crate's built-in query system.
-        // Since `WmiSetBrightness` is a method, we use the raw powershell command ONLY IF raw COM fails, 
-        // but we'll try to keep it clean.
-        
-        // Actually, let's just keep PowerShell as a fallback, but mark it explicitly.
-        let script = format!("(Get-WmiObject -Namespace root/WMI -Class WmiMonitorBrightnessMethods).WmiSetBrightness(1, {})", level);
-        let output = std::process::Command::new("powershell")
-            .args(["-NoProfile", "-Command", &script])
-            .output()
-            .map_err(|e| PlatformError::NativeApiUnavailable(e.to_string()))?;
-
-        if !output.status.success() {
-            return Err(PlatformError::NativeApiUnavailable(String::from_utf8_lossy(&output.stderr).into_owned()));
-        }
-        
-        Ok(())
+        self.wmi_brightness.set_brightness(level)
     }
 
     fn set_external_brightness(&self, _display: &DisplayInfo, _level: u8) -> Result<(), PlatformError> {
         Err(PlatformError::NotImplemented("External DDC/CI brightness not yet fully implemented".into()))
     }
 
-    fn read_hardware_brightness(&self, _display: &DisplayInfo) -> Result<u8, PlatformError> {
-        Err(PlatformError::NotImplemented("Hardware read-back not implemented".into()))
+    fn read_hardware_brightness(&self, display: &DisplayInfo) -> Result<u8, PlatformError> {
+        if display.is_internal {
+            self.wmi_brightness.get_brightness()
+        } else {
+            Err(PlatformError::NotImplemented("Hardware read-back for DDC not implemented".into()))
+        }
     }
 }
 
