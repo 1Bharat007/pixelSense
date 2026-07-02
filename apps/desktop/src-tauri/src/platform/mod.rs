@@ -11,6 +11,7 @@ pub mod facade;
 pub mod registry;
 pub mod cache;
 pub mod hardware;
+pub mod application;
 
 use self::error::PlatformError;
 use self::capabilities::PlatformCapabilities;

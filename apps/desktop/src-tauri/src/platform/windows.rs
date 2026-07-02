@@ -2,9 +2,12 @@ use super::{Platform, PlatformError};
 use crate::display::domain::DisplayInfo;
 use super::models::NativeDisplay;
 use crate::platform::capabilities::PlatformCapabilities;
-
-use std::ffi::OsString;
-use std::os::windows::ffi::OsStringExt;
+use windows::Win32::Foundation::{BOOL, LPARAM, HWND, MAX_PATH};
+use windows::Win32::Graphics::Gdi::{EnumDisplayMonitors, HDC};
+use windows::Win32::System::Power::{GetSystemPowerStatus, SYSTEM_POWER_STATUS};
+use windows::Win32::UI::WindowsAndMessaging::{GetForegroundWindow, GetWindowThreadProcessId};
+use windows::Win32::System::Threading::{OpenProcess, PROCESS_QUERY_LIMITED_INFORMATION};
+use windows::Win32::System::ProcessStatus::GetProcessImageFileNameW;
 
 use windows::Win32::Graphics::Gdi::{
     EnumDisplayMonitors, GetMonitorInfoW, HDC, HMONITOR, MONITORINFOEXW, MONITORINFOF_PRIMARY
@@ -145,16 +148,58 @@ impl SensorPlatform for WindowsPlatform {
 
 impl WindowPlatform for WindowsPlatform {
     fn get_active_window_executable(&self) -> Result<String, PlatformError> {
-        Err(PlatformError::NotImplemented("Window tracking stub".into()))
+        unsafe {
+            let hwnd = GetForegroundWindow();
+            if hwnd.0 == 0 {
+                return Err(PlatformError::NativeApiUnavailable("GetForegroundWindow failed".into()));
+            }
+
+            let mut process_id = 0;
+            GetWindowThreadProcessId(hwnd, Some(&mut process_id));
+
+            let process = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, false, process_id)
+                .map_err(|e| PlatformError::NativeApiUnavailable(format!("OpenProcess failed: {}", e)))?;
+
+            let mut buffer = [0u16; 512];
+            let len = GetProcessImageFileNameW(process, &mut buffer);
+            if len == 0 {
+                return Err(PlatformError::NativeApiUnavailable("GetProcessImageFileNameW failed".into()));
+            }
+
+            let path = std::ffi::OsString::from_wide(&buffer[..len as usize]);
+            let path_str = path.to_string_lossy().to_string();
+            // Extract just the executable name
+            let exe_name = std::path::Path::new(&path_str)
+                .file_name()
+                .map(|s| s.to_string_lossy().to_string())
+                .unwrap_or(path_str);
+
+            Ok(exe_name)
+        }
     }
 }
 
 impl PowerPlatform for WindowsPlatform {
     fn is_on_battery(&self) -> Result<bool, PlatformError> {
-        Ok(false)
+        let mut status = SYSTEM_POWER_STATUS::default();
+        unsafe {
+            if GetSystemPowerStatus(&mut status).is_err() {
+                return Err(PlatformError::NativeApiUnavailable("GetSystemPowerStatus failed".into()));
+            }
+        }
+        // ACLineStatus: 0 = Offline (battery), 1 = Online (AC)
+        Ok(status.ACLineStatus == 0)
     }
+    
     fn is_battery_saver_active(&self) -> Result<bool, PlatformError> {
-        Ok(false)
+        let mut status = SYSTEM_POWER_STATUS::default();
+        unsafe {
+            if GetSystemPowerStatus(&mut status).is_err() {
+                return Err(PlatformError::NativeApiUnavailable("GetSystemPowerStatus failed".into()));
+            }
+        }
+        // SystemStatusFlag: 1 = Battery saver is ON.
+        Ok(status.SystemStatusFlag == 1)
     }
 }
 
