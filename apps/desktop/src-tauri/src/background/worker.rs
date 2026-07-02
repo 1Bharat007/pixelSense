@@ -9,6 +9,8 @@ use crate::background::models::{
 use crate::background::profiler::PipelineProfiler;
 use crate::background::scheduler::PollingScheduler;
 use crate::background::service::Service;
+use crate::performance::manager::PerformanceManager;
+use crate::performance::models::PerformanceState;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex};
 use std::thread;
@@ -39,10 +41,11 @@ pub struct BackgroundWorker {
     health: Arc<Mutex<WorkerHealth>>,
     event_queue: Arc<EventQueue>,
     profiler: Arc<PipelineProfiler>,
+    performance_manager: Arc<PerformanceManager>,
 }
 
 impl BackgroundWorker {
-    pub fn new(config: BackgroundConfig) -> Self {
+    pub fn new(config: BackgroundConfig, performance_manager: Arc<PerformanceManager>) -> Self {
         let id = WorkerId::new("background_adaptive_worker");
         let health = WorkerHealth::initial(id.clone(), config.base_poll_interval_ms);
 
@@ -53,6 +56,7 @@ impl BackgroundWorker {
             health: Arc::new(Mutex::new(health)),
             event_queue: Arc::new(EventQueue::new()),
             profiler: Arc::new(PipelineProfiler::new()),
+            performance_manager,
         }
     }
 
@@ -83,7 +87,7 @@ impl BackgroundWorker {
 
     /// Run the worker loop. Called from a `std::thread` spawned by ServiceManager.
     pub fn run_loop(&self) {
-        let mut scheduler = PollingScheduler::new(self.config.clone());
+        let mut scheduler = PollingScheduler::new(self.performance_manager.clone());
 
         self.set_state(WorkerState::Running);
 
@@ -155,16 +159,26 @@ impl BackgroundWorker {
         let mut error_count = 0u32;
         let mut changed_brightness = false;
         let mut skipped_reason: Option<String> = None;
+        
+        let perf_state = self.performance_manager.evaluate_performance_state();
 
         // ── Step 1: Ambient (non-fatal) ───────────────────────────────────────
         let ambient_start = Instant::now();
-        // TODO: wire to AmbientManager::get_ambient_light() when sensor is available.
-        // Failure here must not stop the cycle — continue with ambient = None.
+        if perf_state.active_policy.pause_ambient {
+            // Skipped by policy
+        } else {
+            // TODO: wire to AmbientManager::get_ambient_light() when sensor is available.
+            // Failure here must not stop the cycle — continue with ambient = None.
+        }
         let ambient_ms = ambient_start.elapsed().as_millis() as u64;
 
         // ── Step 2: Screen Analysis (non-fatal) ───────────────────────────────
         let screen_start = Instant::now();
-        // TODO: wire to ScreenAnalysisManager::analyze_display() when capture is ready.
+        if perf_state.active_policy.pause_screen_analysis {
+            skipped_reason = Some("Screen Analysis paused by Performance Engine (Fullscreen/BatterySaver)".into());
+        } else {
+            // TODO: wire to ScreenAnalysisManager::analyze_display() when capture is ready.
+        }
         let screen_ms = screen_start.elapsed().as_millis() as u64;
 
         // ── Step 3: Comfort Profile Matching (non-fatal) ──────────────────────

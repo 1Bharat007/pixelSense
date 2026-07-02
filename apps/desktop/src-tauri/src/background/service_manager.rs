@@ -4,6 +4,8 @@ use crate::background::error::BackgroundError;
 use crate::background::models::{BackgroundDiagnostics, ServiceId, WorkerHealth};
 use crate::background::service::Service;
 use crate::background::worker::BackgroundWorker;
+use crate::performance::factory::create_performance_manager;
+use crate::performance::config::PerformanceConfig;
 use std::sync::Arc;
 use std::thread;
 
@@ -36,7 +38,8 @@ pub struct ServiceManager {
 
 impl ServiceManager {
     pub fn new(config: BackgroundConfig) -> Self {
-        let worker = Arc::new(BackgroundWorker::new(config.clone()));
+        let performance_manager = Arc::new(create_performance_manager(PerformanceConfig::default()));
+        let worker = Arc::new(BackgroundWorker::new(config.clone(), performance_manager));
         let watchdog = Arc::new(WorkerWatchdog::new(Arc::clone(&worker), config.clone()));
         let display_manager = Arc::new(DisplayWorkerManager::new());
 
