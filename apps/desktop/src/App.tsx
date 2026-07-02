@@ -1,99 +1,72 @@
-import { Sun, Moon, Monitor, BatteryMedium } from 'lucide-react';
+import { Monitor, LayoutDashboard, Settings2, Code2, Users, Info as InfoIcon } from 'lucide-react';
 import { useStore } from './store/useStore';
+import { useDashboard } from './hooks/useDashboard';
+import { Overview } from './pages/Overview';
+import { Developer } from './pages/Developer';
+import { Settings } from './pages/Settings';
+import { Profiles } from './pages/Profiles';
+import { About } from './pages/About';
+import { cn } from './lib/utils';
+
+const NAV_ITEMS = [
+  { id: 'Overview', label: 'Overview', icon: LayoutDashboard },
+  { id: 'Profiles', label: 'Profiles', icon: Users },
+  { id: 'Settings', label: 'Settings', icon: Settings2 },
+  { id: 'Developer', label: 'Developer', icon: Code2 },
+  { id: 'About', label: 'About', icon: InfoIcon },
+];
 
 function App() {
-  const { comfort, health } = useStore();
+  // Start the background polling engine.
+  // In production, this might be replaced/augmented by Tauri events.
+  useDashboard(500);
+
+  const { activeTab, setActiveTab } = useStore();
 
   return (
-    <div className="flex h-screen w-full bg-background text-foreground">
-      {/* Sidebar Placeholder */}
-      <aside className="w-64 border-r border-border bg-sidebar p-6 flex flex-col gap-4">
-        <div className="flex items-center gap-2 text-primary font-semibold text-xl mb-6">
+    <div className="flex h-screen w-full bg-background text-foreground overflow-hidden">
+      {/* Sidebar Navigation */}
+      <aside className="w-[240px] border-r border-border bg-sidebar flex flex-col pt-6 pb-4 shadow-sm z-10">
+        <div className="flex items-center gap-3 px-6 mb-8 text-sidebar-primary">
           <Monitor className="w-6 h-6 text-accent" />
-          <span>PixelSense</span>
+          <span className="font-semibold text-lg tracking-tight">PixelSense</span>
         </div>
         
-        <nav className="flex flex-col gap-2">
-          <button className="flex items-center gap-3 px-3 py-2 rounded-md bg-accent text-accent-foreground font-medium transition-colors">
-            Overview
-          </button>
-          <button className="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors">
-            Preferences
-          </button>
-          <button className="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors">
-            Developer
-          </button>
+        <nav className="flex flex-col gap-1 px-3">
+          {NAV_ITEMS.map(item => {
+            const Icon = item.icon;
+            const isActive = activeTab === item.id;
+            
+            return (
+              <button
+                key={item.id}
+                onClick={() => setActiveTab(item.id)}
+                className={cn(
+                  "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200",
+                  isActive 
+                    ? "bg-accent text-accent-foreground shadow-sm" 
+                    : "text-muted-foreground hover:bg-secondary/50 hover:text-foreground"
+                )}
+              >
+                <Icon className={cn("w-4 h-4", isActive ? "text-accent-foreground" : "text-muted-foreground opacity-70")} />
+                {item.label}
+              </button>
+            )
+          })}
         </nav>
+
+        <div className="mt-auto px-6">
+          <div className="text-xs text-muted-foreground/60 font-medium">v1.0.0-beta</div>
+        </div>
       </aside>
 
-      {/* Main Content */}
-      <main className="flex-1 p-10 overflow-y-auto">
-        <header className="mb-10">
-          <h1 className="text-3xl font-semibold tracking-tight">Overview</h1>
-          <p className="text-muted-foreground mt-1">Real-time comfort analysis</p>
-        </header>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Hero Card */}
-          <section className="col-span-1 rounded-xl border border-border bg-card text-card-foreground p-6 shadow-sm flex flex-col gap-4">
-            <h2 className="text-lg font-medium flex items-center justify-between">
-              Current Comfort
-              <span className="px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-500/10 text-green-500 border border-green-500/20">
-                {comfort.status}
-              </span>
-            </h2>
-            <div className="flex flex-col gap-1">
-              <span className="text-sm text-muted-foreground">Recommendation</span>
-              <p className="text-xl font-medium">{comfort.recommendation}</p>
-            </div>
-            <div className="flex flex-col gap-1 mt-auto">
-              <span className="text-sm text-muted-foreground">Engine Confidence</span>
-              <div className="w-full h-2 bg-secondary rounded-full overflow-hidden mt-1">
-                <div 
-                  className="h-full bg-accent rounded-full transition-all duration-1000" 
-                  style={{ width: `${comfort.confidence * 100}%` }}
-                />
-              </div>
-            </div>
-          </section>
-
-          {/* System Health Card */}
-          <section className="col-span-1 rounded-xl border border-border bg-card text-card-foreground p-6 shadow-sm flex flex-col gap-4">
-            <h2 className="text-lg font-medium">System Health</h2>
-            
-            <div className="flex flex-col gap-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Sun className="w-4 h-4 text-muted-foreground" />
-                  <span className="text-sm">Native Sensor</span>
-                </div>
-                <span className={`text-sm font-medium ${health.nativeSensorActive ? 'text-green-500' : 'text-muted-foreground'}`}>
-                  {health.nativeSensorActive ? 'Active' : 'Offline'}
-                </span>
-              </div>
-              
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Monitor className="w-4 h-4 text-muted-foreground" />
-                  <span className="text-sm">Screen Engine</span>
-                </div>
-                <span className={`text-sm font-medium ${health.screenEngineActive ? 'text-green-500' : 'text-muted-foreground'}`}>
-                  {health.screenEngineActive ? 'Active' : 'Offline'}
-                </span>
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <BatteryMedium className="w-4 h-4 text-muted-foreground" />
-                  <span className="text-sm">Performance Mode</span>
-                </div>
-                <span className="text-sm font-medium text-foreground">
-                  {health.performanceMode}
-                </span>
-              </div>
-            </div>
-          </section>
-        </div>
+      {/* Main Content Area */}
+      <main className="flex-1 bg-background relative overflow-hidden">
+        {activeTab === 'Overview' && <Overview />}
+        {activeTab === 'Profiles' && <Profiles />}
+        {activeTab === 'Settings' && <Settings />}
+        {activeTab === 'Developer' && <Developer />}
+        {activeTab === 'About' && <About />}
       </main>
     </div>
   );

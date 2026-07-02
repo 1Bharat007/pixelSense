@@ -1,42 +1,76 @@
 import { create } from 'zustand'
 
 export interface ComfortState {
-  status: 'Comfortable' | 'Adjusting' | 'Strained';
+  status: string;
   recommendation: string;
   confidence: number;
+  active_profile: string;
+  mode: string;
 }
 
-export interface EngineHealth {
-  nativeSensorActive: boolean;
-  screenEngineActive: boolean;
-  performanceMode: 'AC' | 'BatteryHigh' | 'BatteryLow' | 'BatterySaver';
+export interface AmbientState {
+  lux: number;
+  environment: string;
+  health: string;
+  confidence: number;
+  source: string;
+}
+
+export interface ScreenState {
+  average_luminance: number;
+  peak_luminance: number;
+  visual_complexity: number;
+  current_analysis_time_ms: number;
+}
+
+export interface BrightnessState {
+  current: number;
+  target: number;
+  transition_status: string;
+  transition_progress: number;
+  eye_comfort_score: number;
+}
+
+export interface PerformanceState {
+  cpu_usage_pct: number;
+  ram_usage_mb: number;
+  current_poll_interval_ms: number;
+  battery_mode: string;
+  power_state: string;
+  pipeline_duration_ms: number;
+}
+
+export interface EngineHealthState {
+  background_worker: string;
+  watchdog: string;
+  ambient_engine: string;
+  screen_engine: string;
+  comfort_engine: string;
+  transition_engine: string;
+}
+
+export interface DashboardState {
+  comfort: ComfortState;
+  ambient: AmbientState;
+  screen: ScreenState;
+  brightness: BrightnessState;
+  performance: PerformanceState;
+  health: EngineHealthState;
 }
 
 interface PixelSenseState {
-  comfort: ComfortState;
-  health: EngineHealth;
-  activeProfile: string;
+  dashboard: DashboardState | null;
+  activeTab: string;
   
   // Actions
-  setComfort: (comfort: ComfortState) => void;
-  setHealth: (health: EngineHealth) => void;
-  setActiveProfile: (profile: string) => void;
+  setDashboard: (dashboard: DashboardState) => void;
+  setActiveTab: (tab: string) => void;
 }
 
 export const useStore = create<PixelSenseState>((set) => ({
-  comfort: {
-    status: 'Comfortable',
-    recommendation: 'Optimal viewing conditions.',
-    confidence: 1.0,
-  },
-  health: {
-    nativeSensorActive: true,
-    screenEngineActive: true,
-    performanceMode: 'AC',
-  },
-  activeProfile: 'Productivity',
+  dashboard: null,
+  activeTab: 'Overview',
   
-  setComfort: (comfort) => set({ comfort }),
-  setHealth: (health) => set({ health }),
-  setActiveProfile: (profile) => set({ activeProfile: profile }),
+  setDashboard: (dashboard) => set({ dashboard }),
+  setActiveTab: (tab) => set({ activeTab: tab }),
 }))
