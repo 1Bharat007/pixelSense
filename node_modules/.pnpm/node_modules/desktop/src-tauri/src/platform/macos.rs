@@ -1,5 +1,6 @@
 use super::{Platform, PlatformError};
 use crate::display::domain::DisplayInfo;
+use crate::platform::capabilities::PlatformCapabilities;
 
 pub struct MacOSPlatform;
 
@@ -16,6 +17,10 @@ impl Default for MacOSPlatform {
 }
 
 impl Platform for MacOSPlatform {
+    fn get_capabilities(&self) -> Result<PlatformCapabilities, PlatformError> {
+        Ok(PlatformCapabilities::default())
+    }
+
     fn discover_displays(&self) -> Result<Vec<DisplayInfo>, PlatformError> {
         Err(PlatformError::NotImplemented("macOS display discovery not implemented".into()))
     }

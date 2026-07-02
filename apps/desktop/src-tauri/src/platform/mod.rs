@@ -7,6 +7,9 @@ pub mod mock;
 pub mod models;
 pub mod windows;
 pub mod capabilities;
+pub mod facade;
+pub mod registry;
+pub mod cache;
 
 use self::error::PlatformError;
 use self::capabilities::PlatformCapabilities;

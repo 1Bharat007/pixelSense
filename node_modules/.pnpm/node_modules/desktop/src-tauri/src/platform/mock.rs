@@ -1,5 +1,6 @@
 use super::{Platform, PlatformError};
 use crate::display::domain::DisplayInfo;
+use crate::platform::capabilities::PlatformCapabilities;
 use super::models::NativeDisplay;
 
 pub struct MockPlatform {
@@ -19,6 +20,10 @@ impl Default for MockPlatform {
 }
 
 impl Platform for MockPlatform {
+    fn get_capabilities(&self) -> Result<PlatformCapabilities, PlatformError> {
+        Ok(PlatformCapabilities::default()) // Mocks return defaults (false for everything)
+    }
+
     fn discover_displays(&self) -> Result<Vec<DisplayInfo>, PlatformError> {
         if self.return_empty_displays {
             return Ok(vec![]);

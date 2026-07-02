@@ -1,0 +1,53 @@
+import * as React from "react"
+import { cn } from "../../lib/utils"
+
+type StatusVariant = "default" | "success" | "warning" | "error" | "disabled";
+
+export interface StatusPillProps extends React.HTMLAttributes<HTMLSpanElement> {
+  variant?: StatusVariant;
+  pulse?: boolean;
+}
+
+export const StatusPill = React.forwardRef<HTMLSpanElement, StatusPillProps>(
+  ({ className, variant = "default", pulse = false, children, ...props }, ref) => {
+    
+    const variants: Record<StatusVariant, string> = {
+      default: "bg-secondary text-secondary-foreground border-transparent",
+      success: "bg-green-500/15 text-green-600 dark:text-green-400 border-green-500/20",
+      warning: "bg-yellow-500/15 text-yellow-600 dark:text-yellow-400 border-yellow-500/20",
+      error: "bg-red-500/15 text-red-600 dark:text-red-400 border-red-500/20",
+      disabled: "bg-muted text-muted-foreground border-transparent",
+    };
+
+    return (
+      <span
+        ref={ref}
+        className={cn(
+          "inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium border",
+          variants[variant],
+          className
+        )}
+        {...props}
+      >
+        {pulse && (
+          <span className="relative flex h-2 w-2">
+            <span className={cn(
+              "animate-ping absolute inline-flex h-full w-full rounded-full opacity-75",
+              variant === "success" ? "bg-green-400" :
+              variant === "warning" ? "bg-yellow-400" :
+              variant === "error" ? "bg-red-400" : "bg-primary"
+            )}></span>
+            <span className={cn(
+              "relative inline-flex rounded-full h-2 w-2",
+              variant === "success" ? "bg-green-500" :
+              variant === "warning" ? "bg-yellow-500" :
+              variant === "error" ? "bg-red-500" : "bg-primary"
+            )}></span>
+          </span>
+        )}
+        {children}
+      </span>
+    )
+  }
+)
+StatusPill.displayName = "StatusPill"

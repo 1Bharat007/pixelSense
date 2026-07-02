@@ -1,5 +1,6 @@
 use super::{Platform, PlatformError};
 use crate::display::domain::DisplayInfo;
+use crate::platform::capabilities::PlatformCapabilities;
 
 pub struct LinuxPlatform;
 
@@ -16,6 +17,10 @@ impl Default for LinuxPlatform {
 }
 
 impl Platform for LinuxPlatform {
+    fn get_capabilities(&self) -> Result<PlatformCapabilities, PlatformError> {
+        Ok(PlatformCapabilities::default())
+    }
+
     fn discover_displays(&self) -> Result<Vec<DisplayInfo>, PlatformError> {
         Err(PlatformError::NotImplemented("Linux display discovery not implemented".into()))
     }

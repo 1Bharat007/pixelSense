@@ -1,33 +1,95 @@
-export const Developer = () => {
+import { useStore } from "../store/useStore";
+import { Card } from "../components/ui/Card";
+import { Metric } from "../components/ui/Metric";
+import { Activity, Server, Clock, Database, ShieldAlert, Cpu } from "lucide-react";
+import { AnimatedValue } from "../components/ui/AnimatedValue";
+import { StatusPill } from "../components/ui/StatusPill";
+
+export function Developer() {
+  const { dashboard } = useStore();
+
+  if (!dashboard) {
+    return <div className="p-10">Loading diagnostics...</div>;
+  }
+
+  const { performance, health, screen, ambient, brightness } = dashboard;
+
   return (
-    <div>
-      <h1>Developer Diagnostics</h1>
-      <div className="card">
-        <h2>Hardware Diagnostics</h2>
-        <p><strong>CPU Usage:</strong> 1.2%</p>
-        <p><strong>Memory Usage (RAM):</strong> 14.5 MB</p>
-        <p><strong>Display Pipeline Latency:</strong> 4ms</p>
-      </div>
+    <div className="flex-1 p-10 overflow-y-auto w-full max-w-[1600px] mx-auto">
+      <header className="mb-10 flex justify-between items-end">
+        <div>
+          <h1 className="text-3xl font-semibold tracking-tight text-foreground flex items-center gap-3">
+            <Server className="w-8 h-8 text-accent" />
+            Developer Diagnostics
+          </h1>
+          <p className="text-muted-foreground mt-1">Raw telemetry and pipeline internals.</p>
+        </div>
+        <StatusPill variant={performance.power_state === "AC" ? "success" : "warning"} pulse>
+          Live Telemetry Active
+        </StatusPill>
+      </header>
 
-      <div className="card">
-        <h2>Internal Identifiers</h2>
-        <p><strong>Active Display ID:</strong> \\.\DISPLAY1 (1920x1080)</p>
-        <p><strong>Active Profile UUID:</strong> 7c9e6679-7425-40de-944b-e07fc1f90ae7</p>
-        <p><strong>Polling Rates:</strong> Ambient (1000ms), Screen (500ms)</p>
-      </div>
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+        
+        {/* Pipeline Profiler */}
+        <Card>
+          <div className="flex items-center gap-2 mb-6 border-b border-border pb-4">
+            <Clock className="w-5 h-5 text-muted-foreground" />
+            <h2 className="text-lg font-medium">Pipeline Profiler</h2>
+          </div>
+          <div className="grid grid-cols-2 gap-y-6 gap-x-4">
+            <Metric label="Total Cycle Time" value={<><AnimatedValue value={performance.pipeline_duration_ms} />ms</>} />
+            <Metric label="Screen Analysis" value={<><AnimatedValue value={screen.current_analysis_time_ms} />ms</>} />
+            <Metric label="Current Poll Interval" value={<><AnimatedValue value={performance.current_poll_interval_ms} />ms</>} />
+            <Metric label="Visual Complexity" value={<><AnimatedValue value={screen.visual_complexity * 100} format={v => v.toFixed(2)} />%</>} />
+          </div>
+        </Card>
 
-      <div className="card">
-        <h2>System Logs</h2>
-        <pre style={{ backgroundColor: 'var(--bg-primary)', padding: '1rem', borderRadius: '4px', overflowX: 'auto', fontSize: '0.85rem' }}>
-{`[INFO] PixelSense Backend Initialized
-[INFO] Discovered 1 monitor(s)
-[INFO] Loaded configuration from disk
-[INFO] ConfigService bound to Tauri state
-[INFO] AdaptiveBrightnessService listening for events
-[DEBUG] VisualComfortEngine calculated target: 65
-[DEBUG] TransitionManager executed Immediate transition`}
-        </pre>
+        {/* Worker Health */}
+        <Card>
+          <div className="flex items-center gap-2 mb-6 border-b border-border pb-4">
+            <ShieldAlert className="w-5 h-5 text-muted-foreground" />
+            <h2 className="text-lg font-medium">Service Architecture</h2>
+          </div>
+          <div className="space-y-4">
+            {Object.entries(health).map(([key, status]) => (
+              <div key={key} className="flex justify-between items-center text-sm">
+                <span className="font-mono text-muted-foreground">{key}</span>
+                <StatusPill variant={status === "Active" ? "success" : "error"}>{status}</StatusPill>
+              </div>
+            ))}
+          </div>
+        </Card>
+
+        {/* Ambient Internals */}
+        <Card>
+          <div className="flex items-center gap-2 mb-6 border-b border-border pb-4">
+            <Database className="w-5 h-5 text-muted-foreground" />
+            <h2 className="text-lg font-medium">Ambient Engine State</h2>
+          </div>
+          <div className="grid grid-cols-2 gap-y-6 gap-x-4">
+            <Metric label="Raw Lux" value={<AnimatedValue value={ambient.lux} format={v => v.toFixed(1)} />} />
+            <Metric label="Confidence Multiplier" value={<AnimatedValue value={ambient.confidence} format={v => v.toFixed(4)} />} />
+            <Metric label="Hardware Source" value={<span className="text-lg">{ambient.source}</span>} />
+            <Metric label="Computed Environment" value={<span className="text-lg">{ambient.environment}</span>} />
+          </div>
+        </Card>
+
+        {/* Brightness Controller */}
+        <Card>
+          <div className="flex items-center gap-2 mb-6 border-b border-border pb-4">
+            <Cpu className="w-5 h-5 text-muted-foreground" />
+            <h2 className="text-lg font-medium">Brightness Controller</h2>
+          </div>
+          <div className="grid grid-cols-2 gap-y-6 gap-x-4">
+            <Metric label="Current Display Level" value={<><AnimatedValue value={brightness.current} />%</>} />
+            <Metric label="Target Display Level" value={<><AnimatedValue value={brightness.target} />%</>} />
+            <Metric label="Transition State" value={<span className="text-lg">{brightness.transition_status}</span>} />
+            <Metric label="Transition Progress" value={<><AnimatedValue value={brightness.transition_progress * 100} format={v => Math.round(v).toString()} />%</>} />
+          </div>
+        </Card>
+
       </div>
     </div>
   );
-};
+}
