@@ -1,7 +1,6 @@
 pub mod domain;
 pub mod factory;
 pub mod manager;
-pub mod providers;
 
 #[cfg(test)]
 mod tests {

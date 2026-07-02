@@ -4,7 +4,6 @@ pub mod config;
 pub mod error;
 pub mod manager;
 pub mod models;
-pub mod native;
 pub mod provider;
 pub mod registry;
 pub mod smoothing;
