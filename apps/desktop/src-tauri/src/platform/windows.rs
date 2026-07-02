@@ -11,6 +11,7 @@ use windows::Win32::System::ProcessStatus::GetProcessImageFileNameW;
 use crate::platform::hardware::wmi::manager::WmiBrightnessManager;
 use crate::platform::hardware::dxgi::manager::DxgiDeviceManager;
 use crate::platform::hardware::dxgi::capture::DuplicationSession;
+use crate::platform::hardware::sensor::manager::SensorSession;
 use std::sync::{Arc, Mutex};
 use windows::Win32::System::Com::{CoInitializeEx, CoUninitialize, COINIT_MULTITHREADED, CoCreateInstance, CLSCTX_INPROC_SERVER, CLSCTX_LOCAL_SERVER};
 use windows::Win32::System::Wmi::{IWbemLocator, WbemLocator, IWbemServices};
@@ -27,6 +28,7 @@ pub struct WindowsPlatform {
     capabilities: PlatformCapabilities,
     wmi_brightness: WmiBrightnessManager,
     dxgi_manager: DxgiDeviceManager,
+    sensor_session: SensorSession,
 }
 
 impl WindowsPlatform {
@@ -35,6 +37,7 @@ impl WindowsPlatform {
             capabilities: PlatformCapabilities::detect(),
             wmi_brightness: WmiBrightnessManager::new(),
             dxgi_manager: DxgiDeviceManager::new(),
+            sensor_session: SensorSession::new(),
         }
     }
 }
@@ -157,14 +160,15 @@ impl CapturePlatform for WindowsPlatform {
 
 impl SensorPlatform for WindowsPlatform {
     fn read_ambient_light(&self) -> Result<crate::ambient::models::AmbientReading, PlatformError> {
-        // Fallback for when ISensorManager is unavailable (or not yet fully bound)
+        let lux = self.sensor_session.read_lux()?;
+        
         use crate::ambient::models::{AmbientReading, AmbientSensorType, AmbientEnvironment, AmbientQuality};
         use crate::background::models::now_ms;
 
         Ok(AmbientReading {
             source_id: "windows_native_als".into(),
             sensor_name: "Windows Native ALS (Facade)".into(),
-            lux: 250.0,
+            lux,
             normalized_lux: 0.0,
             environment: AmbientEnvironment::Office,
             confidence: 1.0,
