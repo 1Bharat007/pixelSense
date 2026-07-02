@@ -1,6 +1,8 @@
 use serde::Serialize;
 use std::sync::Arc;
 use crate::config::{AppConfig, ConfigService};
+use crate::intelligence::manager::{IntelligenceManager, IntelligencePayload};
+use crate::intelligence::models::{IntelligenceContext, HistorySummary};
 
 #[tauri::command]
 pub fn get_config(config_service: tauri::State<'_, Arc<ConfigService>>) -> AppConfig {
@@ -98,6 +100,7 @@ pub struct DashboardStatePayload {
     pub brightness: BrightnessStatePayload,
     pub performance: PerformanceStatePayload,
     pub health: EngineHealthPayload,
+    pub intelligence: IntelligencePayload,
 }
 
 #[tauri::command]
@@ -147,5 +150,23 @@ pub async fn get_dashboard_state() -> Result<DashboardStatePayload, String> {
             comfort_engine: "Active".into(),
             transition_engine: "Active".into(),
         },
+        intelligence: IntelligenceManager::new().generate_payload(&IntelligenceContext {
+            current_time_ms: 0,
+            comfort_profile: "Productivity".into(),
+            history_summary: HistorySummary {
+                total_events: 0,
+                brightness_changes_today: 0,
+                manual_overrides_today: 0,
+                longest_session_minutes: 0,
+                average_ambient_lux: 250.0,
+            },
+            current_ambient_lux: 250.0,
+            current_screen_luminance: 120.0,
+            worker_running: true,
+            performance_policy: "Balanced".into(),
+            active_application: "VSCode".into(),
+            active_display_id: "Primary".into(),
+            confidence_score: 0.95,
+        }),
     })
 }

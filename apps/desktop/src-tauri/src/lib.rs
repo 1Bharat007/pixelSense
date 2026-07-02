@@ -15,6 +15,7 @@ pub mod background;
 pub mod performance;
 pub mod tray;
 pub mod experience;
+pub mod intelligence;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 use tauri::Manager;
