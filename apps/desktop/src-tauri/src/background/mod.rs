@@ -23,6 +23,12 @@ mod tests {
     use crate::background::service_manager::ServiceManager;
     use crate::background::service::Service;
     use crate::background::worker::BackgroundWorker;
+    use crate::performance::factory::create_performance_manager;
+    use crate::performance::config::PerformanceConfig;
+    use crate::experience::history::manager::HistoryManager;
+    use crate::experience::multi_monitor::scheduler::MultiMonitorScheduler;
+    use std::sync::Arc;
+    use std::path::PathBuf;
     use std::thread;
     use std::time::Duration;
 
@@ -233,7 +239,10 @@ mod tests {
 
     #[test]
     fn test_worker_start_stop_no_panic() {
-        let worker = BackgroundWorker::new(default_config());
+        let perf = Arc::new(create_performance_manager(PerformanceConfig::default()));
+        let hist = Arc::new(HistoryManager::new(PathBuf::from("test_data")));
+        let sched = Arc::new(MultiMonitorScheduler::new());
+        let worker = BackgroundWorker::new(default_config(), perf, hist, sched);
         assert!(worker.start().is_ok());
         assert!(worker.stop().is_ok());
     }
@@ -241,7 +250,10 @@ mod tests {
     #[test]
     fn test_worker_already_running_returns_error() {
         use crate::background::error::BackgroundError;
-        let worker = BackgroundWorker::new(default_config());
+        let perf = Arc::new(create_performance_manager(PerformanceConfig::default()));
+        let hist = Arc::new(HistoryManager::new(PathBuf::from("test_data")));
+        let sched = Arc::new(MultiMonitorScheduler::new());
+        let worker = BackgroundWorker::new(default_config(), perf, hist, sched);
         worker.start().unwrap();
         // The state is now Initializing — the run_loop hasn't been called, so 
         // a second start should return AlreadyRunning.
@@ -255,14 +267,14 @@ mod tests {
 
     #[test]
     fn test_service_manager_starts_and_stops_no_panic() {
-        let manager = ServiceManager::new(default_config());
+        let manager = ServiceManager::new(default_config(), PathBuf::from("test_data"));
         let _ = manager.start(); // may succeed or fail depending on thread availability
         let _ = manager.stop();  // must not panic regardless
     }
 
     #[test]
     fn test_service_manager_diagnostics_accessible() {
-        let manager = ServiceManager::new(default_config());
+        let manager = ServiceManager::new(default_config(), PathBuf::from("test_data"));
         let diag = manager.get_diagnostics();
         // Just verify fields are readable — values depend on runtime state
         let _ = diag.queue_depth;

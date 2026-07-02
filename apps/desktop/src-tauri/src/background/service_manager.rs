@@ -6,8 +6,11 @@ use crate::background::service::Service;
 use crate::background::worker::BackgroundWorker;
 use crate::performance::factory::create_performance_manager;
 use crate::performance::config::PerformanceConfig;
+use crate::experience::history::manager::HistoryManager;
+use crate::experience::multi_monitor::scheduler::MultiMonitorScheduler;
 use std::sync::Arc;
 use std::thread;
+use std::path::PathBuf;
 
 /// Central lifecycle controller for all PixelSense background services.
 ///
@@ -33,19 +36,31 @@ use std::thread;
 pub struct ServiceManager {
     services: Vec<(ServiceId, Arc<dyn Service>)>,
     display_manager: Arc<DisplayWorkerManager>,
+    pub history_manager: Arc<HistoryManager>,
+    pub multi_monitor_scheduler: Arc<MultiMonitorScheduler>,
     config: BackgroundConfig,
 }
 
 impl ServiceManager {
-    pub fn new(config: BackgroundConfig) -> Self {
+    pub fn new(config: BackgroundConfig, app_data_dir: PathBuf) -> Self {
+        let history_manager = Arc::new(HistoryManager::new(app_data_dir));
+        let multi_monitor_scheduler = Arc::new(MultiMonitorScheduler::new());
         let performance_manager = Arc::new(create_performance_manager(PerformanceConfig::default()));
-        let worker = Arc::new(BackgroundWorker::new(config.clone(), performance_manager));
+        
+        let worker = Arc::new(BackgroundWorker::new(
+            config.clone(), 
+            performance_manager, 
+            Arc::clone(&history_manager), 
+            Arc::clone(&multi_monitor_scheduler)
+        ));
         let watchdog = Arc::new(WorkerWatchdog::new(Arc::clone(&worker), config.clone()));
         let display_manager = Arc::new(DisplayWorkerManager::new());
 
         let mut manager = Self {
             services: Vec::new(),
             display_manager,
+            history_manager,
+            multi_monitor_scheduler,
             config,
         };
 

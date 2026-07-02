@@ -11,6 +11,8 @@ use crate::background::scheduler::PollingScheduler;
 use crate::background::service::Service;
 use crate::performance::manager::PerformanceManager;
 use crate::performance::models::PerformanceState;
+use crate::experience::history::manager::HistoryManager;
+use crate::experience::multi_monitor::scheduler::MultiMonitorScheduler;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex};
 use std::thread;
@@ -42,10 +44,17 @@ pub struct BackgroundWorker {
     event_queue: Arc<EventQueue>,
     profiler: Arc<PipelineProfiler>,
     performance_manager: Arc<PerformanceManager>,
+    history_manager: Arc<HistoryManager>,
+    multi_monitor_scheduler: Arc<MultiMonitorScheduler>,
 }
 
 impl BackgroundWorker {
-    pub fn new(config: BackgroundConfig, performance_manager: Arc<PerformanceManager>) -> Self {
+    pub fn new(
+        config: BackgroundConfig, 
+        performance_manager: Arc<PerformanceManager>,
+        history_manager: Arc<HistoryManager>,
+        multi_monitor_scheduler: Arc<MultiMonitorScheduler>
+    ) -> Self {
         let id = WorkerId::new("background_adaptive_worker");
         let health = WorkerHealth::initial(id.clone(), config.base_poll_interval_ms);
 
@@ -57,6 +66,8 @@ impl BackgroundWorker {
             event_queue: Arc::new(EventQueue::new()),
             profiler: Arc::new(PipelineProfiler::new()),
             performance_manager,
+            history_manager,
+            multi_monitor_scheduler,
         }
     }
 
