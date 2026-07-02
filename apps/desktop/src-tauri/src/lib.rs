@@ -13,6 +13,7 @@ pub mod adaptive;
 pub mod screen_analysis;
 pub mod background;
 pub mod performance;
+pub mod tray;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 use tauri::Manager;
@@ -33,7 +34,9 @@ pub fn run() {
             commands::get_config,
             commands::save_config,
             commands::preview_brightness,
-            commands::lock_current_comfort
+            commands::lock_current_comfort,
+            commands::get_comfort_state,
+            commands::get_engine_health
         ])
     .setup(|app| {
       if cfg!(debug_assertions) {
@@ -43,7 +46,18 @@ pub fn run() {
             .build(),
         )?;
       }
+      
+      // Initialize System Tray
+      tray::create_tray(app.handle()).expect("Failed to initialize tray");
+      
       Ok(())
+    })
+    .on_window_event(|window, event| match event {
+        tauri::WindowEvent::CloseRequested { api, .. } => {
+            window.hide().unwrap();
+            api.prevent_close();
+        }
+        _ => {}
     })
     .run(tauri::generate_context!())
     .expect("error while running tauri application");

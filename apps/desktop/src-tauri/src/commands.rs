@@ -1,3 +1,4 @@
+use serde::Serialize;
 use std::sync::Arc;
 use crate::config::{AppConfig, ConfigService};
 
@@ -33,4 +34,36 @@ pub fn lock_current_comfort(
     // We would pass the current ambient light and screen luminance.
     // For UI development and following constraints, we just return Ok.
     Ok(())
+}
+
+#[derive(Serialize)]
+pub struct ComfortStatePayload {
+    pub status: String,
+    pub recommendation: String,
+    pub confidence: f32,
+}
+
+#[derive(Serialize)]
+pub struct EngineHealthPayload {
+    pub native_sensor_active: bool,
+    pub screen_engine_active: bool,
+    pub performance_mode: String,
+}
+
+#[tauri::command]
+pub async fn get_comfort_state() -> Result<ComfortStatePayload, String> {
+    Ok(ComfortStatePayload {
+        status: "Comfortable".into(),
+        recommendation: "Optimal viewing conditions.".into(),
+        confidence: 0.95,
+    })
+}
+
+#[tauri::command]
+pub async fn get_engine_health() -> Result<EngineHealthPayload, String> {
+    Ok(EngineHealthPayload {
+        native_sensor_active: true,
+        screen_engine_active: true,
+        performance_mode: "AC".into(),
+    })
 }
