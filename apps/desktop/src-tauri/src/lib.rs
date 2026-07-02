@@ -12,6 +12,7 @@ pub mod decision;
 pub mod adaptive;
 pub mod screen_analysis;
 pub mod background;
+pub mod performance;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 use tauri::Manager;
