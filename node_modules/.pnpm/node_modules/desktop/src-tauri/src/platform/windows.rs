@@ -61,6 +61,99 @@ unsafe extern "system" fn monitor_enum_proc(
     BOOL(1) // Continue enumeration
 }
 
+use crate::platform::facade::{DisplayPlatform, BrightnessPlatform, CapturePlatform, SensorPlatform, WindowPlatform, PowerPlatform, SessionPlatform, PlatformFacade};
+
+impl DisplayPlatform for WindowsPlatform {
+    fn discover_displays(&self) -> Result<Vec<DisplayInfo>, PlatformError> {
+        let mut native_displays: Vec<NativeDisplay> = Vec::new();
+        let lparam = LPARAM(&mut native_displays as *mut _ as isize);
+        
+        unsafe {
+            let result = EnumDisplayMonitors(None, None, Some(monitor_enum_proc), lparam);
+            if !result.as_bool() {
+                return Err(PlatformError::NativeApiUnavailable("EnumDisplayMonitors failed".into()));
+            }
+        }
+        
+        Ok(native_displays.into_iter().map(|nd| nd.into()).collect())
+    }
+
+    fn get_display_capabilities(&self, _display: &DisplayInfo) -> Result<crate::display::domain::DisplayCapabilities, PlatformError> {
+        Ok(crate::display::domain::DisplayCapabilities {
+            brightness: true,
+            hdr: false,
+            ddc_ci: true, // Will be dynamically queried in future PRs
+        })
+    }
+}
+
+impl BrightnessPlatform for WindowsPlatform {
+    fn set_internal_brightness(&self, level: u8) -> Result<(), PlatformError> {
+        let script = format!("(Get-WmiObject -Namespace root/WMI -Class WmiMonitorBrightnessMethods).WmiSetBrightness(1, {})", level);
+        let output = std::process::Command::new("powershell")
+            .args(["-NoProfile", "-Command", &script])
+            .output()
+            .map_err(|e| PlatformError::NativeApiUnavailable(e.to_string()))?;
+
+        if !output.status.success() {
+            return Err(PlatformError::NativeApiUnavailable(String::from_utf8_lossy(&output.stderr).into_owned()));
+        }
+        Ok(())
+    }
+
+    fn set_external_brightness(&self, _display: &DisplayInfo, _level: u8) -> Result<(), PlatformError> {
+        Err(PlatformError::NotImplemented("External DDC/CI brightness not yet fully implemented".into()))
+    }
+
+    fn read_hardware_brightness(&self, _display: &DisplayInfo) -> Result<u8, PlatformError> {
+        Err(PlatformError::NotImplemented("Hardware read-back not implemented".into()))
+    }
+}
+
+// Temporary stubs for remaining platforms (to be implemented fully in subsequent phases)
+impl CapturePlatform for WindowsPlatform {
+    fn acquire_next_frame(&self, _display_id: &str) -> Result<crate::screen_analysis::frame::scaler::RawFrameBuffer, PlatformError> {
+        Err(PlatformError::NotImplemented("DXGI Capture stub".into()))
+    }
+}
+
+impl SensorPlatform for WindowsPlatform {
+    fn read_ambient_light(&self) -> Result<crate::ambient::models::AmbientReading, PlatformError> {
+        Err(PlatformError::NotImplemented("Ambient Sensor stub".into()))
+    }
+}
+
+impl WindowPlatform for WindowsPlatform {
+    fn get_active_window_executable(&self) -> Result<String, PlatformError> {
+        Err(PlatformError::NotImplemented("Window tracking stub".into()))
+    }
+}
+
+impl PowerPlatform for WindowsPlatform {
+    fn is_on_battery(&self) -> Result<bool, PlatformError> {
+        Ok(false)
+    }
+    fn is_battery_saver_active(&self) -> Result<bool, PlatformError> {
+        Ok(false)
+    }
+}
+
+impl SessionPlatform for WindowsPlatform {
+    fn is_session_locked(&self) -> Result<bool, PlatformError> {
+        Ok(false)
+    }
+}
+
+impl PlatformFacade for WindowsPlatform {
+    fn display(&self) -> &dyn DisplayPlatform { self }
+    fn brightness(&self) -> &dyn BrightnessPlatform { self }
+    fn capture(&self) -> &dyn CapturePlatform { self }
+    fn sensor(&self) -> &dyn SensorPlatform { self }
+    fn window(&self) -> &dyn WindowPlatform { self }
+    fn power(&self) -> &dyn PowerPlatform { self }
+    fn session(&self) -> &dyn SessionPlatform { self }
+}
+
 impl Platform for WindowsPlatform {
     fn get_capabilities(&self) -> Result<PlatformCapabilities, PlatformError> {
         Ok(PlatformCapabilities {
