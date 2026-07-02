@@ -1,3 +1,12 @@
+use std::time::{SystemTime, UNIX_EPOCH};
+
+pub fn now_ms() -> u64 {
+    SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .unwrap_or_default()
+        .as_millis() as u64
+}
+
 #[derive(Debug, Clone, PartialEq)]
 pub enum AmbientEnvironment {
     PitchBlack,
@@ -13,7 +22,7 @@ pub enum AmbientEnvironment {
 #[derive(Debug, Clone, PartialEq)]
 pub enum AmbientSensorType {
     NativeSensor,
-    Estimated,
+    EstimatedUnavailable, // Specifically for our fallback policy
     ExternalSensor,
     Unknown,
 }
@@ -24,20 +33,67 @@ pub enum AmbientQuality {
     Good,
     Fair,
     Poor,
+    Stale, // Represents reading that hasn't been updated recently
 }
 
 #[derive(Debug, Clone, PartialEq)]
-pub enum AmbientSensorState {
+pub enum SensorState {
+    Discovering,
+    Available,
     Unavailable,
-    Initializing,
-    Reading,
-    Stable,
+    Sleeping,
+    Recovering,
     Error,
+    Disposed,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct SensorInfo {
+    pub manufacturer: String,
+    pub device_name: String,
+    pub hardware_id: String,
+    pub driver_version: String,
+    // Capabilities
+    pub supports_events: bool,
+    pub supports_polling: bool,
+    pub minimum_lux: f32,
+    pub maximum_lux: f32,
+    pub sampling_frequency: u32,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct SensorHealth {
+    pub last_update: u64,
+    pub update_frequency_ms: u64,
+    pub total_updates: u64,
+    pub missed_updates: u64,
+    pub failure_count: u32,
+    pub recovery_count: u32,
+    pub current_state: SensorState,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct AmbientDiagnostics {
+    pub sensor_available: bool,
+    pub provider: String,
+    pub confidence: f32,
+    pub last_read: u64,
+    pub poll_count: u64,
+    pub failure_count: u32,
+    pub last_error: Option<String>,
+    // Extended fields
+    pub callback_active: bool,
+    pub cached_reading_age_ms: u64,
+    pub sensor_state: SensorState,
+    pub sensor_count: usize,
+    pub stale_reading: bool,
+    pub last_callback_duration_ms: u64,
 }
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct AmbientReading {
     pub source_id: String,
+    pub sensor_name: String,
     pub lux: f32,
     pub normalized_lux: f32,
     pub environment: AmbientEnvironment,
@@ -46,6 +102,8 @@ pub struct AmbientReading {
     pub timestamp: u64,
     pub quality: AmbientQuality,
     pub is_stable: bool,
+    pub reading_duration_ms: u64,
+    pub is_estimated: bool,
 }
 
 impl AmbientReading {

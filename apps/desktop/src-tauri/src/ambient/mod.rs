@@ -1,64 +1,84 @@
+pub mod calibration;
 pub mod confidence;
 pub mod config;
 pub mod error;
-pub mod factory;
 pub mod manager;
 pub mod models;
+pub mod native;
 pub mod provider;
-pub mod providers;
+pub mod registry;
 pub mod smoothing;
 
 #[cfg(test)]
 mod tests {
+    use crate::ambient::calibration::linear::LinearCalibration;
     use crate::ambient::config::AmbientConfig;
     use crate::ambient::error::AmbientError;
-    use crate::ambient::factory::create_ambient_manager;
-    use crate::ambient::models::{AmbientEnvironment, AmbientSensorState};
-    use crate::ambient::providers::mock::MockAmbientProvider;
+    use crate::ambient::manager::AmbientManager;
+    use crate::ambient::models::{AmbientEnvironment, AmbientSensorType, SensorState};
+    use crate::ambient::native::mock::MockAmbientProvider;
+    use crate::ambient::registry::SensorRegistry;
+    use crate::ambient::smoothing::BasicSmoothingStrategy;
+    use std::sync::Arc;
 
-    #[test]
-    fn test_environment_mapping() {
-        let manager = create_ambient_manager(AmbientConfig::default());
-        // Since we inject mock provider via factory, we can't easily change lux directly 
-        // without downcasting, so we'll just test the mock default (150 lux -> Indoor)
-        let reading = manager.get_ambient_light().unwrap();
-        assert_eq!(reading.environment, AmbientEnvironment::Indoor);
+    fn create_test_manager(provider: Arc<MockAmbientProvider>, config: Option<AmbientConfig>) -> AmbientManager {
+        let mut registry = SensorRegistry::new();
+        registry.register(provider);
+        AmbientManager::new(
+            config.unwrap_or_default(),
+            registry,
+            Box::new(LinearCalibration::new(10000.0)),
+            Box::new(BasicSmoothingStrategy::new(5)),
+        )
     }
 
     #[test]
-    fn test_sensor_unavailable() {
-        use crate::ambient::manager::AmbientManager;
-        use crate::ambient::smoothing::BasicSmoothingStrategy;
-        
-        let provider = Box::new(MockAmbientProvider::new("mock_2".into()));
+    fn test_environment_mapping() {
+        let provider = Arc::new(MockAmbientProvider::new());
+        provider.set_lux(150.0);
+        let manager = create_test_manager(provider, None);
+
+        let reading = manager.get_ambient_light().unwrap();
+        assert_eq!(reading.environment, AmbientEnvironment::Indoor);
+        assert_eq!(reading.is_estimated, false);
+    }
+
+    #[test]
+    fn test_sensor_unavailable_fallback_policy() {
+        let provider = Arc::new(MockAmbientProvider::new());
         provider.set_available(false); // Disable sensor
         
-        let manager = AmbientManager::new(
-            AmbientConfig::default(),
-            provider,
-            Box::new(BasicSmoothingStrategy::new(5)),
-        );
+        let manager = create_test_manager(provider, None);
         
         let result = manager.get_ambient_light();
-        assert!(matches!(result, Err(AmbientError::SensorUnavailable(_))));
-        assert_eq!(manager.get_state(), AmbientSensorState::Error);
+        assert!(result.is_ok());
+        let reading = result.unwrap();
+        
+        // Assert fallback policy matches
+        assert_eq!(reading.sensor_type, AmbientSensorType::EstimatedUnavailable);
+        assert_eq!(reading.confidence, 0.0);
+        assert_eq!(reading.is_estimated, true);
+        
+        let health = manager.get_health();
+        assert_eq!(health.current_state, SensorState::Unavailable);
     }
 
     #[test]
     fn test_threshold_filtering() {
-        use crate::ambient::manager::AmbientManager;
-        use crate::ambient::smoothing::BasicSmoothingStrategy;
-
-        let provider = Box::new(MockAmbientProvider::new("mock_3".into()));
+        let provider = Arc::new(MockAmbientProvider::new());
         provider.set_lux(100.0);
         
+        let mut config = AmbientConfig::default();
+        config.minimum_change_threshold = 10.0;
+        config.smoothing_enabled = false;
+        
+        let mut registry = SensorRegistry::new();
+        registry.register(provider.clone());
+        
         let manager = AmbientManager::new(
-            AmbientConfig {
-                minimum_change_threshold: 10.0,
-                smoothing_enabled: false,
-                ..Default::default()
-            },
-            provider.clone(),
+            config,
+            registry,
+            Box::new(LinearCalibration::new(10000.0)),
             Box::new(BasicSmoothingStrategy::new(1)),
         );
 
@@ -79,18 +99,19 @@ mod tests {
 
     #[test]
     fn test_smoothing() {
-        use crate::ambient::manager::AmbientManager;
-        use crate::ambient::smoothing::BasicSmoothingStrategy;
-
-        let provider = Box::new(MockAmbientProvider::new("mock_4".into()));
+        let provider = Arc::new(MockAmbientProvider::new());
+        
+        let mut config = AmbientConfig::default();
+        config.minimum_change_threshold = 0.0; // Disable threshold
+        config.smoothing_enabled = true;
+        
+        let mut registry = SensorRegistry::new();
+        registry.register(provider.clone());
         
         let manager = AmbientManager::new(
-            AmbientConfig {
-                minimum_change_threshold: 0.0, // Disable threshold to observe smoothing pure math
-                smoothing_enabled: true,
-                ..Default::default()
-            },
-            provider.clone(),
+            config,
+            registry,
+            Box::new(LinearCalibration::new(10000.0)),
             Box::new(BasicSmoothingStrategy::new(2)), // Moving average of last 2
         );
 
@@ -104,6 +125,6 @@ mod tests {
 
         provider.set_lux(300.0);
         let r3 = manager.get_ambient_light().unwrap();
-        assert_eq!(r3.normalized_lux, 250.0); // (200 + 300) / 2 (since max samples is 2)
+        assert_eq!(r3.normalized_lux, 250.0); // (200 + 300) / 2
     }
 }

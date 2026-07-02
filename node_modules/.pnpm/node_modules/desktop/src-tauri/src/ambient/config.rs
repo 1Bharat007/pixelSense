@@ -6,6 +6,7 @@ pub struct AmbientConfig {
     pub minimum_change_threshold: f32,
     pub smoothing_enabled: bool,
     pub fallback_enabled: bool,
+    pub stale_timeout_ms: u64, // ms before reading is considered stale
 }
 
 impl Default for AmbientConfig {
@@ -17,6 +18,7 @@ impl Default for AmbientConfig {
             minimum_change_threshold: 5.0,
             smoothing_enabled: true,
             fallback_enabled: true,
+            stale_timeout_ms: 10_000,
         }
     }
 }
