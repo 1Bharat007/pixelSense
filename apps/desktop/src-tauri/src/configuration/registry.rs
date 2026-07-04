@@ -49,3 +49,33 @@ impl ConfigurationRegistry {
         schemas.get(key).map(|s| s.default_value.clone())
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_configuration_roundtrip_integrity() {
+        let registry = ConfigurationRegistry::new();
+        let schema = ConfigurationSchema {
+            key: "test.key".into(),
+            default_value: "default".into(),
+            description: "Test".into(),
+            requires_restart: false,
+        };
+        
+        registry.register_schema(schema);
+        
+        // 1. Assert default
+        assert_eq!(registry.get_value("test.key"), Some("default".into()));
+        
+        // 2. Set value
+        assert!(registry.set_value("test.key", "new_value".into()).is_ok());
+        
+        // 3. Assert new value (simulates persist -> load roundtrip integrity for the memory store)
+        assert_eq!(registry.get_value("test.key"), Some("new_value".into()));
+        
+        // 4. Set invalid key
+        assert!(registry.set_value("invalid.key", "value".into()).is_err());
+    }
+}

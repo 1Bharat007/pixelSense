@@ -104,4 +104,29 @@ mod tests {
         let result = engine.calculate_comfort(ctx);
         assert_eq!(result.recommendation.action, RecommendationAction::NoChange);
     }
+
+    #[test]
+    fn property_test_brightness_bounds() {
+        let engine = create_visual_comfort_engine(ComfortConfig {
+            minimum_brightness: 10,
+            maximum_brightness: 100,
+            ..Default::default()
+        });
+
+        // Simulating property-based testing across thousands of bounds
+        for lux in 0..10000 {
+            for luminance in 0..500 {
+                let mut ctx = mock_context();
+                ctx.ambient_light = Some(lux as f32);
+                ctx.screen_luminance = Some(luminance as f32);
+                
+                let result = engine.calculate_comfort(ctx);
+                
+                if result.recommendation.action != RecommendationAction::Ignore && result.recommendation.action != RecommendationAction::NoChange {
+                    let b = result.recommendation.recommended_brightness;
+                    assert!(b >= 10 && b <= 100, "Property violated: brightness {} is out of bounds [10, 100]", b);
+                }
+            }
+        }
+    }
 }
