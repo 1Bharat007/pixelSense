@@ -1,0 +1,60 @@
+name: Release Pipeline
+
+on:
+  push:
+    tags:
+      - 'v*'
+  pull_request:
+    branches: [ "master" ]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  validate:
+    name: Validation Gates
+    runs-on: windows-latest
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Rust Toolchain
+      uses: dtolnay/rust-toolchain@stable
+      
+    - name: Check Formatting
+      run: cargo fmt -- --check
+      
+    - name: Clippy Lints
+      run: cargo clippy -- -D warnings
+      
+    - name: Run Tests
+      run: cargo test --all-features
+      
+  build:
+    name: Build Artifacts
+    needs: validate
+    runs-on: windows-latest
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Rust Toolchain
+      uses: dtolnay/rust-toolchain@stable
+      
+    - name: Install Tauri CLI
+      run: cargo install tauri-cli
+      
+    - name: Install Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+        
+    - name: Install Frontend Dependencies
+      run: npm install
+      
+    - name: Build Installer (Release)
+      run: cargo tauri build
+      
+    - name: Upload Artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: PixelSense-Windows
+        path: src-tauri/target/release/bundle/
