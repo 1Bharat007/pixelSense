@@ -1,9 +1,12 @@
 {
   "name": "pixelsense",
   "private": true,
+  "workspaces": [
+    "apps/*"
+  ],
   "scripts": {
-    "lint": "pnpm --filter \"./apps/desktop\" lint",
-    "build": "pnpm --filter \"./apps/desktop\" build",
-    "tauri": "pnpm --filter \"./apps/desktop\" tauri"
+    "lint": "npm run lint --workspace=desktop",
+    "build": "npm run build --workspace=desktop",
+    "tauri": "npm run tauri --workspace=desktop"
   }
 }
