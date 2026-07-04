@@ -1,0 +1,26 @@
+name: Performance Benchmarks
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+jobs:
+  run_benchmarks:
+    name: Execute Cargo Bench
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Install Rust
+      uses: dtolnay/rust-toolchain@stable
+      
+    - name: Run Benchmarks
+      run: |
+        if cargo bench --dry-run &>/dev/null; then
+          cargo bench
+        else
+          echo "No benchmark targets found. Skipping."
+        fi
+      shell: bash

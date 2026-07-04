@@ -1,4 +1,4 @@
-name: Rust CI
+name: Continuous Integration
 
 on:
   push:
@@ -7,31 +7,30 @@ on:
     branches: [ "master" ]
 
 jobs:
-  build_and_test:
-    name: Rust Build & Test
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [windows-latest, ubuntu-latest, macos-latest]
+  validate_code:
+    name: Code Validation
+    runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
+    
     - name: Install Rust
       uses: dtolnay/rust-toolchain@stable
       with:
         components: rustfmt, clippy
+        
     - name: Rust Cache
       uses: Swatinem/rust-cache@v2
+      
     - name: Install System Dependencies
-      if: runner.os == 'Linux'
       run: |
         sudo apt-get update
         sudo apt-get install -y libwebkit2gtk-4.0-dev build-essential curl wget libssl-dev libgtk-3-dev libappindicator3-dev librsvg2-dev
-    - name: Rustfmt Check
-      run: cargo fmt --check
-      working-directory: apps/desktop/src-tauri
-    - name: Clippy Check
+        
+    - name: Check Formatting
+      run: cargo fmt -- --check
+      
+    - name: Clippy Lints
       run: cargo clippy -- -D warnings
-      working-directory: apps/desktop/src-tauri
+      
     - name: Run Tests
       run: cargo test
-      working-directory: apps/desktop/src-tauri

@@ -1,0 +1,27 @@
+name: Documentation Validation
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+jobs:
+  validate_docs:
+    name: mdBook Validation
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Install Rust
+      uses: dtolnay/rust-toolchain@stable
+      
+    - name: Run mdBook Check
+      run: |
+        if [ -d "docs" ] && [ -f "book.toml" ]; then
+          cargo install mdbook mdbook-linkcheck
+          mdbook build docs
+        else
+          echo "No active mdBook configuration found. Skipping."
+        fi
+      shell: bash
