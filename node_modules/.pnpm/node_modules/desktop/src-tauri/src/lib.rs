@@ -1,11 +1,9 @@
 pub mod brightness;
-pub mod capabilities;
 pub mod display;
 pub mod commands;
 pub mod ambient;
-pub mod comfort;
 pub mod visual_comfort;
-pub mod config;
+pub mod configuration;
 pub mod platform;
 pub mod transition;
 pub mod decision;
@@ -16,19 +14,25 @@ pub mod performance;
 pub mod tray;
 pub mod experience;
 pub mod intelligence;
+pub mod core;
+pub mod plugin;
+pub mod governance;
+pub mod security;
+pub mod crash;
+pub mod installer;
+pub mod update;
+pub mod logging;
+pub mod diagnostics;
+pub mod dashboard;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 use tauri::Manager;
 
 pub fn run() {
   tauri::Builder::default()
-        .setup(|app| {
-            let config_path = app.path().app_config_dir().unwrap_or_default().join("config.json");
-            if let Some(parent) = config_path.parent() {
-                std::fs::create_dir_all(parent).unwrap_or_default();
-            }
-            let config_service = std::sync::Arc::new(config::ConfigService::new(config_path));
-            app.manage(config_service);
+        .setup(|_app| {
+            // ServiceRegistry will be injected here in later phases
+
 
             Ok(())
         })

@@ -7,8 +7,7 @@ pub mod strategies;
 #[cfg(test)]
 mod tests {
     use crate::visual_comfort::factory::create_visual_comfort_engine;
-    use crate::visual_comfort::models::{ComfortConfig, VisualComfortContext, RecommendationAction};
-    use crate::comfort::models::ComfortProfile;
+    use crate::visual_comfort::models::{ComfortConfig, VisualComfortContext, RecommendationAction, ComfortProfile};
     use std::thread;
     use std::time::Duration;
 

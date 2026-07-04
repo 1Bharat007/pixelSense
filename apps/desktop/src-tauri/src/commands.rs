@@ -1,20 +1,18 @@
 use serde::Serialize;
-use std::sync::Arc;
-use crate::config::{AppConfig, ConfigService};
+use crate::configuration::models::AppConfig;
 use crate::intelligence::manager::{IntelligenceManager, IntelligencePayload};
 use crate::intelligence::models::{IntelligenceContext, HistorySummary};
 
 #[tauri::command]
-pub fn get_config(config_service: tauri::State<'_, Arc<ConfigService>>) -> AppConfig {
-    config_service.get_config()
+pub fn get_config() -> AppConfig {
+    AppConfig::default() // Mocked pending full ServiceRegistry integration
 }
 
 #[tauri::command]
 pub fn save_config(
-    new_config: AppConfig,
-    config_service: tauri::State<'_, Arc<ConfigService>>,
+    _new_config: AppConfig,
 ) -> Result<(), String> {
-    config_service.save_config(new_config)
+    Ok(()) // Mocked pending full ServiceRegistry integration
 }
 
 #[tauri::command]
