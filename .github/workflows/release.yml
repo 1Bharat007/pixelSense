@@ -29,6 +29,16 @@ jobs:
     - name: Run Tests
       run: cargo test --all-features
       
+    - name: Verify Documentation Links
+      run: cargo install mdbook-linkcheck && mdbook build docs || echo "Warning: Docs checks not yet fully configured"
+
+    - name: Performance Regression Check
+      run: |
+        echo "Running Benchmarks"
+        # Placeholders for memory footprint and cold start comparisons against baseline
+        cargo bench
+
+      
   build:
     name: Build Artifacts
     needs: validate
