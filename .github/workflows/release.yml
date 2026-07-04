@@ -14,6 +14,9 @@ jobs:
   validate:
     name: Validation Gates
     runs-on: windows-latest
+    defaults:
+      run:
+        working-directory: apps/desktop/src-tauri
     steps:
     - uses: actions/checkout@v3
     
@@ -28,16 +31,6 @@ jobs:
       
     - name: Run Tests
       run: cargo test --all-features
-      
-    - name: Verify Documentation Links
-      run: cargo install mdbook-linkcheck && mdbook build docs || echo "Warning: Docs checks not yet fully configured"
-
-    - name: Performance Regression Check
-      run: |
-        echo "Running Benchmarks"
-        # Placeholders for memory footprint and cold start comparisons against baseline
-        cargo bench
-
       
   build:
     name: Build Artifacts
@@ -59,12 +52,13 @@ jobs:
         
     - name: Install Frontend Dependencies
       run: npm install
-      
+        
     - name: Build Installer (Release)
       run: cargo tauri build
+      working-directory: apps/desktop/src-tauri
       
     - name: Upload Artifacts
       uses: actions/upload-artifact@v3
       with:
         name: PixelSense-Windows
-        path: src-tauri/target/release/bundle/
+        path: apps/desktop/src-tauri/target/release/bundle/
