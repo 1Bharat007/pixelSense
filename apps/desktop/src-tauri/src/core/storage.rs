@@ -41,4 +41,33 @@ impl StorageManager {
         
         fs::read(&target_path).map_err(|e| e.to_string())
     }
+
+    pub fn append(&self, relative_path: &str, content: &[u8]) -> Result<(), String> {
+        let mut target_path = self.base_path.clone();
+        target_path.push(relative_path);
+
+        if let Some(parent) = target_path.parent() {
+            fs::create_dir_all(parent).map_err(|e| e.to_string())?;
+        }
+
+        let mut file = std::fs::OpenOptions::new()
+            .create(true)
+            .append(true)
+            .open(&target_path)
+            .map_err(|e| e.to_string())?;
+
+        file.write_all(content).map_err(|e| e.to_string())?;
+        file.sync_all().map_err(|e| e.to_string())?;
+        Ok(())
+    }
+
+    pub fn remove_file(&self, relative_path: &str) -> Result<(), String> {
+        let mut target_path = self.base_path.clone();
+        target_path.push(relative_path);
+
+        if target_path.exists() {
+            fs::remove_file(&target_path).map_err(|e| e.to_string())?;
+        }
+        Ok(())
+    }
 }
