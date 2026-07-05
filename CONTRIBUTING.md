@@ -1,31 +1,29 @@
-# PixelSense — Contributing
+# Contributing to PixelSense
 
-Thank you for considering contributing to PixelSense.
+We love your input! We want to make contributing to PixelSense as easy and transparent as possible, whether it's:
+- Reporting a bug
+- Discussing the current state of the code
+- Submitting a fix
+- Proposing new features
 
-## Before You Contribute
+## Development Setup
+PixelSense requires Node.js 20+ and Rust 1.75+.
+```bash
+# Clone the repository
+git clone https://github.com/pixelSense/pixelSense.git
 
-Please take a few minutes to read:
+# Install dependencies
+npm install
 
-1. **[Product Vision](PRODUCT_VISION.md)** — Understand the core mission and values.
-2. **[Architecture](ARCHITECTURE.md)** — Understand the technical design.
-3. **[Development Status](DEVELOPMENT_STATUS.md)** — Know what is built, what is mocked, and what is planned.
-4. **[Contributor Guide](CONTRIBUTOR_GUIDE.md)** — Architecture rules, coding standards, and PR workflow.
+# Run the Tauri development server
+npm run tauri dev
+```
 
-## How to Contribute
+## Architecture
+PixelSense uses a React + Tailwind CSS frontend and a Rust Tauri backend.
+All backend state is managed via Tokio Mutexes and exposed to React via Tauri IPC.
 
-- **Reporting Bugs**: Open an issue using the Bug Report template. Include steps to reproduce, your OS version, and what you expected vs. what happened.
-- **Suggesting Features**: Open an issue using the Feature Request template. Read the Product Vision first — PixelSense has deliberate constraints.
-- **Architecture Proposals**: For any change that affects the module structure or data flow, open an RFC (Request For Comments) issue before writing code.
-- **Pull Requests**: Follow the PR template. Keep PRs focused. One concern per PR.
-
-## Local Setup
-
-See the [Getting Started Guide](docs/development/getting_started.md).
-
-## Questions
-
-Open a [GitHub Discussion](../../discussions) before opening a PR. We prefer to align on the approach before you invest time in an implementation.
-
-## Code of Conduct
-
-By participating, you agree to abide by our [Code of Conduct](CODE_OF_CONDUCT.md).
+## Pull Request Process
+1. Ensure your code strictly follows the "Implementation First Policy" and does not introduce speculative features.
+2. Update the README.md with details of changes to the interface.
+3. You may merge the Pull Request in once you have the sign-off of at least one other developer.

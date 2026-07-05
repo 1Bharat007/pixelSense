@@ -1,0 +1,5 @@
+# Code Owners for PixelSense
+*       @core-maintainers
+/apps/desktop/src/  @frontend-team
+/apps/desktop/src-tauri/src/ @rust-team
+/docs/  @technical-writers

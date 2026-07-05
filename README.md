@@ -1,205 +1,80 @@
 <div align="center">
-
-  <!-- LOGO PLACEHOLDER: Replace with actual logo asset when available -->
-  <img src="docs/images/logo-placeholder.png" alt="PixelSense Logo" width="96" />
-
   <h1>PixelSense</h1>
-  <p><strong>Display Comfort Engine — Offline · Private · Native</strong></p>
-
-  <!-- BADGES -->
-  ![Version](https://img.shields.io/badge/version-0.0.14--alpha-blue?style=flat-square)
-  ![Status](https://img.shields.io/badge/status-active%20development-orange?style=flat-square)
-  ![Platform](https://img.shields.io/badge/platform-Windows-lightblue?style=flat-square)
-  ![License](https://img.shields.io/badge/license-MIT-green?style=flat-square)
-  ![Privacy](https://img.shields.io/badge/privacy-no%20telemetry%20·%20offline--first-brightgreen?style=flat-square)
-  ![Built With](https://img.shields.io/badge/built%20with-Rust%20·%20Tauri%20·%20React-orange?style=flat-square)
-
-  <br/>
-
-  <!-- BANNER PLACEHOLDER: Replace with actual banner asset when available -->
-  <!-- <img src="docs/images/banner.png" alt="PixelSense Banner" width="800" /> -->
-
+  <p><b>Your intelligent, privacy-first visual comfort companion.</b></p>
+  <p>
+    <a href="https://github.com/pixelSense/pixelSense/actions/workflows/ci.yml">
+      <img src="https://github.com/pixelSense/pixelSense/actions/workflows/ci.yml/badge.svg" alt="CI Status">
+    </a>
+    <a href="https://github.com/pixelSense/pixelSense/releases">
+      <img src="https://img.shields.io/github/v/release/pixelSense/pixelSense" alt="Release">
+    </a>
+  </p>
 </div>
 
 ---
 
-## Mission
+## 👁️ Overview
+PixelSense is a modern, rust-powered Windows desktop application that dynamically adjusts your monitor's brightness and color profiles based on real-time room lighting (via ambient light sensors) and on-screen content analysis. 
 
-Most brightness systems react to the room. PixelSense reacts to **what is on the screen**.
+We believe that your eyes shouldn't burn when you switch from a dark IDE to a white web page, and you shouldn't have to manually adjust your monitor brightness every time the sun goes down.
 
-When you switch from a dark code editor to a bright white document, your monitor's hardware brightness stays the same — but the light hitting your eyes increases dramatically. The operating system does nothing. PixelSense does.
-
-PixelSense is a **Display Comfort Engine**: it learns what "comfortable" looks like for your eyes, measures how much light your screen is actually emitting, and adjusts hardware brightness smoothly and automatically to maintain that comfort — without any manual input.
-
----
-
-## Why PixelSense Exists
-
-### Current Solutions and Their Gaps
-
-| Category | What It Does | What It Misses |
-|----------|-------------|----------------|
-| **Manual Brightness Control** | User adjusts a slider when it hurts | Requires constant manual interruption |
-| **Ambient Light Based** | Reacts to room brightness | Ignores screen content entirely |
-| **Time-Based (Night Mode)** | Adjusts based on time of day | Fixed schedule, not content-aware |
-| **Display Comfort Systems** | Reacts to room + screen content + user preference | — This is what PixelSense builds toward |
-
-The core insight: **screen content is the dominant source of emitted light**. A white browser page at 50% brightness emits dramatically more light than a dark code editor at the same setting. Ignoring this is the fundamental gap in existing solutions.
+### Core Philosophy
+- **100% Local Privacy:** All screen analysis and hardware polling occurs on your machine. We never send your screen contents to the cloud.
+- **Zero Layout Shifts:** A gorgeous, skeleton-hydrated UI built with React, Framer Motion, and Tailwind CSS.
+- **Hardware Agnostic Fallbacks:** If your DDC/CI monitor connection or ambient light sensor fails, PixelSense gracefully degrades to software estimation without crashing or spamming errors.
 
 ---
 
-## How PixelSense Works
-
-```
-🌤️ Room Light       ──┐
-🖥️ Screen Content   ──┤──→ [ Visual Comfort Engine ] ──→ Recommendation ──→ Smooth Transition ──→ Monitor
-👤 Comfort Profile  ──┘
-```
-
-1. **You calibrate once**: Move a slider until your eyes feel at ease. Press "Remember This Comfort."
-2. **PixelSense remembers**: It records the exact ambient light, screen luminance, and brightness at that moment.
-3. **PixelSense watches**: When content changes — a new bright tab, a dark application — it measures the shift.
-4. **PixelSense adjusts**: It calculates the exact brightness change needed to restore your saved comfort level and applies it smoothly.
+## ✨ Features
+- **Dynamic Brightness Control:** Automatically calibrates monitor brightness using hardware DDC/CI commands.
+- **Screen Content Analysis:** Detects visually complex or overwhelmingly bright on-screen content and compensates instantly.
+- **Interactive History Log:** A highly optimized, virtualized timeline of every decision PixelSense makes, filterable and searchable.
+- **Intelligent Notification Center:** Groups alerts intelligently, respects quiet hours, and explains exactly *why* a decision was made.
+- **Configuration Maturity:** Instantly backup, restore, or factory reset your preferences.
 
 ---
 
-## Current Progress
-
-> **Sprint 14 of 16+ completed.** The architecture and core engines are complete. Native hardware integrations are next.
-
-| Layer | Status |
-|-------|--------|
-| Display Discovery (Windows) | ✅ Implemented |
-| Brightness Engine | ✅ Implemented |
-| Transition Engine | ✅ Implemented |
-| Decision Engine | ✅ Implemented |
-| Adaptive Brightness Service | ✅ Implemented |
-| Comfort Profile System | ✅ Implemented |
-| Visual Comfort Engine | ✅ Implemented |
-| Ambient Light Engine | ✅ Architecture complete — sensor mocked |
-| Screen Luminance Engine | ⚙️ Architecture complete — capture mocked |
-| Calibration Wizard | ✅ Implemented |
-| Settings Application | ✅ Implemented |
-| Overview Dashboard | ✅ Implemented (mock data) |
-| Native Screen Capture | 📋 Planned (Sprint 15) |
-| Background Adaptive Service | 📋 Planned (Sprint 16) |
-
-See [DEVELOPMENT_STATUS.md](DEVELOPMENT_STATUS.md) for a precise, sprint-by-sprint breakdown.
+## 🏗️ Architecture
+PixelSense is built with a dual-engine architecture:
+1. **The Backend (Tauri / Rust):** Handles hardware I/O, DDC/CI commands, Tokio Mutex state management, and `.jsonl` logging.
+2. **The Frontend (React / TypeScript):** A sleek, accessible control center managing user preferences and displaying real-time analytics.
 
 ---
 
-## Architecture
+## 🚀 Quick Start (Development)
 
-```mermaid
-graph TD
-    A[🌤️ Ambient Light Engine] --> D[Adaptive Brightness Service]
-    B[🖥️ Screen Luminance Engine] --> D
-    D --> E[Visual Comfort Engine]
-    E --> F[Recommendation]
-    F --> G[Transition Engine]
-    G --> H[Brightness Engine]
-    H --> I[Monitor Hardware]
+### Prerequisites
+- [Node.js](https://nodejs.org/en/) (v20+)
+- [Rust](https://www.rust-lang.org/tools/install) (v1.75+)
 
-    J[Comfort Profile] --> E
-    K[Config Service] --> D
-```
-
-The `AdaptiveBrightnessService` is the single orchestrator. It never calculates — it coordinates. Calculation lives in the `VisualComfortEngine`. Execution lives in the `TransitionEngine`. Hardware access lives in the `BrightnessEngine`. Each module knows exactly what it is responsible for and what it is not.
-
-See [ARCHITECTURE.md](ARCHITECTURE.md) for the full technical breakdown and all Mermaid diagrams.
-
----
-
-## Screenshots
-
-> Screenshots will be added with the first beta build.
-
-| Overview Dashboard | Calibration Wizard | Settings |
-|-------------------|--------------------|---------|
-| *Coming in Beta* | *Coming in Beta* | *Coming in Beta* |
-
----
-
-## Demo
-
-> An animated demo GIF will be added with the first beta build.
-
----
-
-## Technology Stack
-
-| Layer | Technology |
-|-------|-----------|
-| Backend | Rust |
-| Desktop Framework | Tauri v2 |
-| Frontend | React 19 + TypeScript |
-| Styling | Vanilla CSS (design-token based) |
-| State Management | Zustand (frontend working copy) |
-| Config Persistence | Rust `ConfigService` → `config.json` |
-| Package Manager | pnpm |
-
----
-
-## Development Setup
-
-**Prerequisites:** Rust toolchain, Node.js 18+, pnpm
-
+### Installation
 ```bash
 # Clone the repository
-git clone https://github.com/your-org/PixelSense.git
-cd PixelSense
+git clone https://github.com/pixelSense/pixelSense.git
 
-# Install frontend dependencies
-pnpm install
+# Navigate into the project
+cd pixelSense
 
-# Run development server (Tauri + React hot reload)
-pnpm tauri dev
+# Install dependencies (NPM Workspace)
+npm install
+
+# Run the Tauri development server
+npm run tauri dev
 ```
 
-See the [Getting Started Guide](docs/development/getting_started.md) for full setup instructions including Windows build dependencies.
+---
+
+## 🤝 Contributing
+We welcome contributions from the community! Please read our [Contributing Guide](CONTRIBUTING.md) to understand our "Implementation First" policy and how to set up your development environment.
+
+Before submitting a Pull Request, please ensure you have tested the changes locally and updated all relevant documentation.
 
 ---
 
-## Privacy
-
-PixelSense is designed with privacy as a hard constraint, not a feature.
-
-- **No telemetry.** No usage data is ever collected.
-- **No network access.** PixelSense makes zero network requests.
-- **No image storage.** Screen analysis happens entirely in memory. Pixel buffers are immediately released after the luminance metric is calculated. Nothing is written to disk.
-- **No accounts.** No login, no sign-up, no cloud sync.
-
-The only files PixelSense writes are `config.json` (your settings) and `profiles.json` (your comfort profiles), stored locally in your application data directory.
+## 🛡️ Security
+If you discover a security vulnerability, please refer to our [Security Policy](SECURITY.md) for instructions on how to securely disclose it to the core team.
 
 ---
 
-## Roadmap
-
-See [PROJECT_ROADMAP.md](PROJECT_ROADMAP.md) for the full phased roadmap.
-
-**Next milestones:**
-- Sprint 15: Native screen luminance capture (Windows Desktop Duplication API)
-- Sprint 16: Background adaptive service (continuous, low-CPU polling loop)
-- Beta: First distributable Windows build
-
----
-
-## Contributing
-
-PixelSense welcomes contributions. Please read the [Contributor Guide](CONTRIBUTOR_GUIDE.md) before opening a PR. For architectural changes, open an RFC issue first.
-
-See [CONTRIBUTING.md](CONTRIBUTING.md) to get started.
-
----
-
-## Recommended GitHub Topics
-
-> Apply these topics in the repository Settings → Topics:
-
-`rust` · `tauri` · `react` · `typescript` · `desktop-app` · `display-comfort` · `brightness` · `adaptive-brightness` · `offline-first` · `privacy` · `windows` · `cross-platform` · `accessibility`
-
----
-
-## License
-
-MIT License — see [LICENSE](LICENSE) for details.
+## 📜 License
+This project is licensed under the MIT License - see the LICENSE file for details.

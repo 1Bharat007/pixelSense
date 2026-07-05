@@ -1,14 +1,16 @@
 # Security Policy
 
-## Privacy & Local-First Guarantee
-PixelSense is strictly local-first and privacy-focused:
-- **No telemetry by default**
-- **No cloud dependency**
-- **No user accounts**
-- **No data collection**
-
 ## Supported Versions
-Only the latest major version is currently supported with security updates.
+
+| Version | Supported          |
+| ------- | ------------------ |
+| v0.1.x  | :white_check_mark: |
+| < v0.1  | :x:                |
 
 ## Reporting a Vulnerability
-If you discover a security vulnerability, please open a Security Advisory draft on GitHub or email the maintainers directly. Do NOT open a public issue.
+We take the security of PixelSense seriously. 
+Because PixelSense operates with local hardware APIs (DDC/CI) and ambient sensors, vulnerabilities could lead to physical hardware manipulation or privacy leaks.
+
+If you discover a vulnerability, please DO NOT open a public issue.
+Instead, email the core maintainers at security@pixelsense.app.
+We will acknowledge receipt within 48 hours and provide a timeline for a patch.
