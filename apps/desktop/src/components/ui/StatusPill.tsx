@@ -1,5 +1,4 @@
 import * as React from 'react';
-
 import { cn } from "../../lib/utils"
 
 type StatusVariant = "default" | "success" | "warning" | "error" | "disabled";
@@ -12,11 +11,12 @@ export interface StatusPillProps extends React.HTMLAttributes<HTMLSpanElement> {
 export const StatusPill = React.forwardRef<HTMLSpanElement, StatusPillProps>(
   ({ className, variant = "default", pulse = false, children, ...props }, ref) => {
     
+    // Using semantic colors instead of raw hex/tailwind colors
     const variants: Record<StatusVariant, string> = {
       default: "bg-secondary text-secondary-foreground border-transparent",
-      success: "bg-green-500/15 text-green-600 dark:text-green-400 border-green-500/20",
-      warning: "bg-yellow-500/15 text-yellow-600 dark:text-yellow-400 border-yellow-500/20",
-      error: "bg-red-500/15 text-red-600 dark:text-red-400 border-red-500/20",
+      success: "bg-success/15 text-success-foreground border-success/30",
+      warning: "bg-warning/15 text-warning-foreground border-warning/30",
+      error: "bg-destructive/15 text-destructive-foreground border-destructive/30",
       disabled: "bg-muted text-muted-foreground border-transparent",
     };
 
@@ -34,15 +34,15 @@ export const StatusPill = React.forwardRef<HTMLSpanElement, StatusPillProps>(
           <span className="relative flex h-2 w-2">
             <span className={cn(
               "animate-ping absolute inline-flex h-full w-full rounded-full opacity-75",
-              variant === "success" ? "bg-green-400" :
-              variant === "warning" ? "bg-yellow-400" :
-              variant === "error" ? "bg-red-400" : "bg-primary"
+              variant === "success" ? "bg-success" :
+              variant === "warning" ? "bg-warning" :
+              variant === "error" ? "bg-destructive" : "bg-primary"
             )}></span>
             <span className={cn(
               "relative inline-flex rounded-full h-2 w-2",
-              variant === "success" ? "bg-green-500" :
-              variant === "warning" ? "bg-yellow-500" :
-              variant === "error" ? "bg-red-500" : "bg-primary"
+              variant === "success" ? "bg-success" :
+              variant === "warning" ? "bg-warning" :
+              variant === "error" ? "bg-destructive" : "bg-primary"
             )}></span>
           </span>
         )}
@@ -52,4 +52,3 @@ export const StatusPill = React.forwardRef<HTMLSpanElement, StatusPillProps>(
   }
 )
 StatusPill.displayName = "StatusPill"
-
