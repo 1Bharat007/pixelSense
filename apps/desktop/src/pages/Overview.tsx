@@ -4,6 +4,7 @@ import { useStore } from "../store/useStore";
 import { Card } from "../components/ui/Card";
 import { StatusPill } from "../components/ui/StatusPill";
 import { AnimatedValue } from "../components/ui/AnimatedValue";
+import { Tooltip } from "../components/ui/Tooltip";
 
 export function Overview() {
   const { dashboard, error } = useStore();
@@ -62,8 +63,9 @@ export function Overview() {
       <section className="mb-8">
         <Card className="bg-card shadow-sm border-l-4 border-l-primary flex flex-col md:flex-row items-center justify-between p-8">
           <div className="flex flex-col gap-2">
-            <h1 className="text-4xl font-semibold tracking-tight text-foreground">
+            <h1 className="text-4xl font-semibold tracking-tight text-foreground flex items-center gap-2">
               Your comfort is optimal.
+              <Tooltip content="We calculate comfort based on the difference between your screen's brightness and the room's ambient light." />
             </h1>
             <p className="text-lg text-muted-foreground">
               PixelSense is actively balancing your screen with the current room lighting.
@@ -117,6 +119,7 @@ export function Overview() {
             <h2 className="text-lg font-medium flex items-center gap-2">
               <Sun className="w-5 h-5 text-muted-foreground" />
               Environmental Light
+              <Tooltip content="Measured in lux. A normal office is around 300-500 lux." />
             </h2>
             <StatusPill variant="default">Tracking</StatusPill>
           </div>
@@ -136,6 +139,7 @@ export function Overview() {
             <h2 className="text-lg font-medium flex items-center gap-2">
               <Monitor className="w-5 h-5 text-muted-foreground" />
               Display Brightness
+              <Tooltip content="Target brightness calculated for your main display via DDC/CI." />
             </h2>
             <StatusPill variant="default">Auto-adjusted</StatusPill>
           </div>

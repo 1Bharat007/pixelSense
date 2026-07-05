@@ -6,7 +6,9 @@ import { Developer } from './pages/Developer';
 import { Settings } from './pages/Settings';
 import { Profiles } from './pages/Profiles';
 import { About } from './pages/About';
+import { Onboarding } from './pages/Onboarding';
 import { cn } from './lib/utils';
+import { AnimatePresence } from 'framer-motion';
 
 const NAV_ITEMS = [
   { id: 'Overview', label: 'Overview', icon: LayoutDashboard },
@@ -21,10 +23,14 @@ function App() {
   // In production, this might be replaced/augmented by Tauri events.
   useDashboard(500);
 
-  const { activeTab, setActiveTab } = useStore();
+  const { activeTab, setActiveTab, onboardingCompleted } = useStore();
 
   return (
     <div className="flex h-screen w-full bg-background text-foreground overflow-hidden">
+      
+      <AnimatePresence>
+        {!onboardingCompleted && <Onboarding />}
+      </AnimatePresence>
       {/* Sidebar Navigation */}
       <aside className="w-[240px] border-r border-border bg-sidebar flex flex-col pt-6 pb-4 shadow-sm z-10">
         <div className="flex items-center gap-3 px-6 mb-8 text-sidebar-primary">

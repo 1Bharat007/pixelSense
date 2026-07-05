@@ -62,16 +62,24 @@ export interface DashboardState {
 interface PixelSenseState {
   dashboard: DashboardState | null;
   activeTab: string;
+  onboardingCompleted: boolean;
+  error: boolean;
   
   // Actions
   setDashboard: (dashboard: DashboardState) => void;
   setActiveTab: (tab: string) => void;
+  setOnboardingCompleted: (val: boolean) => void;
+  setError: (val: boolean) => void;
 }
 
 export const useStore = create<PixelSenseState>((set) => ({
   dashboard: null,
   activeTab: 'Overview',
+  onboardingCompleted: false,
+  error: false,
   
   setDashboard: (dashboard) => set({ dashboard }),
   setActiveTab: (tab) => set({ activeTab: tab }),
+  setOnboardingCompleted: (val) => set({ onboardingCompleted: val }),
+  setError: (val) => set({ error: val }),
 }))
