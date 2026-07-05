@@ -1,22 +1,47 @@
 ## Description
-Please include a summary of the change and which issue is fixed. Please also include relevant motivation and context.
 
-Fixes # (issue)
+<!-- Provide a clear summary of what this PR does and why. -->
 
-## Type of change
-- [ ] Bug fix (non-breaking change which fixes an issue)
-- [ ] New feature (non-breaking change which adds functionality)
-- [ ] Breaking change (fix or feature that would cause existing functionality to not work as expected)
-- [ ] This change requires a documentation update
+Fixes #<!-- issue number -->
 
-## How Has This Been Tested?
-Please describe the tests that you ran to verify your changes.
-- [ ] Unit tests passed
-- [ ] Manual UI verification
-- [ ] Edge cases verified
+## Type of Change
 
-## Checklist:
-- [ ] My code follows the style guidelines of this project
-- [ ] I have performed a self-review of my own code
-- [ ] I have commented my code, particularly in hard-to-understand areas
-- [ ] I have made corresponding changes to the documentation
+- [ ] 🐛 Bug fix (non-breaking change that fixes an issue)
+- [ ] ✨ New feature (non-breaking change that adds functionality)
+- [ ] 💥 Breaking change (fix or feature that would cause existing functionality to change)
+- [ ] 📝 Documentation update
+- [ ] ♻️ Refactor (no functional changes)
+- [ ] 🧪 Test improvement
+
+## Changes Made
+
+<!-- List the specific changes made in this PR. -->
+
+-
+-
+-
+
+## Testing
+
+<!-- Describe how you tested these changes. -->
+
+- [ ] `cargo fmt` — no formatting issues
+- [ ] `cargo clippy -- -D warnings` — no warnings
+- [ ] `cargo test` — all tests pass
+- [ ] `npm run build` — frontend compiles successfully
+- [ ] Manual UI verification (if applicable)
+- [ ] Edge cases tested (if applicable)
+
+## Screenshots
+
+<!-- If this PR includes UI changes, add before/after screenshots. -->
+
+## Checklist
+
+- [ ] My code follows the project's [coding standards](CONTRIBUTOR_GUIDE.md)
+- [ ] I have performed a self-review of my code
+- [ ] I have added comments to hard-to-understand areas
+- [ ] I have updated relevant documentation
+- [ ] My changes do not introduce new warnings
+- [ ] No `unwrap()` or `expect()` in production Rust code paths
+- [ ] ARIA labels added to any new interactive UI elements

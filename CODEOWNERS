@@ -1,5 +1,18 @@
 # Code Owners for PixelSense
-*       @core-maintainers
-/apps/desktop/src/  @frontend-team
-/apps/desktop/src-tauri/src/ @rust-team
-/docs/  @technical-writers
+# These users will be automatically requested for review on PRs.
+
+# Default owner for everything
+*                                   @1Bharat007
+
+# Frontend (React / TypeScript)
+/apps/desktop/src/                  @1Bharat007
+
+# Backend (Rust / Tauri)
+/apps/desktop/src-tauri/            @1Bharat007
+
+# Documentation
+/docs/                              @1Bharat007
+*.md                                @1Bharat007
+
+# CI/CD
+/.github/                           @1Bharat007

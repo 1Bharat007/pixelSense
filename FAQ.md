@@ -1,98 +1,87 @@
-# PixelSense — Frequently Asked Questions
-
----
+# Frequently Asked Questions
 
 ## General
 
 ### What is PixelSense?
 
-PixelSense is a Display Comfort Engine for desktop computers. It monitors how much light your screen is actually emitting (not just the hardware brightness setting), compares it to your saved comfort preference, and adjusts the monitor brightness smoothly to keep your eyes comfortable — automatically.
+PixelSense is a Windows desktop application that automatically adjusts your monitor's hardware brightness based on room lighting conditions and on-screen content. It uses DDC/CI commands to control your monitor directly — no software overlays.
 
-### Does PixelSense connect to the internet?
+### Is PixelSense free?
 
-No. PixelSense is entirely offline. It makes no network requests, sends no telemetry, and has no cloud dependency of any kind. It functions 100% locally.
+Yes. PixelSense is free and open source under the [MIT License](LICENSE).
 
-### Is PixelSense free and open source?
+### Does PixelSense collect any data?
 
-Yes. PixelSense is open source under the MIT License. You are free to use it, fork it, and contribute.
+No. PixelSense is 100% offline. It makes zero network requests, collects zero telemetry, and stores all data locally on your machine.
 
----
+### What platforms are supported?
 
-## Privacy
-
-### Does PixelSense take screenshots?
-
-No. PixelSense analyzes the content of your screen in memory to calculate luminance, but it never saves, logs, or transmits any image data. The pixel buffer is analyzed mathematically and immediately released. Nothing is written to disk.
-
-### Does PixelSense collect usage data or analytics?
-
-Never. There is no analytics system, no error reporting service, no crash uploader, and no usage tracker. The only data that exists on your machine is `config.json` (your settings) and `profiles.json` (your comfort profiles). Both are stored locally in your application data directory.
-
-### Will PixelSense ever use a webcam?
-
-Webcam-based ambient light estimation is being studied as an option for future versions, specifically for users who do not have a dedicated hardware light sensor in their laptop or room. If it is ever implemented:
-
-- It will be **strictly opt-in**. Disabled by default.
-- It will be **100% offline**. No image data leaves the device.
-- No frames, thumbnails, or metadata will ever be stored.
+Currently, PixelSense supports **Windows** only. macOS and Linux support are planned but not yet implemented.
 
 ---
 
-## How It Works
+## Technical
 
-### How is PixelSense different from the brightness slider in Windows Settings?
+### What is DDC/CI?
 
-The brightness slider in your OS settings changes the hardware brightness uniformly, regardless of what is on the screen. PixelSense goes further: it measures how much light the screen is actually emitting (which is a product of the content brightness and the hardware brightness), compares it to your saved comfort preference, and adjusts to keep that balance intact when content changes.
+DDC/CI (Display Data Channel Command Interface) is a standard protocol that allows software to communicate with monitors over the display cable. PixelSense uses this to read and set your monitor's actual hardware brightness level.
 
-### How is PixelSense different from ambient light-based auto-brightness?
+### Does PixelSense work with all monitors?
 
-Ambient-light-based auto-brightness reacts to the room. If the room gets brighter, it turns the screen up. If the room gets darker, it turns the screen down. It ignores what is on the screen entirely. PixelSense factors in both the room and the screen content.
+PixelSense works with monitors that support the DDC/CI protocol. Most external monitors connected via HDMI, DisplayPort, or USB-C support this. Laptop built-in displays typically do not support DDC/CI and use a different brightness API.
 
-### What categories of brightness solutions exist?
+### Will PixelSense damage my monitor?
 
-| Category | Reacts To | Notes |
-|----------|-----------|-------|
-| **Manual Brightness Control** | Nothing — user adjusts manually | Still the most common approach |
-| **Ambient Light Based** | Room brightness only | Ignores screen content |
-| **Time-Based (e.g., Night Mode)** | Time of day | Fixed schedule, not content-aware |
-| **Display Comfort Systems** | Room + screen content + user preference | What PixelSense aims to be |
+No. DDC/CI is a standard protocol supported by monitor manufacturers. PixelSense only adjusts brightness within the range your monitor already allows.
 
-### What is a Comfort Profile?
+### Does PixelSense capture my screen?
 
-A Comfort Profile is a snapshot of your display conditions at the moment your eyes feel comfortable. It records the ambient light level, the screen luminance, and the hardware brightness. When PixelSense detects that conditions have drifted from this saved state, it recalculates and compensates.
-
-### Does PixelSense use AI or machine learning?
-
-No. All calculations in the current version are deterministic mathematical formulas. PixelSense does not observe your behavior, learn from your choices, or build a model of your preferences automatically. The only "learning" it does is when you explicitly press "Remember This Comfort."
-
----
-
-## Platform & Compatibility
-
-### What operating systems are supported?
-
-Currently, Windows is the active development platform. macOS and Linux provider stubs exist in the codebase but are not yet implemented. They will be added in future releases.
-
-### What displays are supported?
-
-PixelSense currently works with displays that support DDC/CI (Display Data Channel Command Interface), which allows software to read and set hardware brightness. Most modern external monitors support this. Many laptop built-in displays use a different API, which is planned for future support.
-
-### Will PixelSense support HDR or OLED displays?
-
-HDR and OLED displays have fundamentally different relationships between content brightness and perceived light. PixelSense's architecture is designed to accommodate future strategies for these display types, but no implementation is currently underway.
+PixelSense analyzes screen luminance (overall brightness) to make adjustment decisions. This analysis happens entirely in memory and is never saved to disk, transmitted over a network, or stored in any form.
 
 ---
 
 ## Development
 
-### How do I build PixelSense locally?
+### What do I need to build PixelSense?
 
-See the [Getting Started Guide](docs/development/getting_started.md).
+- Node.js 20+
+- Rust 1.75+
+- Visual Studio Build Tools 2022 (C++ workload)
 
-### How do I contribute?
+See the [Quick Start](README.md#-quick-start) for complete setup instructions.
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) and [CONTRIBUTOR_GUIDE.md](CONTRIBUTOR_GUIDE.md).
+### What does "Mocked" mean in the feature list?
 
-### Where do I report a bug?
+Some hardware features (ambient light sensors, native screen capture) have their architecture fully implemented, but currently return simulated values because the native platform APIs are not yet integrated. The [Features](FEATURES.md) document labels these honestly as "⚙️ Mocked."
 
-Open an issue using the Bug Report template in the GitHub Issues section.
+### How can I contribute?
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for a quick overview, or [CONTRIBUTOR_GUIDE.md](CONTRIBUTOR_GUIDE.md) for the complete developer handbook.
+
+---
+
+## Troubleshooting
+
+### PixelSense doesn't detect my monitor
+
+- Ensure your monitor supports DDC/CI (check the monitor's OSD settings)
+- Try a different cable — some HDMI cables don't carry DDC/CI signals
+- Some KVM switches block DDC/CI communication
+- USB-C docking stations may not pass through DDC/CI
+
+### The brightness doesn't change
+
+- Verify DDC/CI is enabled in your monitor's on-screen display settings
+- Some monitors disable DDC/CI by default
+- Check that no other brightness control software is conflicting
+
+### Build fails with cargo errors
+
+- Ensure Rust 1.75+ is installed: `rustup update`
+- Ensure Visual Studio Build Tools 2022 are installed with the C++ workload
+- Run `cargo clean` and try again
+
+### Build fails with npm errors
+
+- Ensure Node.js 20+ is installed: `node --version`
+- Delete `node_modules` and `package-lock.json`, then run `npm install` again
