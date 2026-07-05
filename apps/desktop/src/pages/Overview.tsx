@@ -1,23 +1,52 @@
 import { motion } from "framer-motion";
-import { Sun, Monitor, ShieldCheck, Activity } from "lucide-react";
+import { Sun, Monitor, ShieldCheck, AlertCircle } from "lucide-react";
 import { useStore } from "../store/useStore";
 import { Card } from "../components/ui/Card";
-import { Metric } from "../components/ui/Metric";
 import { StatusPill } from "../components/ui/StatusPill";
 import { AnimatedValue } from "../components/ui/AnimatedValue";
 
 export function Overview() {
-  const { dashboard } = useStore();
+  const { dashboard, error } = useStore();
 
+  // 1. Error Experience System (Graceful Degradation)
+  if (error) {
+    return (
+      <div className="flex-1 p-10 overflow-y-auto w-full max-w-6xl mx-auto flex flex-col items-center justify-center">
+        <Card className="max-w-md w-full bg-destructive/5 border-destructive/20 items-center text-center p-8">
+          <div className="w-16 h-16 rounded-full bg-destructive/10 flex items-center justify-center text-destructive mb-4">
+            <AlertCircle className="w-8 h-8" />
+          </div>
+          <h2 className="text-xl font-semibold text-foreground mb-2">Sensor Connection Lost</h2>
+          <p className="text-muted-foreground mb-6">
+            We couldn't connect to your monitor's built-in light sensor. This usually happens when the monitor goes to sleep.
+          </p>
+          <div className="flex w-full gap-3">
+            <button className="flex-1 py-2 bg-secondary hover:bg-secondary/80 text-secondary-foreground font-medium rounded-md transition-colors">
+              Use Software Estimation
+            </button>
+            <button className="flex-1 py-2 bg-primary hover:bg-primary/90 text-primary-foreground font-medium rounded-md transition-colors">
+              Retry Sensor
+            </button>
+          </div>
+        </Card>
+      </div>
+    );
+  }
+
+  // 2. Progressive Hydration (Skeleton Cards)
   if (!dashboard) {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center p-10 h-full gap-4">
-        <motion.div 
-          animate={{ opacity: [0.3, 0.7, 0.3] }}
-          transition={{ repeat: Infinity, duration: 2 }}
-          className="w-12 h-12 rounded-full border-4 border-muted border-t-primary animate-spin"
-        />
-        <span className="text-muted-foreground font-medium">Initializing environmental sensors...</span>
+      <div className="flex-1 p-10 overflow-y-auto w-full max-w-6xl mx-auto animate-pulse">
+        <section className="mb-8">
+          <Card className="h-40 bg-secondary/20 border-transparent" />
+        </section>
+        <section className="mb-8">
+          <Card className="h-28 bg-secondary/20 border-transparent" />
+        </section>
+        <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <Card className="h-32 bg-secondary/20 border-transparent" />
+          <Card className="h-32 bg-secondary/20 border-transparent" />
+        </section>
       </div>
     );
   }
@@ -51,9 +80,9 @@ export function Overview() {
         </Card>
       </section>
 
-      {/* 2. What should I do next? (Actionable Recommendation) */}
-      {topRec && (
-        <section className="mb-8">
+      {/* 2. Empty State / Recommendations */}
+      <section className="mb-8">
+        {topRec ? (
           <Card className="border-border/50 bg-secondary/30 flex items-center justify-between p-6">
             <div className="flex items-center gap-4">
               <div className="p-3 bg-primary/10 rounded-full text-primary">
@@ -68,10 +97,20 @@ export function Overview() {
               {topRec.action.replace(/_/g, " ")}
             </button>
           </Card>
-        </section>
-      )}
+        ) : (
+          <Card className="border-dashed border-border/50 bg-transparent flex flex-col items-center justify-center p-8 text-center">
+             <div className="w-12 h-12 rounded-full bg-secondary flex items-center justify-center text-muted-foreground mb-4">
+               <ShieldCheck className="w-6 h-6" />
+             </div>
+             <h3 className="text-lg font-medium text-foreground mb-1">No pending recommendations</h3>
+             <p className="text-muted-foreground text-sm max-w-md">
+               Your system is currently tuned perfectly for your environment. We will notify you if any adjustments are needed.
+             </p>
+          </Card>
+        )}
+      </section>
 
-      {/* 3. Is everything healthy? (System Status) */}
+      {/* 3. System Status */}
       <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Card interactive>
           <div className="flex items-center justify-between mb-4">
