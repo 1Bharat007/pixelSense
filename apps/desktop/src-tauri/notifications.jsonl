@@ -1,0 +1,15 @@
+{"id":"notif_13","timestamp":1783240412144,"priority":"Normal","title":"Brightness Optimized","message":"We reduced your brightness by 15% to match your room.","read":true,"action_type":null}
+{"id":"notif_8","timestamp":1783239252529,"priority":"Normal","title":"Brightness Optimized","message":"We reduced your brightness by 15% to match your room.","read":false,"action_type":null}
+{"id":"notif_14","timestamp":1783238412472,"priority":"High","title":"Sensor Disconnected","message":"The ambient light sensor stopped responding.","read":false,"action_type":"Retry"}
+{"id":"notif_1","timestamp":1783224879072,"priority":"High","title":"Sensor Disconnected","message":"The ambient light sensor stopped responding.","read":false,"action_type":"Retry"}
+{"id":"notif_5","timestamp":1783207890032,"priority":"Normal","title":"Brightness Optimized","message":"We reduced your brightness by 15% to match your room.","read":true,"action_type":null}
+{"id":"notif_12","timestamp":1783205257483,"priority":"Low","title":"Brightness Optimized","message":"We reduced your brightness by 15% to match your room.","read":false,"action_type":null}
+{"id":"notif_4","timestamp":1783203173334,"priority":"Normal","title":"Brightness Optimized","message":"We reduced your brightness by 15% to match your room.","read":false,"action_type":null}
+{"id":"notif_2","timestamp":1783194981498,"priority":"High","title":"Sensor Disconnected","message":"The ambient light sensor stopped responding.","read":false,"action_type":"Retry"}
+{"id":"notif_9","timestamp":1783193091162,"priority":"Normal","title":"Brightness Optimized","message":"We reduced your brightness by 15% to match your room.","read":false,"action_type":null}
+{"id":"notif_6","timestamp":1783191775211,"priority":"Normal","title":"Brightness Optimized","message":"We reduced your brightness by 15% to match your room.","read":true,"action_type":null}
+{"id":"notif_11","timestamp":1783181682856,"priority":"Low","title":"Brightness Optimized","message":"We reduced your brightness by 15% to match your room.","read":false,"action_type":null}
+{"id":"notif_0","timestamp":1783178932993,"priority":"High","title":"Sensor Disconnected","message":"The ambient light sensor stopped responding.","read":false,"action_type":"Retry"}
+{"id":"notif_7","timestamp":1783178910140,"priority":"High","title":"Sensor Disconnected","message":"The ambient light sensor stopped responding.","read":false,"action_type":"Retry"}
+{"id":"notif_10","timestamp":1783169672984,"priority":"High","title":"Sensor Disconnected","message":"The ambient light sensor stopped responding.","read":false,"action_type":"Retry"}
+{"id":"notif_3","timestamp":1783159241652,"priority":"Low","title":"Brightness Optimized","message":"We reduced your brightness by 15% to match your room.","read":true,"action_type":null}

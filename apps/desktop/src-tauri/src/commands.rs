@@ -1,8 +1,10 @@
-use serde::Serialize;
+use serde::{Serialize, Deserialize};
+use std::fs::File;
+use std::io::{BufRead, BufReader};
+use std::path::PathBuf;
 use crate::configuration::models::AppConfig;
 use crate::intelligence::manager::{IntelligenceManager, IntelligencePayload};
 use crate::intelligence::models::{IntelligenceContext, HistorySummary};
-
 #[tauri::command]
 pub fn get_config() -> AppConfig {
     AppConfig::default() // Mocked pending full ServiceRegistry integration
@@ -167,4 +169,70 @@ pub async fn get_dashboard_state() -> Result<DashboardStatePayload, String> {
             confidence_score: 0.95,
         }),
     })
+}
+
+// ==========================================
+// IPC Models for History & Notifications
+// ==========================================
+
+#[derive(Serialize, Deserialize)]
+pub struct HistoryEvent {
+    pub id: String,
+    pub timestamp: u64,
+    pub category: String,
+    pub description: String,
+    pub before_value: Option<String>,
+    pub after_value: Option<String>,
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct NotificationEvent {
+    pub id: String,
+    pub timestamp: u64,
+    pub priority: String,
+    pub title: String,
+    pub message: String,
+    pub read: bool,
+    pub action_type: Option<String>,
+}
+
+#[tauri::command]
+pub fn get_history() -> Result<Vec<HistoryEvent>, String> {
+    let path = PathBuf::from("history.jsonl");
+    let mut events = Vec::new();
+    
+    if let Ok(file) = File::open(path) {
+        let reader = BufReader::new(file);
+        for line in reader.lines() {
+            if let Ok(line_str) = line {
+                if let Ok(event) = serde_json::from_str::<HistoryEvent>(&line_str) {
+                    events.push(event);
+                }
+            }
+        }
+    }
+    
+    // Sort descending by timestamp
+    events.sort_by(|a, b| b.timestamp.cmp(&a.timestamp));
+    Ok(events)
+}
+
+#[tauri::command]
+pub fn get_notifications() -> Result<Vec<NotificationEvent>, String> {
+    let path = PathBuf::from("notifications.jsonl");
+    let mut events = Vec::new();
+    
+    if let Ok(file) = File::open(path) {
+        let reader = BufReader::new(file);
+        for line in reader.lines() {
+            if let Ok(line_str) = line {
+                if let Ok(event) = serde_json::from_str::<NotificationEvent>(&line_str) {
+                    events.push(event);
+                }
+            }
+        }
+    }
+    
+    events.sort_by(|a, b| b.timestamp.cmp(&a.timestamp));
+    Ok(events)
 }

@@ -41,7 +41,9 @@ pub fn run() {
             commands::save_config,
             commands::preview_brightness,
             commands::lock_current_comfort,
-            commands::get_dashboard_state
+            commands::get_dashboard_state,
+            commands::get_history,
+            commands::get_notifications
         ])
     .setup(|app| {
       if cfg!(debug_assertions) {

@@ -1,0 +1,100 @@
+{"id":"hist_59","timestamp":1783243015025,"category":"System","description":"Background worker initialized successfully.","before_value":null,"after_value":null}
+{"id":"hist_36","timestamp":1783241813701,"category":"Brightness","description":"Automatically adjusted brightness due to room light change.","before_value":"49","after_value":"75"}
+{"id":"hist_31","timestamp":1783241699846,"category":"Profile","description":"User manually switched active comfort profile.","before_value":"Reading","after_value":"Productivity"}
+{"id":"hist_29","timestamp":1783239534760,"category":"Profile","description":"User manually switched active comfort profile.","before_value":"Reading","after_value":"Productivity"}
+{"id":"hist_76","timestamp":1783236678148,"category":"Brightness","description":"Automatically adjusted brightness due to room light change.","before_value":"61","after_value":"66"}
+{"id":"hist_18","timestamp":1783234535580,"category":"Profile","description":"User manually switched active comfort profile.","before_value":"Reading","after_value":"Productivity"}
+{"id":"hist_7","timestamp":1783228641703,"category":"Brightness","description":"Automatically adjusted brightness due to room light change.","before_value":"25","after_value":"71"}
+{"id":"hist_55","timestamp":1783222806123,"category":"Comfort","description":"Comfort score dropped below optimal threshold.","before_value":"9.5","after_value":"7.2"}
+{"id":"hist_50","timestamp":1783212196304,"category":"Profile","description":"User manually switched active comfort profile.","before_value":"Reading","after_value":"Productivity"}
+{"id":"hist_17","timestamp":1783211539685,"category":"Comfort","description":"Comfort score dropped below optimal threshold.","before_value":"9.5","after_value":"7.2"}
+{"id":"hist_8","timestamp":1783211436399,"category":"Comfort","description":"Comfort score dropped below optimal threshold.","before_value":"9.5","after_value":"7.2"}
+{"id":"hist_2","timestamp":1783209305495,"category":"Comfort","description":"Comfort score dropped below optimal threshold.","before_value":"9.5","after_value":"7.2"}
+{"id":"hist_93","timestamp":1783207766819,"category":"System","description":"Background worker initialized successfully.","before_value":null,"after_value":null}
+{"id":"hist_68","timestamp":1783204781089,"category":"Profile","description":"User manually switched active comfort profile.","before_value":"Reading","after_value":"Productivity"}
+{"id":"hist_5","timestamp":1783201697693,"category":"Comfort","description":"Comfort score dropped below optimal threshold.","before_value":"9.5","after_value":"7.2"}
+{"id":"hist_26","timestamp":1783200405055,"category":"Brightness","description":"Automatically adjusted brightness due to room light change.","before_value":"36","after_value":"63"}
+{"id":"hist_10","timestamp":1783195741252,"category":"Profile","description":"User manually switched active comfort profile.","before_value":"Reading","after_value":"Productivity"}
+{"id":"hist_66","timestamp":1783195533165,"category":"Profile","description":"User manually switched active comfort profile.","before_value":"Reading","after_value":"Productivity"}
+{"id":"hist_61","timestamp":1783194214333,"category":"Profile","description":"User manually switched active comfort profile.","before_value":"Reading","after_value":"Productivity"}
+{"id":"hist_79","timestamp":1783194069595,"category":"Comfort","description":"Comfort score dropped below optimal threshold.","before_value":"9.5","after_value":"7.2"}
+{"id":"hist_87","timestamp":1783193877704,"category":"Comfort","description":"Comfort score dropped below optimal threshold.","before_value":"9.5","after_value":"7.2"}
+{"id":"hist_83","timestamp":1783191530307,"category":"Profile","description":"User manually switched active comfort profile.","before_value":"Reading","after_value":"Productivity"}
+{"id":"hist_22","timestamp":1783191046387,"category":"Profile","description":"User manually switched active comfort profile.","before_value":"Reading","after_value":"Productivity"}
+{"id":"hist_53","timestamp":1783188135835,"category":"Comfort","description":"Comfort score dropped below optimal threshold.","before_value":"9.5","after_value":"7.2"}
+{"id":"hist_48","timestamp":1783186967049,"category":"System","description":"Background worker initialized successfully.","before_value":null,"after_value":null}
+{"id":"hist_0","timestamp":1783186443899,"category":"Brightness","description":"Automatically adjusted brightness due to room light change.","before_value":"45","after_value":"77"}
+{"id":"hist_38","timestamp":1783184176905,"category":"Comfort","description":"Comfort score dropped below optimal threshold.","before_value":"9.5","after_value":"7.2"}
+{"id":"hist_85","timestamp":1783183966784,"category":"Comfort","description":"Comfort score dropped below optimal threshold.","before_value":"9.5","after_value":"7.2"}
+{"id":"hist_15","timestamp":1783181488794,"category":"Comfort","description":"Comfort score dropped below optimal threshold.","before_value":"9.5","after_value":"7.2"}
+{"id":"hist_28","timestamp":1783180868350,"category":"Profile","description":"User manually switched active comfort profile.","before_value":"Reading","after_value":"Productivity"}
+{"id":"hist_49","timestamp":1783180543710,"category":"Comfort","description":"Comfort score dropped below optimal threshold.","before_value":"9.5","after_value":"7.2"}
+{"id":"hist_98","timestamp":1783170118970,"category":"System","description":"Background worker initialized successfully.","before_value":null,"after_value":null}
+{"id":"hist_74","timestamp":1783169409188,"category":"System","description":"Background worker initialized successfully.","before_value":null,"after_value":null}
+{"id":"hist_94","timestamp":1783166654500,"category":"Profile","description":"User manually switched active comfort profile.","before_value":"Reading","after_value":"Productivity"}
+{"id":"hist_43","timestamp":1783166468223,"category":"Brightness","description":"Automatically adjusted brightness due to room light change.","before_value":"48","after_value":"52"}
+{"id":"hist_30","timestamp":1783164768137,"category":"Profile","description":"User manually switched active comfort profile.","before_value":"Reading","after_value":"Productivity"}
+{"id":"hist_3","timestamp":1783161697876,"category":"Profile","description":"User manually switched active comfort profile.","before_value":"Reading","after_value":"Productivity"}
+{"id":"hist_86","timestamp":1783160826122,"category":"System","description":"Background worker initialized successfully.","before_value":null,"after_value":null}
+{"id":"hist_63","timestamp":1783159043232,"category":"Profile","description":"User manually switched active comfort profile.","before_value":"Reading","after_value":"Productivity"}
+{"id":"hist_25","timestamp":1783158120467,"category":"Comfort","description":"Comfort score dropped below optimal threshold.","before_value":"9.5","after_value":"7.2"}
+{"id":"hist_82","timestamp":1783154941461,"category":"Profile","description":"User manually switched active comfort profile.","before_value":"Reading","after_value":"Productivity"}
+{"id":"hist_45","timestamp":1783149352361,"category":"System","description":"Background worker initialized successfully.","before_value":null,"after_value":null}
+{"id":"hist_16","timestamp":1783136881183,"category":"Brightness","description":"Automatically adjusted brightness due to room light change.","before_value":"27","after_value":"79"}
+{"id":"hist_9","timestamp":1783136406850,"category":"Profile","description":"User manually switched active comfort profile.","before_value":"Reading","after_value":"Productivity"}
+{"id":"hist_42","timestamp":1783131589437,"category":"Comfort","description":"Comfort score dropped below optimal threshold.","before_value":"9.5","after_value":"7.2"}
+{"id":"hist_62","timestamp":1783131576843,"category":"Profile","description":"User manually switched active comfort profile.","before_value":"Reading","after_value":"Productivity"}
+{"id":"hist_88","timestamp":1783127597748,"category":"System","description":"Background worker initialized successfully.","before_value":null,"after_value":null}
+{"id":"hist_21","timestamp":1783126661733,"category":"Brightness","description":"Automatically adjusted brightness due to room light change.","before_value":"66","after_value":"51"}
+{"id":"hist_14","timestamp":1783126425993,"category":"System","description":"Background worker initialized successfully.","before_value":null,"after_value":null}
+{"id":"hist_40","timestamp":1783124934444,"category":"Comfort","description":"Comfort score dropped below optimal threshold.","before_value":"9.5","after_value":"7.2"}
+{"id":"hist_41","timestamp":1783124097341,"category":"Comfort","description":"Comfort score dropped below optimal threshold.","before_value":"9.5","after_value":"7.2"}
+{"id":"hist_57","timestamp":1783115994661,"category":"Comfort","description":"Comfort score dropped below optimal threshold.","before_value":"9.5","after_value":"7.2"}
+{"id":"hist_24","timestamp":1783115847533,"category":"Comfort","description":"Comfort score dropped below optimal threshold.","before_value":"9.5","after_value":"7.2"}
+{"id":"hist_6","timestamp":1783114682194,"category":"System","description":"Background worker initialized successfully.","before_value":null,"after_value":null}
+{"id":"hist_51","timestamp":1783113720903,"category":"Comfort","description":"Comfort score dropped below optimal threshold.","before_value":"9.5","after_value":"7.2"}
+{"id":"hist_52","timestamp":1783111931765,"category":"System","description":"Background worker initialized successfully.","before_value":null,"after_value":null}
+{"id":"hist_13","timestamp":1783110778114,"category":"System","description":"Background worker initialized successfully.","before_value":null,"after_value":null}
+{"id":"hist_64","timestamp":1783107924225,"category":"System","description":"Background worker initialized successfully.","before_value":null,"after_value":null}
+{"id":"hist_32","timestamp":1783106851082,"category":"System","description":"Background worker initialized successfully.","before_value":null,"after_value":null}
+{"id":"hist_23","timestamp":1783105983094,"category":"Comfort","description":"Comfort score dropped below optimal threshold.","before_value":"9.5","after_value":"7.2"}
+{"id":"hist_27","timestamp":1783105595116,"category":"System","description":"Background worker initialized successfully.","before_value":null,"after_value":null}
+{"id":"hist_1","timestamp":1783105040840,"category":"Profile","description":"User manually switched active comfort profile.","before_value":"Reading","after_value":"Productivity"}
+{"id":"hist_4","timestamp":1783104717770,"category":"Comfort","description":"Comfort score dropped below optimal threshold.","before_value":"9.5","after_value":"7.2"}
+{"id":"hist_91","timestamp":1783101955183,"category":"System","description":"Background worker initialized successfully.","before_value":null,"after_value":null}
+{"id":"hist_84","timestamp":1783101662390,"category":"System","description":"Background worker initialized successfully.","before_value":null,"after_value":null}
+{"id":"hist_72","timestamp":1783099561844,"category":"Brightness","description":"Automatically adjusted brightness due to room light change.","before_value":"51","after_value":"42"}
+{"id":"hist_12","timestamp":1783096523753,"category":"Profile","description":"User manually switched active comfort profile.","before_value":"Reading","after_value":"Productivity"}
+{"id":"hist_44","timestamp":1783093736004,"category":"Brightness","description":"Automatically adjusted brightness due to room light change.","before_value":"38","after_value":"67"}
+{"id":"hist_54","timestamp":1783093411947,"category":"Profile","description":"User manually switched active comfort profile.","before_value":"Reading","after_value":"Productivity"}
+{"id":"hist_81","timestamp":1783091221163,"category":"System","description":"Background worker initialized successfully.","before_value":null,"after_value":null}
+{"id":"hist_19","timestamp":1783075841998,"category":"Profile","description":"User manually switched active comfort profile.","before_value":"Reading","after_value":"Productivity"}
+{"id":"hist_75","timestamp":1783074306102,"category":"System","description":"Background worker initialized successfully.","before_value":null,"after_value":null}
+{"id":"hist_47","timestamp":1783069894748,"category":"System","description":"Background worker initialized successfully.","before_value":null,"after_value":null}
+{"id":"hist_90","timestamp":1783069143256,"category":"Brightness","description":"Automatically adjusted brightness due to room light change.","before_value":"45","after_value":"50"}
+{"id":"hist_97","timestamp":1783068856990,"category":"Profile","description":"User manually switched active comfort profile.","before_value":"Reading","after_value":"Productivity"}
+{"id":"hist_37","timestamp":1783068242427,"category":"Profile","description":"User manually switched active comfort profile.","before_value":"Reading","after_value":"Productivity"}
+{"id":"hist_69","timestamp":1783065325415,"category":"Brightness","description":"Automatically adjusted brightness due to room light change.","before_value":"31","after_value":"87"}
+{"id":"hist_92","timestamp":1783065042853,"category":"Comfort","description":"Comfort score dropped below optimal threshold.","before_value":"9.5","after_value":"7.2"}
+{"id":"hist_46","timestamp":1783063611752,"category":"Profile","description":"User manually switched active comfort profile.","before_value":"Reading","after_value":"Productivity"}
+{"id":"hist_33","timestamp":1783063077856,"category":"System","description":"Background worker initialized successfully.","before_value":null,"after_value":null}
+{"id":"hist_96","timestamp":1783054427183,"category":"Brightness","description":"Automatically adjusted brightness due to room light change.","before_value":"36","after_value":"82"}
+{"id":"hist_67","timestamp":1783052737053,"category":"Brightness","description":"Automatically adjusted brightness due to room light change.","before_value":"66","after_value":"77"}
+{"id":"hist_89","timestamp":1783050161000,"category":"Profile","description":"User manually switched active comfort profile.","before_value":"Reading","after_value":"Productivity"}
+{"id":"hist_80","timestamp":1783046904223,"category":"Comfort","description":"Comfort score dropped below optimal threshold.","before_value":"9.5","after_value":"7.2"}
+{"id":"hist_60","timestamp":1783046387945,"category":"System","description":"Background worker initialized successfully.","before_value":null,"after_value":null}
+{"id":"hist_78","timestamp":1783045222999,"category":"Profile","description":"User manually switched active comfort profile.","before_value":"Reading","after_value":"Productivity"}
+{"id":"hist_58","timestamp":1783037445734,"category":"Brightness","description":"Automatically adjusted brightness due to room light change.","before_value":"26","after_value":"52"}
+{"id":"hist_95","timestamp":1783033082602,"category":"System","description":"Background worker initialized successfully.","before_value":null,"after_value":null}
+{"id":"hist_70","timestamp":1783032529414,"category":"Comfort","description":"Comfort score dropped below optimal threshold.","before_value":"9.5","after_value":"7.2"}
+{"id":"hist_65","timestamp":1783030667731,"category":"Profile","description":"User manually switched active comfort profile.","before_value":"Reading","after_value":"Productivity"}
+{"id":"hist_39","timestamp":1783018886603,"category":"Comfort","description":"Comfort score dropped below optimal threshold.","before_value":"9.5","after_value":"7.2"}
+{"id":"hist_71","timestamp":1783017485216,"category":"Profile","description":"User manually switched active comfort profile.","before_value":"Reading","after_value":"Productivity"}
+{"id":"hist_34","timestamp":1783014867719,"category":"System","description":"Background worker initialized successfully.","before_value":null,"after_value":null}
+{"id":"hist_77","timestamp":1783005552055,"category":"System","description":"Background worker initialized successfully.","before_value":null,"after_value":null}
+{"id":"hist_35","timestamp":1783005172921,"category":"System","description":"Background worker initialized successfully.","before_value":null,"after_value":null}
+{"id":"hist_56","timestamp":1783004575189,"category":"Profile","description":"User manually switched active comfort profile.","before_value":"Reading","after_value":"Productivity"}
+{"id":"hist_73","timestamp":1782997188125,"category":"System","description":"Background worker initialized successfully.","before_value":null,"after_value":null}
+{"id":"hist_99","timestamp":1782996159493,"category":"System","description":"Background worker initialized successfully.","before_value":null,"after_value":null}
+{"id":"hist_11","timestamp":1782993661955,"category":"Comfort","description":"Comfort score dropped below optimal threshold.","before_value":"9.5","after_value":"7.2"}
+{"id":"hist_20","timestamp":1782987594137,"category":"Comfort","description":"Comfort score dropped below optimal threshold.","before_value":"9.5","after_value":"7.2"}
