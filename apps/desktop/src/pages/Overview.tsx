@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Sun, Monitor, Activity, Info, Sparkles, TrendingUp, Lightbulb } from "lucide-react";
+import { Sun, Monitor, ShieldCheck, Activity } from "lucide-react";
 import { useStore } from "../store/useStore";
 import { Card } from "../components/ui/Card";
 import { Metric } from "../components/ui/Metric";
@@ -11,130 +11,107 @@ export function Overview() {
 
   if (!dashboard) {
     return (
-      <div className="flex-1 flex items-center justify-center p-10 h-full">
+      <div className="flex-1 flex flex-col items-center justify-center p-10 h-full gap-4">
         <motion.div 
-          animate={{ opacity: [0.5, 1, 0.5] }}
-          transition={{ repeat: Infinity, duration: 1.5 }}
-          className="text-muted-foreground flex items-center gap-3"
-        >
-          <Activity className="w-5 h-5 animate-spin" />
-          <span>Connecting to PixelSense Intelligence...</span>
-        </motion.div>
+          animate={{ opacity: [0.3, 0.7, 0.3] }}
+          transition={{ repeat: Infinity, duration: 2 }}
+          className="w-12 h-12 rounded-full border-4 border-muted border-t-primary animate-spin"
+        />
+        <span className="text-muted-foreground font-medium">Initializing environmental sensors...</span>
       </div>
     );
   }
 
   const { ambient, screen, brightness, intelligence } = dashboard;
   const score = intelligence.comfort_score;
-  const topInsight = intelligence.insights[0];
   const topRec = intelligence.recommendations[0];
 
   return (
-    <div className="flex-1 p-10 overflow-y-auto w-full max-w-[1600px] mx-auto">
-      <header className="mb-10">
-        <h1 className="text-3xl font-semibold tracking-tight text-foreground">Intelligence Dashboard</h1>
-        <p className="text-muted-foreground mt-1">Real-time comfort analysis and proactive recommendations.</p>
-      </header>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-        
-        {/* 1. Comfort Score (Hero) */}
-        <Card className="xl:col-span-3 bg-gradient-to-br from-card to-sidebar border-l-4 border-l-accent shadow-md">
-          <div className="flex items-center justify-between mb-6 border-b border-border/50 pb-4">
-            <h2 className="text-xl font-medium tracking-tight flex items-center gap-2">
-              <Sparkles className="w-5 h-5 text-accent" />
-              Visual Comfort Score
-            </h2>
-            <StatusPill variant={score.total_score > 80 ? "success" : score.total_score > 50 ? "warning" : "error"} pulse>
-              Score: {score.total_score}/100
+    <div className="flex-1 p-10 overflow-y-auto w-full max-w-6xl mx-auto">
+      
+      {/* 1. Hero: How comfortable am I? */}
+      <section className="mb-8">
+        <Card className="bg-card shadow-sm border-l-4 border-l-primary flex flex-col md:flex-row items-center justify-between p-8">
+          <div className="flex flex-col gap-2">
+            <h1 className="text-4xl font-semibold tracking-tight text-foreground">
+              Your comfort is optimal.
+            </h1>
+            <p className="text-lg text-muted-foreground">
+              PixelSense is actively balancing your screen with the current room lighting.
+            </p>
+          </div>
+          <div className="mt-6 md:mt-0 flex flex-col items-end">
+            <span className="text-6xl font-bold text-foreground">
+              <AnimatedValue value={score.total_score} format={(v) => Math.round(v).toString()} />
+            </span>
+            <StatusPill variant="success" className="mt-2 text-sm uppercase tracking-widest">
+              Comfort Score
             </StatusPill>
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-6">
-            <div className="md:col-span-1 flex flex-col justify-center items-center p-4 bg-secondary/30 rounded-xl">
-              <span className="text-5xl font-bold text-foreground">
-                <AnimatedValue value={score.total_score} format={(v) => Math.round(v).toString()} />
-              </span>
-              <span className="text-xs text-muted-foreground uppercase tracking-widest mt-2">Overall</span>
-            </div>
-            <Metric label="Environment (40%)" value={<>{score.environment_component}/40</>} />
-            <Metric label="Screen Stability (25%)" value={<>{score.screen_component}/25</>} />
-            <Metric label="User Behavior (15%)" value={<>{score.behavior_component}/15</>} />
-            <Metric label="Confidence (10%)" value={<>{score.confidence_component}/10</>} />
-          </div>
         </Card>
+      </section>
 
-        {/* 2. Today's Insight */}
-        {topInsight && (
-          <Card className="xl:col-span-2 border-l-4 border-l-blue-500 bg-blue-500/5">
-            <div className="flex items-center gap-2 mb-4">
-              <Info className="w-5 h-5 text-blue-500" />
-              <h2 className="text-lg font-medium">Insight</h2>
-              <StatusPill variant="default" className="ml-auto">{topInsight.category}</StatusPill>
+      {/* 2. What should I do next? (Actionable Recommendation) */}
+      {topRec && (
+        <section className="mb-8">
+          <Card className="border-border/50 bg-secondary/30 flex items-center justify-between p-6">
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-primary/10 rounded-full text-primary">
+                <ShieldCheck className="w-6 h-6" />
+              </div>
+              <div>
+                <h3 className="text-lg font-medium text-foreground">{topRec.title}</h3>
+                <p className="text-muted-foreground">{topRec.reason}</p>
+              </div>
             </div>
-            <h3 className="text-xl font-medium text-foreground mb-2">{topInsight.title}</h3>
-            <p className="text-muted-foreground">{topInsight.description}</p>
-          </Card>
-        )}
-
-        {/* 3. Recommendation */}
-        {topRec && (
-          <Card className="border-l-4 border-l-green-500 bg-green-500/5">
-            <div className="flex items-center gap-2 mb-4">
-              <Lightbulb className="w-5 h-5 text-green-500" />
-              <h2 className="text-lg font-medium">Recommendation</h2>
-              {topRec.priority === "High" && <StatusPill variant="warning" className="ml-auto">High Priority</StatusPill>}
-            </div>
-            <h3 className="text-lg font-medium text-foreground mb-2">{topRec.title}</h3>
-            <p className="text-sm text-muted-foreground mb-4">{topRec.reason}</p>
-            <button className="w-full py-2 bg-green-500/20 hover:bg-green-500/30 text-green-700 dark:text-green-400 font-medium rounded-md transition-colors">
+            <button className="px-6 py-2 bg-primary hover:bg-primary/90 text-primary-foreground font-medium rounded-md transition-colors focus-visible:outline-ring">
               {topRec.action.replace(/_/g, " ")}
             </button>
           </Card>
-        )}
+        </section>
+      )}
 
-        {/* 4. Environment */}
-        <Card>
+      {/* 3. Is everything healthy? (System Status) */}
+      <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <Card interactive>
           <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2">
+            <h2 className="text-lg font-medium flex items-center gap-2">
               <Sun className="w-5 h-5 text-muted-foreground" />
-              <h2 className="text-lg font-medium">Environment</h2>
-            </div>
+              Environmental Light
+            </h2>
+            <StatusPill variant="default">Tracking</StatusPill>
           </div>
-          <div className="grid grid-cols-2 gap-4">
-            <Metric label="Ambient Light" value={<><AnimatedValue value={ambient.lux} /> <span className="text-sm">lux</span></>} />
-            <Metric label="Type" value={ambient.environment} />
+          <div className="flex items-baseline gap-2">
+            <span className="text-4xl font-semibold text-foreground">
+              <AnimatedValue value={ambient.lux} />
+            </span>
+            <span className="text-muted-foreground font-medium">lux</span>
           </div>
+          <p className="text-sm text-muted-foreground mt-2">
+            The room is considered {ambient.environment.toLowerCase()}.
+          </p>
         </Card>
 
-        {/* 5. Display */}
-        <Card>
+        <Card interactive>
           <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2">
+            <h2 className="text-lg font-medium flex items-center gap-2">
               <Monitor className="w-5 h-5 text-muted-foreground" />
-              <h2 className="text-lg font-medium">Display</h2>
-            </div>
+              Display Brightness
+            </h2>
+            <StatusPill variant="default">Auto-adjusted</StatusPill>
           </div>
-          <div className="grid grid-cols-2 gap-4">
-            <Metric label="Current Target" value={<><AnimatedValue value={brightness.target} />%</>} />
-            <Metric label="Avg Luminance" value={<><AnimatedValue value={screen.average_luminance} /> <span className="text-sm">nits</span></>} />
+          <div className="flex items-baseline gap-2">
+            <span className="text-4xl font-semibold text-foreground">
+              <AnimatedValue value={brightness.target} />
+            </span>
+            <span className="text-muted-foreground font-medium">%</span>
           </div>
+          <p className="text-sm text-muted-foreground mt-2">
+            Compensating for screen luminance ({Math.round(screen.average_luminance)} nits).
+          </p>
         </Card>
+      </section>
 
-        {/* 6. History / Analytics */}
-        <Card>
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2">
-              <TrendingUp className="w-5 h-5 text-muted-foreground" />
-              <h2 className="text-lg font-medium">Today's Summary</h2>
-            </div>
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <Metric label="Avg Comfort" value={<>{intelligence.analytics.daily.average_comfort_score}/100</>} />
-            <Metric label="Overrides" value={<>{intelligence.analytics.daily.manual_overrides}</>} />
-          </div>
-        </Card>
-
-      </div>
     </div>
   );
 }
