@@ -1,4 +1,4 @@
-import { Monitor, LayoutDashboard, Settings2, Code2, Users, Info as InfoIcon } from 'lucide-react';
+
 import { useStore } from './store/useStore';
 import { useDashboard } from './hooks/useDashboard';
 import { Overview } from './pages/Overview';
@@ -11,7 +11,6 @@ import { About } from './pages/About';
 import { Onboarding } from './pages/Onboarding';
 import { cn } from './lib/utils';
 import { AnimatePresence } from 'framer-motion';
-
 import { Monitor, LayoutDashboard, Settings2, Code2, Users, Info as InfoIcon, History as HistoryIcon, Bell } from 'lucide-react';
 
 const NAV_ITEMS = [

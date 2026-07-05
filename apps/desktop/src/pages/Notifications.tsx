@@ -1,8 +1,7 @@
 import { useState, useEffect } from "react";
-import { NotificationEvent, NotificationService } from "../services/notifications";
+import { type NotificationEvent, NotificationService } from "../services/notifications";
 import { Card } from "../components/ui/Card";
-import { Bell, Search, Info, AlertTriangle, ShieldAlert, Check } from "lucide-react";
-import { FixedSizeList as List } from "react-window";
+import { Bell, Search, Info, ShieldAlert, Check } from "lucide-react";
 
 export function Notifications() {
   const [events, setEvents] = useState<NotificationEvent[]>([]);
@@ -114,16 +113,11 @@ export function Notifications() {
              <p className="text-sm">No notifications match your current filters.</p>
           </div>
         ) : (
-          <List
-            height={600}
-            itemCount={filtered.length}
-            itemSize={120}
-            width="100%"
-            className="custom-scrollbar"
-            style={{ height: '100%' }}
-          >
-            {Row}
-          </List>
+          <div className="h-full overflow-y-auto custom-scrollbar p-2 space-y-2">
+            {filtered.map((event, index) => (
+              <Row key={event.id} index={index} style={{}} />
+            ))}
+          </div>
         )}
       </div>
     </div>

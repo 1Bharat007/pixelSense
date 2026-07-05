@@ -1,4 +1,3 @@
-import { motion } from "framer-motion";
 import { Sun, Monitor, ShieldCheck, AlertCircle } from "lucide-react";
 import { useStore } from "../store/useStore";
 import { Card } from "../components/ui/Card";

@@ -1,8 +1,7 @@
 import { useState, useEffect } from "react";
-import { HistoryEvent, HistoryService } from "../services/history";
+import { type HistoryEvent, HistoryService } from "../services/history";
 import { Card } from "../components/ui/Card";
 import { Search, Filter, Calendar, Activity, Sun, CheckCircle, SlidersHorizontal, Settings2, User } from "lucide-react";
-import { FixedSizeList as List } from "react-window";
 
 export function History() {
   const [events, setEvents] = useState<HistoryEvent[]>([]);
@@ -152,16 +151,11 @@ export function History() {
              <p className="text-sm">Try adjusting your filters or search query.</p>
           </div>
         ) : (
-          <List
-            height={600} 
-            itemCount={filtered.length}
-            itemSize={90}
-            width="100%"
-            className="custom-scrollbar"
-            style={{ height: '100%' }}
-          >
-            {Row}
-          </List>
+          <div className="h-full overflow-y-auto custom-scrollbar p-2 space-y-2">
+            {filtered.map((event, index) => (
+              <Row key={event.id} index={index} style={{}} />
+            ))}
+          </div>
         )}
       </div>
     </div>
