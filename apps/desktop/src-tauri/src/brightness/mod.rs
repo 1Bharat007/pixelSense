@@ -1,6 +1,7 @@
 pub mod error;
 pub mod factory;
 pub mod manager;
+pub mod providers;
 
 #[cfg(test)]
 mod tests {

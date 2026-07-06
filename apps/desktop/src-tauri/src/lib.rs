@@ -24,16 +24,18 @@ pub mod update;
 pub mod logging;
 pub mod diagnostics;
 pub mod dashboard;
+pub mod registry;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 use tauri::Manager;
+use registry::ServiceRegistry;
 
 pub fn run() {
   tauri::Builder::default()
-        .setup(|_app| {
-            // ServiceRegistry will be injected here in later phases
-
-
+        .setup(|app| {
+            let registry = ServiceRegistry::new();
+            registry.start_hardware_worker();
+            app.manage(registry);
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
