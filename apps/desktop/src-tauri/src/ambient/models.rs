@@ -10,13 +10,14 @@ pub fn now_ms() -> u64 {
 #[derive(Debug, Clone, PartialEq)]
 pub enum AmbientEnvironment {
     PitchBlack,
-    DarkRoom,
-    DimRoom,
+    Dark,
+    Dim,
     Indoor,
-    BrightOffice,
-    OutdoorShade,
-    BrightOutdoor,
+    Office,
+    Bright,
+    Outdoor,
     DirectSunlight,
+    Unknown,
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -107,21 +108,21 @@ pub struct AmbientReading {
 }
 
 impl AmbientReading {
-    pub fn determine_environment(lux: f32) -> AmbientEnvironment {
+    pub fn from_lux(lux: f32) -> AmbientEnvironment {
         if lux < 1.0 {
             AmbientEnvironment::PitchBlack
-        } else if lux < 20.0 {
-            AmbientEnvironment::DarkRoom
+        } else if lux < 10.0 {
+            AmbientEnvironment::Dark
         } else if lux < 50.0 {
-            AmbientEnvironment::DimRoom
-        } else if lux < 200.0 {
+            AmbientEnvironment::Dim
+        } else if lux < 250.0 {
             AmbientEnvironment::Indoor
-        } else if lux < 500.0 {
-            AmbientEnvironment::BrightOffice
-        } else if lux < 2000.0 {
-            AmbientEnvironment::OutdoorShade
-        } else if lux < 10000.0 {
-            AmbientEnvironment::BrightOutdoor
+        } else if lux < 1000.0 {
+            AmbientEnvironment::Office
+        } else if lux < 5000.0 {
+            AmbientEnvironment::Bright
+        } else if lux < 20000.0 {
+            AmbientEnvironment::Outdoor
         } else {
             AmbientEnvironment::DirectSunlight
         }

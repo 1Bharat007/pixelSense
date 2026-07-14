@@ -7,7 +7,7 @@ pub struct ConfidenceEvaluator;
 
 impl ConfidenceEvaluator {
     pub fn evaluate(
-        info: &SensorInfo,
+        _info: &SensorInfo,
         health: &SensorHealth,
         sensor_type: &AmbientSensorType,
         is_stable: bool,

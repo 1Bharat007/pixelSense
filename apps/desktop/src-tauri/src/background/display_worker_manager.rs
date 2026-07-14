@@ -1,5 +1,5 @@
 use crate::background::error::BackgroundError;
-use crate::background::models::{DisplayWorkerId, now_ms, WorkerHealth, WorkerId, WorkerState};
+use crate::background::models::{DisplayWorkerId, now_ms};
 use std::collections::HashMap;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex};

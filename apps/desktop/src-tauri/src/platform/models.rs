@@ -12,4 +12,7 @@ pub struct NativeDisplay {
     pub position_y: i32,
     pub refresh_rate: Option<f32>,
     pub is_primary: bool,
+    pub hdr_supported: bool,
+    pub scaling_factor: f32,
+    pub is_internal: bool,
 }

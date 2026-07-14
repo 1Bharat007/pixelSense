@@ -51,24 +51,24 @@ pub enum AdaptiveEventKind {
     PeriodicTick,
 
     // ── Future Event Sources (documented, not implemented) ────────
-    /// Native display change notifications (WM_DISPLAYCHANGE).
-    /// Future: replaces startup-only display discovery.
+    // Native display change notifications (WM_DISPLAYCHANGE).
+    // Future: replaces startup-only display discovery.
     // FutureNativeDisplayNotification,
 
-    /// Ambient sensor hardware interrupt (zero-polling mode).
-    /// Future: eliminates the need for periodic ambient polling.
+    // Ambient sensor hardware interrupt (zero-polling mode).
+    // Future: eliminates the need for periodic ambient polling.
     // FutureAmbientSensorInterrupt,
 
-    /// Window focus change (foreground application changed).
-    /// Future: enables per-app comfort profiles.
+    // Window focus change (foreground application changed).
+    // Future: enables per-app comfort profiles.
     // FutureWindowFocusChange,
 
-    /// GPU performance counter notification (frame time change).
-    /// Future: enables GPU-triggered luminance analysis.
+    // GPU performance counter notification (frame time change).
+    // Future: enables GPU-triggered luminance analysis.
     // FutureGpuNotification,
 
-    /// OS power plan change notification.
-    /// Future: activates PowerMode switching.
+    // OS power plan change notification.
+    // Future: activates PowerMode switching.
     // FuturePowerPlanChange,
 }
 

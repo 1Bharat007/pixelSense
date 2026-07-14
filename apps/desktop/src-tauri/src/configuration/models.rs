@@ -13,6 +13,8 @@ pub struct AppConfig {
 pub struct AdaptiveSection {
     pub enabled: bool,
     pub confidence_threshold: f32,
+    pub poll_interval_ms: Option<u64>,
+    pub transition_interval_ms: Option<u64>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -24,6 +26,13 @@ pub struct TransitionSection {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct BrightnessSection {
     pub manual_override_timeout_ms: u64,
+    pub reference_brightness: Option<u8>,
+    pub reference_ambient_lux: Option<f32>,
+    pub display_model: Option<String>,
+    pub monitor_type: Option<String>,
+    pub power_mode: Option<String>,
+    pub timestamp: Option<String>,
+    pub profile: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -42,6 +51,8 @@ impl Default for AppConfig {
             adaptive: AdaptiveSection {
                 enabled: true,
                 confidence_threshold: 0.5,
+                poll_interval_ms: Some(1000),
+                transition_interval_ms: Some(50),
             },
             transition: TransitionSection {
                 enabled: true,
@@ -49,6 +60,13 @@ impl Default for AppConfig {
             },
             brightness: BrightnessSection {
                 manual_override_timeout_ms: 3600000,
+                reference_brightness: None,
+                reference_ambient_lux: None,
+                display_model: None,
+                monitor_type: None,
+                power_mode: None,
+                timestamp: None,
+                profile: None,
             },
             appearance: AppearanceSection {
                 theme: "System".into(),

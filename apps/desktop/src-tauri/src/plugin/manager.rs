@@ -1,7 +1,6 @@
 use std::collections::HashMap;
 use std::sync::{Arc, RwLock};
 use crate::plugin::traits::PixelSensePlugin;
-use crate::plugin::models::{PluginManifest, PluginState, PluginHealth};
 
 pub struct PluginRegistry {
     plugins: RwLock<HashMap<String, Arc<RwLock<dyn PixelSensePlugin>>>>,

@@ -38,10 +38,10 @@ export function Developer() {
             <h2 className="text-lg font-medium">Pipeline Profiler</h2>
           </div>
           <div className="grid grid-cols-2 gap-y-6 gap-x-4">
-            <Metric label="Total Cycle Time" value={<><AnimatedValue value={performance.pipeline_duration_ms} />ms</>} />
-            <Metric label="Screen Analysis" value={<><AnimatedValue value={screen.current_analysis_time_ms} />ms</>} />
-            <Metric label="Current Poll Interval" value={<><AnimatedValue value={performance.current_poll_interval_ms} />ms</>} />
-            <Metric label="Visual Complexity" value={<><AnimatedValue value={screen.visual_complexity * 100} format={v => v.toFixed(2)} />%</>} />
+            <Metric label="Total Cycle Time" value={<><AnimatedValue value={performance.pipeline_duration_ms ?? 0} />ms</>} />
+            <Metric label="Screen Analysis" value={<><AnimatedValue value={screen.current_analysis_time_ms ?? 0} />ms</>} />
+            <Metric label="Current Poll Interval" value={<><AnimatedValue value={performance.current_poll_interval_ms ?? 0} />ms</>} />
+            <Metric label="Visual Complexity" value={<><AnimatedValue value={(screen.visual_complexity ?? 0) * 100} format={v => v.toFixed(2)} />%</>} />
           </div>
         </Card>
 
@@ -68,8 +68,8 @@ export function Developer() {
             <h2 className="text-lg font-medium">Ambient Engine State</h2>
           </div>
           <div className="grid grid-cols-2 gap-y-6 gap-x-4">
-            <Metric label="Raw Lux" value={<AnimatedValue value={ambient.lux} format={v => v.toFixed(1)} />} />
-            <Metric label="Confidence Multiplier" value={<AnimatedValue value={ambient.confidence} format={v => v.toFixed(4)} />} />
+            <Metric label="Raw Lux" value={<AnimatedValue value={ambient.lux ?? 0} format={v => v.toFixed(1)} />} />
+            <Metric label="Confidence Multiplier" value={<AnimatedValue value={ambient.confidence ?? 0} format={v => v.toFixed(4)} />} />
             <Metric label="Hardware Source" value={<span className="text-lg">{ambient.source}</span>} />
             <Metric label="Computed Environment" value={<span className="text-lg">{ambient.environment}</span>} />
           </div>
@@ -82,10 +82,10 @@ export function Developer() {
             <h2 className="text-lg font-medium">Brightness Controller</h2>
           </div>
           <div className="grid grid-cols-2 gap-y-6 gap-x-4">
-            <Metric label="Current Display Level" value={<><AnimatedValue value={brightness.current} />%</>} />
-            <Metric label="Target Display Level" value={<><AnimatedValue value={brightness.target} />%</>} />
+            <Metric label="Current Display Level" value={<><AnimatedValue value={brightness.current ?? 0} />%</>} />
+            <Metric label="Target Display Level" value={<><AnimatedValue value={brightness.target ?? 0} />%</>} />
             <Metric label="Transition State" value={<span className="text-lg">{brightness.transition_status}</span>} />
-            <Metric label="Transition Progress" value={<><AnimatedValue value={brightness.transition_progress * 100} format={v => Math.round(v).toString()} />%</>} />
+            <Metric label="Transition Progress" value={<><AnimatedValue value={(brightness.transition_progress ?? 0) * 100} format={v => Math.round(v).toString()} />%</>} />
           </div>
         </Card>
 

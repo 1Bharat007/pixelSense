@@ -1,4 +1,4 @@
-use std::time::{Instant, Duration};
+use std::time::Instant;
 use crate::performance::budget::PerformanceBudgetManager;
 use std::sync::Arc;
 
@@ -8,6 +8,7 @@ pub struct CentralScheduler {
     budget_manager: Arc<PerformanceBudgetManager>,
     last_ambient_ms: u64,
     last_screen_ms: u64,
+    #[allow(dead_code)] // Reserved for future dashboard coordination
     last_dashboard_ms: u64,
     start_time: Instant,
 }

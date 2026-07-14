@@ -13,7 +13,11 @@ impl From<NativeDisplay> for DisplayInfo {
             height: native.height,
             refresh_rate: native.refresh_rate,
             is_primary: native.is_primary,
-            capabilities: DisplayCapabilities::default(), // Capability detection handled separately
+            capabilities: DisplayCapabilities {
+                brightness: true,
+                hdr: native.hdr_supported,
+                ddc_ci: !native.is_internal,
+            },
         }
     }
 }
@@ -35,6 +39,9 @@ mod tests {
             position_y: 0,
             refresh_rate: Some(144.0),
             is_primary: true,
+            hdr_supported: true,
+            scaling_factor: 1.5,
+            is_internal: false,
         };
 
         let info: DisplayInfo = native.into();
@@ -47,6 +54,7 @@ mod tests {
         assert_eq!(info.is_primary, true);
         assert_eq!(info.manufacturer, None);
         assert_eq!(info.model, None);
-        assert_eq!(info.capabilities, DisplayCapabilities::default());
+        assert_eq!(info.capabilities.hdr, true);
+        assert_eq!(info.capabilities.ddc_ci, true);
     }
 }

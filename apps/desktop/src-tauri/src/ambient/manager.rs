@@ -164,7 +164,7 @@ impl AmbientManager {
         let mut final_reading = raw_reading.clone();
         final_reading.lux = calibrated_lux;
         final_reading.normalized_lux = final_lux;
-        final_reading.environment = AmbientReading::determine_environment(final_lux);
+        final_reading.environment = AmbientReading::from_lux(final_lux);
         final_reading.confidence = confidence;
         final_reading.quality = quality;
         final_reading.is_stable = is_stable;

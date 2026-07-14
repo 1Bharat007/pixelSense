@@ -1,5 +1,5 @@
 use std::collections::VecDeque;
-use std::sync::{Arc, RwLock};
+use std::sync::RwLock;
 use crate::crash::models::{CrashReport, RecoveryPolicy};
 
 pub struct CrashManager {

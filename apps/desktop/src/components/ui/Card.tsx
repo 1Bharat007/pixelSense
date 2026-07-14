@@ -21,6 +21,8 @@ export const Card = React.forwardRef<HTMLDivElement, CardProps>(
           interactive && "cursor-pointer hover:border-ring/50 transition-colors focus-visible:outline-ring",
           className
         )}
+        role={interactive ? "button" : undefined}
+        tabIndex={interactive ? 0 : undefined}
         {...props}
       >
         {children}

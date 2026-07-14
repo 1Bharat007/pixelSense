@@ -27,6 +27,7 @@ pub struct IntelligenceManager {
     insights_engine: InsightsEngine,
     recommendation_engine: RecommendationEngine,
     comfort_score_engine: ComfortScoreEngine,
+    #[allow(dead_code)] // Reserved for future app-specific rules
     application_rule_engine: ApplicationRuleEngine,
 }
 

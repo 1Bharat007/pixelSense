@@ -7,6 +7,7 @@ pub struct VersionConstraint {
 }
 
 pub struct CompatibilityManager {
+    #[allow(dead_code)] // Reserved for future version comparisons
     app_version: String,
     plugin_sdk_version: String,
 }
@@ -20,8 +21,21 @@ impl CompatibilityManager {
     }
 
     pub fn is_plugin_compatible(&self, min_sdk: &str) -> bool {
-        // Simplified semver check for architecture blueprint
-        self.plugin_sdk_version >= min_sdk.to_string()
+        let parse_version = |v: &str| -> Vec<u32> {
+            v.split('.')
+             .filter_map(|s| s.parse::<u32>().ok())
+             .collect()
+        };
+
+        let current = parse_version(&self.plugin_sdk_version);
+        let min = parse_version(min_sdk);
+        
+        for (c, m) in current.into_iter().zip(min.into_iter()) {
+            if c != m {
+                return c > m;
+            }
+        }
+        true // equal or all compared segments equal
     }
 
     pub fn validate_schema_version(&self, current_schema: u32, expected_schema: u32) -> Result<(), String> {

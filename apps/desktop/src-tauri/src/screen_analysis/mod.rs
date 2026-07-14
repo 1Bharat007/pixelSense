@@ -5,6 +5,7 @@ pub mod frame;
 pub mod manager;
 pub mod models;
 pub mod provider;
+pub mod providers;
 
 #[cfg(test)]
 mod tests {

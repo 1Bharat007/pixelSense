@@ -1,10 +1,19 @@
+import { useState, useEffect } from "react";
+import { getVersion } from "@tauri-apps/api/app";
+
 export const Diagnostics = () => {
+  const [appVersion, setAppVersion] = useState("Loading...");
+
+  useEffect(() => {
+    getVersion().then(version => setAppVersion(`v${version}`)).catch(console.error);
+  }, []);
+
   return (
     <div>
       <h1>Diagnostics</h1>
       <div className="card">
         <h2>System Information</h2>
-        <p><strong>Application Version:</strong> 0.1.0-alpha</p>
+        <p><strong>Application Version:</strong> {appVersion}</p>
         <p><strong>Operating System:</strong> Windows 11</p>
         <p><strong>Backend Status:</strong> Connected & Healthy</p>
       </div>

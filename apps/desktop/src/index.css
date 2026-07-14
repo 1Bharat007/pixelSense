@@ -14,8 +14,8 @@
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.18 0 0);
   
-  /* Accent: Indigo/Blue */
-  --primary: oklch(0.55 0.15 260);
+  /* Accent: Confident Deep Blue */
+  --primary: oklch(0.5 0.18 260);
   --primary-foreground: oklch(0.98 0 0);
   
   --secondary: oklch(0.95 0 0);
@@ -28,7 +28,7 @@
   --accent-foreground: oklch(0.3 0.1 260);
   
   /* Semantics */
-  --success: oklch(0.65 0.15 150);
+  --success: oklch(0.6 0.18 145);
   --success-foreground: oklch(0.98 0 0);
   
   --warning: oklch(0.75 0.15 70);
@@ -55,7 +55,7 @@
   --popover: oklch(0.20 0 0);
   --popover-foreground: oklch(0.98 0 0);
   
-  --primary: oklch(0.65 0.15 260);
+  --primary: oklch(0.7 0.18 260);
   --primary-foreground: oklch(0.98 0 0);
   
   --secondary: oklch(0.25 0 0);
@@ -67,7 +67,7 @@
   --accent: oklch(0.25 0.05 260);
   --accent-foreground: oklch(0.98 0 0);
   
-  --success: oklch(0.55 0.15 150);
+  --success: oklch(0.7 0.18 145);
   --success-foreground: oklch(0.98 0 0);
   
   --warning: oklch(0.65 0.15 70);
@@ -147,6 +147,13 @@
       animation-iteration-count: 1 !important;
       transition-duration: 0.01ms !important;
       scroll-behavior: auto !important;
+    }
+  }
+
+  /* High Contrast Standard */
+  @media (forced-colors: active) {
+    .bg-primary, .bg-secondary, .bg-accent, .bg-destructive {
+      border: 1px solid CanvasText;
     }
   }
 }

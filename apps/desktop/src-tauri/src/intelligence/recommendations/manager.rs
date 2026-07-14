@@ -39,7 +39,7 @@ impl RecommendationEngine {
         }
 
         if recommendations.is_empty() && context.current_ambient_lux < 20.0 {
-            // Default placeholder recommendation for dark environments
+            // Suggest Night Owl profile to reduce eye strain in dark environments
             recommendations.push(Recommendation {
                 title: "Try Night Owl Profile".into(),
                 reason: "Your environment is very dark. Night Owl reduces blue light.".into(),

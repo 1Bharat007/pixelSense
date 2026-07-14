@@ -4,6 +4,7 @@ use crate::background::error::BackgroundError;
 use crate::background::models::{BackgroundDiagnostics, ServiceId, WorkerHealth};
 use crate::background::service::Service;
 use crate::background::worker::BackgroundWorker;
+use crate::background::watchdog::WorkerWatchdog;
 use crate::performance::factory::create_performance_manager;
 use crate::performance::config::PerformanceConfig;
 use crate::experience::history::manager::HistoryManager;
@@ -53,7 +54,7 @@ impl ServiceManager {
             Arc::clone(&history_manager), 
             Arc::clone(&multi_monitor_scheduler)
         ));
-        let watchdog = Arc::new(WorkerWatchdog::new(Arc::clone(&worker), config.clone()));
+        let _watchdog = Arc::new(WorkerWatchdog::new(Arc::clone(&worker), config.clone()));
         let display_manager = Arc::new(DisplayWorkerManager::new());
 
         let mut manager = Self {
@@ -84,7 +85,7 @@ impl ServiceManager {
             service.start()?;
 
             // Spawn the run_loop on a dedicated named thread.
-            let service_clone = Arc::clone(service);
+            let _service_clone = Arc::clone(service);
             let service_id = id.0.clone();
             thread::Builder::new()
                 .name(format!("pixelsense-{}", service_id))

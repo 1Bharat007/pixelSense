@@ -18,7 +18,7 @@ impl Default for DefaultDecisionStrategy {
 
 impl DecisionStrategy for DefaultDecisionStrategy {
     fn calculate_brightness(&self, context: &DecisionContext) -> Result<DecisionResult, DecisionError> {
-        let mut confidence = 0.5;
+        let mut confidence: f32 = 0.5;
         let mut reasoning = String::new();
         let mut target_brightness: f32;
 

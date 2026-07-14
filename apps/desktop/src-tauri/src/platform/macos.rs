@@ -33,10 +33,6 @@ impl Platform for MacOSPlatform {
         Err(PlatformError::NotImplemented("macOS capability discovery not implemented".into()))
     }
 
-    fn set_brightness(&self) -> Result<(), PlatformError> {
-        Err(PlatformError::NotImplemented("macOS brightness control not implemented".into()))
-    }
-
     fn get_config_path(&self) -> Result<String, PlatformError> {
         Err(PlatformError::NotImplemented("macOS config path not implemented".into()))
     }

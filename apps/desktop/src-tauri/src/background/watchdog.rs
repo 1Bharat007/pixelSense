@@ -1,6 +1,5 @@
 use crate::background::config::BackgroundConfig;
-use crate::background::error::BackgroundError;
-use crate::background::models::{now_ms, WorkerHealth, WorkerId};
+use crate::background::models::now_ms;
 use crate::background::service::Service;
 use crate::background::worker::BackgroundWorker;
 use std::sync::Arc;

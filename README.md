@@ -1,11 +1,12 @@
 <div align="center">
 
-<!-- Optional: Placeholder for Logo if one is created later -->
+<img src="docs/images/icon.png" alt="PixelSense" width="128" height="128" />
 <h1>PixelSense</h1>
 
 **Adaptive display brightness for Windows.**<br/>
 *Privacy-first. Rust-powered. DDC/CI hardware control.*
 
+[![Version](https://img.shields.io/badge/version-1.1.0-brightgreen.svg)](#)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Platform](https://img.shields.io/badge/platform-Windows-0078d7.svg)](#)
 [![Tauri](https://img.shields.io/badge/tauri-v2.0-24c8db.svg)](https://tauri.app/)

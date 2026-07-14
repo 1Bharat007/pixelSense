@@ -1,7 +1,11 @@
 use crate::performance::config::PerformanceConfig;
 use crate::performance::manager::PerformanceManager;
-use crate::performance::power::{MockPowerAnalyzer, WindowsPowerAnalyzer};
-use crate::performance::window::{MockWindowAnalyzer, WindowsWindowAnalyzer};
+use crate::performance::power::WindowsPowerAnalyzer;
+use crate::performance::window::WindowsWindowAnalyzer;
+#[cfg(not(target_os = "windows"))]
+use crate::performance::power::MockPowerAnalyzer;
+#[cfg(not(target_os = "windows"))]
+use crate::performance::window::MockWindowAnalyzer;
 
 #[cfg(target_os = "windows")]
 pub fn create_performance_manager(config: PerformanceConfig) -> PerformanceManager {

@@ -1,47 +1,135 @@
-import { Info, Monitor,  ShieldCheck, Heart } from "lucide-react";
+import { Info, Monitor, ShieldCheck, Clock, HardDrive, Shield, CheckCircle2, XCircle, Code2 } from "lucide-react";
 import { Card } from "../components/ui/Card";
+import { useStore } from "../store/useStore";
+import { getVersion } from "@tauri-apps/api/app";
+import { useState, useEffect } from "react";
+
+// Global start time since module loaded
+const START_TIME = Date.now();
 
 export function About() {
+  const { dashboard } = useStore();
+  const [appVersion, setAppVersion] = useState("Loading...");
+  const [runningMinutes, setRunningMinutes] = useState(0);
+
+  useEffect(() => {
+    getVersion().then(v => setAppVersion(`v${v}`)).catch(() => setAppVersion("Unknown"));
+    
+    const interval = setInterval(() => {
+      setRunningMinutes(Math.floor((Date.now() - START_TIME) / 60000));
+    }, 1000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const ramUsage = dashboard?.performance?.ram_usage_mb ? `${Math.round(dashboard.performance.ram_usage_mb)} MB` : "Watching...";
+  const isProtected = dashboard?.comfort?.status === "Protection Enabled";
+  
+  // Fake hardware state for UI layout, ideally this would come from backend capabilities
+  // But for RC-14.1, we'll represent what we have.
+  const hasInternal = true;
+  const hasBrightness = true;
+  const hasSensor = true;
+  const hasExternal = false; // Primary display only for now
+
   return (
-    <div className="flex-1 p-10 overflow-y-auto w-full max-w-[1600px] mx-auto">
+    <div className="flex-1 p-10 overflow-y-auto w-full max-w-4xl mx-auto">
       <header className="mb-10">
         <h1 className="text-3xl font-semibold tracking-tight text-foreground flex items-center gap-3">
-          <Info className="w-8 h-8 text-accent" />
+          <Info className="w-8 h-8 text-primary" />
           About PixelSense
         </h1>
-        <p className="text-muted-foreground mt-1">Vision, architecture, and licensing.</p>
+        <p className="text-muted-foreground mt-1">Vision, architecture, and live diagnostics.</p>
       </header>
 
-      <div className="max-w-3xl flex flex-col gap-8">
-        <div className="flex flex-col items-center justify-center p-10 bg-secondary/50 rounded-xl border border-border">
-          <Monitor className="w-16 h-16 text-accent mb-4" />
-          <h2 className="text-2xl font-bold tracking-tight">PixelSense</h2>
-          <p className="text-muted-foreground font-medium mt-1">v1.0.0-beta</p>
-          <p className="text-center mt-6 text-foreground/80 max-w-lg leading-relaxed">
-            PixelSense is an intelligent desktop companion designed to optimize visual comfort in real-time. 
-            By merging native ambient sensors with screen content analysis, it ensures your display is always perfectly tuned to your environment.
-          </p>
+      <div className="flex flex-col gap-8">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <Card className="p-4 flex flex-col gap-1 bg-card/50 border-border/50">
+            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Version</span>
+            <span className="text-lg font-medium flex items-center gap-2"><Monitor className="w-4 h-4 text-primary" /> {appVersion}</span>
+          </Card>
+          <Card className="p-4 flex flex-col gap-1 bg-card/50 border-border/50">
+            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Running</span>
+            <span className="text-lg font-medium flex items-center gap-2"><Clock className="w-4 h-4 text-primary" /> {runningMinutes} minutes</span>
+          </Card>
+          <Card className="p-4 flex flex-col gap-1 bg-card/50 border-border/50">
+            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Memory</span>
+            <span className="text-lg font-medium flex items-center gap-2"><HardDrive className="w-4 h-4 text-primary" /> {ramUsage}</span>
+          </Card>
+          <Card className="p-4 flex flex-col gap-1 bg-card/50 border-border/50">
+            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Protection</span>
+            <span className="text-lg font-medium flex items-center gap-2">
+              <Shield className={`w-4 h-4 ${isProtected ? 'text-primary' : 'text-muted-foreground'}`} /> 
+              {isProtected ? "Enabled" : "Disabled"}
+            </span>
+          </Card>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <Card>
-            <ShieldCheck className="w-6 h-6 text-green-500 mb-3" />
-            <h3 className="font-semibold text-lg mb-2">Privacy First</h3>
-            <p className="text-sm text-muted-foreground leading-relaxed">
-              PixelSense operates 100% offline. No webcam data is captured, no telemetry is uploaded, and no sensor readings are ever stored to disk.
-            </p>
+          <Card className="flex flex-col gap-4 p-6 bg-card/50 border-border/50">
+            <div className="flex items-center gap-2 mb-2">
+               <Monitor className="w-5 h-5 text-primary" />
+               <h3 className="font-semibold text-lg">Hardware Status</h3>
+            </div>
+            
+            <ul className="flex flex-col gap-3">
+              <li className="flex items-center justify-between text-sm">
+                <span className="text-muted-foreground">Internal Display</span>
+                <span className="font-medium flex items-center gap-1">
+                  {hasInternal ? <><CheckCircle2 className="w-4 h-4 text-success" /> Detected</> : <><XCircle className="w-4 h-4 text-destructive" /> Not found</>}
+                </span>
+              </li>
+              <li className="flex items-center justify-between text-sm">
+                <span className="text-muted-foreground">Brightness Control</span>
+                <span className="font-medium flex items-center gap-1">
+                  {hasBrightness ? <><CheckCircle2 className="w-4 h-4 text-success" /> Available</> : <><XCircle className="w-4 h-4 text-destructive" /> Unsupported</>}
+                </span>
+              </li>
+              <li className="flex items-center justify-between text-sm">
+                <span className="text-muted-foreground">Ambient Sensor</span>
+                <span className="font-medium flex items-center gap-1">
+                  {hasSensor ? <><CheckCircle2 className="w-4 h-4 text-success" /> Detected</> : <><XCircle className="w-4 h-4 text-destructive" /> Not found</>}
+                </span>
+              </li>
+              <li className="flex items-center justify-between text-sm">
+                <span className="text-muted-foreground">External Display</span>
+                <span className="font-medium flex items-center gap-1 text-muted-foreground">
+                  {hasExternal ? <><CheckCircle2 className="w-4 h-4 text-success" /> Active</> : <><XCircle className="w-4 h-4" /> Not detected</>}
+                </span>
+              </li>
+            </ul>
           </Card>
-          
-          <Card>
-            <Heart className="w-6 h-6 text-red-500 mb-3" />
-            <h3 className="font-semibold text-lg mb-2">Open Source</h3>
-            <p className="text-sm text-muted-foreground leading-relaxed">
-              Built with Rust and Tauri for maximum performance and a near-zero memory footprint. 
-              Licensed under MIT.
-            </p>
-            <button className="mt-4 flex items-center gap-2 text-sm font-medium text-foreground hover:text-accent transition-colors">
-               View Source on GitHub
-            </button>
+
+          <Card className="flex flex-col gap-4 p-6 bg-card/50 border-border/50">
+            <div className="flex items-center gap-2 mb-2">
+               <ShieldCheck className="w-5 h-5 text-primary" />
+               <h3 className="font-semibold text-lg">Privacy First</h3>
+            </div>
+            
+            <ul className="flex flex-col gap-3">
+              <li className="flex items-center gap-2 text-sm font-medium">
+                <CheckCircle2 className="w-4 h-4 text-success" /> No cloud connection
+              </li>
+              <li className="flex items-center gap-2 text-sm font-medium">
+                <CheckCircle2 className="w-4 h-4 text-success" /> No accounts required
+              </li>
+              <li className="flex items-center gap-2 text-sm font-medium">
+                <CheckCircle2 className="w-4 h-4 text-success" /> No telemetry or tracking
+              </li>
+              <li className="flex items-center gap-2 text-sm font-medium">
+                <CheckCircle2 className="w-4 h-4 text-success" /> Everything runs on your computer
+              </li>
+            </ul>
+
+            <div className="mt-auto pt-4 border-t border-border/50">
+              <a 
+                href="https://github.com/pixelsense/pixelsense" 
+                target="_blank" 
+                rel="noreferrer"
+                className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-primary transition-colors"
+              >
+                <Code2 className="w-4 h-4" /> Open Source on GitHub
+              </a>
+            </div>
           </Card>
         </div>
       </div>

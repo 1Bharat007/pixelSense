@@ -1,5 +1,5 @@
 use crate::performance::config::PerformanceConfig;
-use crate::performance::models::{OptimizationPolicy, PerformanceDiagnostics, PerformanceState, PowerState};
+use crate::performance::models::{PerformanceDiagnostics, PerformanceState, PowerState};
 use crate::performance::power::PowerStateAnalyzer;
 use crate::performance::window::ActiveWindowAnalyzer;
 use std::sync::Mutex;

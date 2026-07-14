@@ -1,5 +1,5 @@
 use std::collections::HashMap;
-use std::sync::{Arc, RwLock};
+use std::sync::RwLock;
 
 #[derive(Debug, Clone)]
 pub enum FeatureFlagType {

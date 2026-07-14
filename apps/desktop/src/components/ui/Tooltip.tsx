@@ -25,6 +25,7 @@ export function Tooltip({ content, children, className }: TooltipProps) {
         type="button" 
         className="text-muted-foreground hover:text-foreground transition-colors focus-visible:outline-ring rounded-full p-1"
         aria-label="More information"
+        aria-describedby={isVisible ? "tooltip-content" : undefined}
       >
         {children || <Info className="w-4 h-4" />}
       </button>
@@ -32,6 +33,7 @@ export function Tooltip({ content, children, className }: TooltipProps) {
       <AnimatePresence>
         {isVisible && (
           <motion.div
+            id="tooltip-content"
             initial={{ opacity: 0, y: 4, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 4, scale: 0.95 }}

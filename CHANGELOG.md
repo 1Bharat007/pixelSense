@@ -5,21 +5,37 @@ All notable changes to PixelSense are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [1.1.0] - 2026-07-06
 
 ### Added
-- Evidence-based Release Certification framework (`docs/release/`)
-- Risk Register for tracking unresolved pre-release issues
-- Hardware Validation Matrix for cross-machine testing
+- Native Windows Installer (NSIS) support with publisher details and custom icon
+- System tray persistence with context menu (Show, Settings, Quit)
+- Forced-colors media query support for Windows High Contrast mode
+- Keyboard navigation (arrows, enter) and ARIA attributes for sidebar
+- Exponential backoff algorithm for backend polling resilience
 
 ### Fixed
-- Removed incompatible `react-window` dependency that caused Vite/Rolldown build failures
-- Fixed `tauri.conf.json` to use `npm` instead of `pnpm` for build commands
-- Resolved duplicate import declarations in `App.tsx`
-- Fixed `verbatimModuleSyntax` type import errors in History and Notifications pages
+- Fixed hardcoded version labels throughout the UI to read dynamically from Tauri API
+- Eliminated 45+ Rust compiler warnings and dead code warnings
+- Resolved `aria-label` missing properties across interactive components
+- Fixed focus traps during the Onboarding flow
 
 ### Changed
-- History and Notifications pages now use native React rendering instead of `react-window` virtualization
+- Dashboard state polling now suspends when window is hidden/minimized to reduce background load
+- Settings toggle switches now persist via Tauri IPC commands
+- Factory Reset now requires a two-step confirmation dialog
+- Error experiences now provide rich, typed payloads with actionable retry buttons
+- Onboarding state is now persisted to localStorage to survive application restarts
+
+---
+
+## [1.0.0-alpha] - 2026-07-06
+
+### Added
+- **Native Hardware Completion**: All hardware interactions are now production-grade using real Windows APIs. No stubs, no fake implementations, no PowerShell fallbacks.
+- **Ambient Light Sensor Integration**: Connected natively to Windows Sensor API (`ISensorManager`).
+- **Screen Luminance Integration**: Connected natively to Desktop Duplication API (DXGI) for real-time frame analysis.
+- **DDC/CI Output**: Brightness commands dispatched directly to physical monitors via Win32.
 
 ---
 
@@ -63,8 +79,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Complete architectural documentation with Mermaid diagrams
 
 ### Known Limitations
-- Ambient Light Sensor: Architecture complete; returns simulated values (native Windows API pending)
-- Screen Luminance: Architecture complete; uses mock data (native Desktop Duplication API pending)
 - Platform: Windows only (macOS and Linux providers are planned)
 - Rust toolchain required for compilation (no pre-built binaries available yet)
 

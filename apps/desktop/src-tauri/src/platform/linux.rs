@@ -33,10 +33,6 @@ impl Platform for LinuxPlatform {
         Err(PlatformError::NotImplemented("Linux capability discovery not implemented".into()))
     }
 
-    fn set_brightness(&self) -> Result<(), PlatformError> {
-        Err(PlatformError::NotImplemented("Linux brightness control not implemented".into()))
-    }
-
     fn get_config_path(&self) -> Result<String, PlatformError> {
         Err(PlatformError::NotImplemented("Linux config path not implemented".into()))
     }

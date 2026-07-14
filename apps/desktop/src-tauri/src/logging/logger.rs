@@ -1,5 +1,5 @@
-use std::sync::{Arc, Mutex};
-use crate::logging::models::{LogEntry, LogCategory, LogLevel};
+use std::sync::Mutex;
+use crate::logging::models::LogEntry;
 use std::fs::{File, OpenOptions};
 use std::io::Write;
 

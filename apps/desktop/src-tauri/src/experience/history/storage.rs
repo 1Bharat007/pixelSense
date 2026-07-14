@@ -1,6 +1,5 @@
 use std::fs::OpenOptions;
 use std::io::Write;
-use std::path::PathBuf;
 use crate::experience::history::models::{HistoryEvent, TimestampedEvent};
 use crate::experience::history::rotation::RotationStrategy;
 

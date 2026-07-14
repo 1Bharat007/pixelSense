@@ -34,11 +34,9 @@ pub trait Platform: Send + Sync {
     /// Discovers capabilities for a specific display.
     /// Note: (&self, display_id: &str) -> Result<crate::display::domain::DisplayCapabilities, PlatformError>`
     fn discover_capabilities(&self, display: &crate::display::domain::DisplayInfo) -> Result<crate::display::domain::DisplayCapabilities, PlatformError>;
-    fn set_brightness(&self, display: &crate::display::domain::DisplayInfo, brightness_percent: u8) -> Result<(), PlatformError>;
-
     /// Sets the brightness level for a display.
     /// Future: `fn set_brightness(&self, display_id: &str, level: u32) -> Result<(), PlatformError>`
-    fn set_brightness(&self) -> Result<(), PlatformError>;
+    fn set_brightness(&self, display: &crate::display::domain::DisplayInfo, brightness_percent: u8) -> Result<(), PlatformError>;
 
     /// Retrieves the platform-specific configuration path.
     /// Future: `fn get_config_path(&self) -> Result<String, PlatformError>`

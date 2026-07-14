@@ -1,8 +1,9 @@
-use std::sync::{Arc, RwLock};
+use std::sync::RwLock;
 use crate::update::models::{UpdateState, UpdateManifest, UpdateChannel};
 
 pub struct UpdateManager {
     state: RwLock<UpdateState>,
+    #[allow(dead_code)] // Reserved for future update channel management
     channel: RwLock<UpdateChannel>,
 }
 

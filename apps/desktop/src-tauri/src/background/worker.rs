@@ -11,7 +11,6 @@ use crate::performance::scheduler::CentralScheduler;
 use crate::performance::budget::PerformanceBudgetManager;
 use crate::background::service::Service;
 use crate::performance::manager::PerformanceManager;
-use crate::performance::models::PerformanceState;
 use crate::experience::history::manager::HistoryManager;
 use crate::experience::multi_monitor::scheduler::MultiMonitorScheduler;
 use std::sync::atomic::{AtomicBool, Ordering};
@@ -45,8 +44,18 @@ pub struct BackgroundWorker {
     event_queue: Arc<EventQueue>,
     profiler: Arc<PipelineProfiler>,
     performance_manager: Arc<PerformanceManager>,
+    #[allow(dead_code)] // Reserved for future history features
     history_manager: Arc<HistoryManager>,
+    #[allow(dead_code)] // Reserved for future multi-monitor coordination
     multi_monitor_scheduler: Arc<MultiMonitorScheduler>,
+    
+    // Core Engines
+    screen_manager: Arc<crate::screen_analysis::manager::ScreenAnalysisManager>,
+    visual_comfort: Arc<crate::visual_comfort::engine::VisualComfortEngine>,
+    adaptive_service: Arc<crate::adaptive::service::AdaptiveBrightnessService>,
+    
+    // Hardware integration
+    sensor_session: Arc<crate::platform::hardware::sensor::manager::SensorSession>,
 }
 
 impl BackgroundWorker {
@@ -59,6 +68,19 @@ impl BackgroundWorker {
         let id = WorkerId::new("background_adaptive_worker");
         let health = WorkerHealth::initial(id.clone(), config.base_poll_interval_ms);
 
+        // Instantiate core pipelines
+        let screen_manager = Arc::new(crate::screen_analysis::factory::create_screen_analysis_manager(
+            crate::screen_analysis::config::AnalysisConfig::default()
+        ));
+        
+        let visual_comfort = Arc::new(crate::visual_comfort::factory::create_visual_comfort_engine(
+            crate::visual_comfort::models::ComfortConfig::default()
+        ));
+        
+        let brightness_manager = Arc::new(crate::brightness::factory::create_brightness_manager());
+        let adaptive_service = Arc::new(crate::adaptive::factory::create_adaptive_service(brightness_manager));
+        let sensor_session = Arc::new(crate::platform::hardware::sensor::manager::SensorSession::new());
+
         Self {
             id,
             config,
@@ -69,6 +91,42 @@ impl BackgroundWorker {
             performance_manager,
             history_manager,
             multi_monitor_scheduler,
+            screen_manager,
+            visual_comfort,
+            adaptive_service,
+            sensor_session,
+        }
+    }
+
+    pub fn id(&self) -> &WorkerId {
+        &self.id
+    }
+
+    pub fn config(&self) -> &BackgroundConfig {
+        &self.config
+    }
+
+    fn current_state(&self) -> WorkerState {
+        self.health
+            .lock()
+            .map(|h| h.current_state.clone())
+            .unwrap_or(WorkerState::Stopped)
+    }
+
+    pub fn health(&self) -> WorkerHealth {
+        self.health.lock().unwrap().clone()
+    }
+
+    fn set_state(&self, new_state: WorkerState) {
+        if let Ok(mut h) = self.health.lock() {
+            h.current_state = new_state;
+            h.running = matches!(h.current_state, WorkerState::Running | WorkerState::Recovering);
+        }
+    }
+
+    fn update_heartbeat(&self) {
+        if let Ok(mut h) = self.health.lock() {
+            h.last_heartbeat_ms = now_ms();
         }
     }
 
@@ -161,45 +219,83 @@ impl BackgroundWorker {
 
     fn execute_cycle(&self, scheduler: &mut CentralScheduler, budget: Arc<PerformanceBudgetManager>) -> PipelineResult {
         let cycle_start = Instant::now();
-        let mut error_count = 0u32;
+        let error_count = 0u32;
         let mut changed_brightness = false;
-        let mut skipped_reason: Option<String> = None;
+        let mut _skipped_reason: Option<String> = None;
         
         let perf_state = self.performance_manager.evaluate_performance_state();
 
         let ambient_start = Instant::now();
+        let mut ambient_lux = None;
         if !perf_state.active_policy.pause_ambient && scheduler.should_poll_ambient() {
-            // Placeholder: query ambient light
+            ambient_lux = self.sensor_session.read_lux().ok();
         }
         let ambient_ms = ambient_start.elapsed().as_millis() as u64;
 
         let screen_start = Instant::now();
+        let mut screen_luminance = None;
         if perf_state.active_policy.pause_screen_analysis {
-            skipped_reason = Some("Screen Analysis paused".into());
+            _skipped_reason = Some("Screen Analysis paused".into());
         } else if scheduler.should_poll_screen() {
-            // Placeholder: query screen
+            if let Ok(res) = self.screen_manager.analyze_display("default") {
+                screen_luminance = Some(res.metrics.average_luminance);
+            }
         }
         let screen_ms = screen_start.elapsed().as_millis() as u64;
 
         // ── Step 3: Comfort Profile Matching (non-fatal) ──────────────────────
         let comfort_start = Instant::now();
-        // TODO: wire to ComfortManager::find_matching_profile().
+        let ctx = crate::visual_comfort::models::VisualComfortContext {
+            display_id: "default".into(),
+            current_comfort_profile: None,
+            ambient_light: ambient_lux,
+            screen_luminance,
+            current_monitor_brightness: 50,
+            predicted_emitted_light: 0.0,
+            time_of_day: "Day".into(),
+            transition_enabled: true,
+            confidence: 1.0,
+        };
         let comfort_ms = comfort_start.elapsed().as_millis() as u64;
 
         // ── Step 4: Visual Comfort Engine ─────────────────────────────────────
         let vce_start = Instant::now();
-        // TODO: wire to VisualComfortEngine::calculate_comfort().
-        // On Ignore/NoChange — skip brightness update.
+        let comfort_result = self.visual_comfort.calculate_comfort(ctx);
+        let mut target_brightness = None;
+        if comfort_result.recommendation.action != crate::visual_comfort::models::RecommendationAction::Ignore
+            && comfort_result.recommendation.action != crate::visual_comfort::models::RecommendationAction::NoChange {
+            target_brightness = Some(comfort_result.recommendation.recommended_brightness);
+            changed_brightness = true;
+        }
         let vce_ms = vce_start.elapsed().as_millis() as u64;
 
         // ── Step 5: Brightness + Transition (non-fatal) ───────────────────────
         let brightness_start = Instant::now();
-        // TODO: wire to AdaptiveBrightnessService::execute_recommendation().
+        if let Some(tb) = target_brightness {
+            let caps = crate::display::domain::DisplayCapabilities { brightness: true, hdr: false, ddc_ci: true };
+            let display = crate::display::domain::DisplayInfo {
+                id: "default".into(),
+                name: "Primary Display".into(),
+                manufacturer: None,
+                model: None,
+                width: 1920,
+                height: 1080,
+                refresh_rate: None,
+                is_primary: true,
+                capabilities: caps.clone(),
+            };
+            let decision_ctx = crate::decision::models::DecisionContext {
+                ambient_light: ambient_lux.map(|lux| crate::decision::models::AmbientLightReading { lux }),
+                user_brightness_preference: Some(tb),
+                comfort_preference: crate::decision::models::ComfortLevel::Balanced,
+                time_of_day: crate::decision::models::TimeOfDay::Day,
+            };
+            let _ = self.adaptive_service.execute_pipeline(&display, &caps, &decision_ctx);
+        }
         let brightness_ms = brightness_start.elapsed().as_millis() as u64;
         let transition_ms: u64 = 0;
 
         // ── Record profiler ───────────────────────────────────────────────────
-        let total_ms = cycle_start.elapsed().as_millis() as u64;
         let total_ms = cycle_start.elapsed().as_millis() as u64;
         self.profiler.record(PipelineProfile {
             ambient_ms,
@@ -226,26 +322,6 @@ impl BackgroundWorker {
             skipped_reason: None,
             error_count,
         }
-    }
-
-    fn update_heartbeat(&self) {
-        if let Ok(mut h) = self.health.lock() {
-            h.last_heartbeat_ms = now_ms();
-        }
-    }
-
-    fn set_state(&self, state: WorkerState) {
-        if let Ok(mut h) = self.health.lock() {
-            h.current_state = state.clone();
-            h.running = matches!(state, WorkerState::Running | WorkerState::Recovering);
-        }
-    }
-
-    fn current_state(&self) -> WorkerState {
-        self.health
-            .lock()
-            .map(|h| h.current_state.clone())
-            .unwrap_or(WorkerState::Stopped)
     }
 }
 
@@ -276,6 +352,6 @@ impl Service for BackgroundWorker {
     }
 
     fn health(&self) -> WorkerHealth {
-        self.get_health()
+        BackgroundWorker::health(self)
     }
 }

@@ -38,6 +38,9 @@ impl Platform for MockPlatform {
             position_y: 0,
             refresh_rate: Some(60.0),
             is_primary: true,
+            hdr_supported: false,
+            scaling_factor: 1.0,
+            is_internal: true,
         };
 
         // Convert NativeDisplay to DisplayInfo via Adapter
@@ -50,10 +53,6 @@ impl Platform for MockPlatform {
 
     fn set_brightness(&self, _display: &DisplayInfo, _brightness_percent: u8) -> Result<(), PlatformError> {
         Err(PlatformError::NotImplemented("Capability discovery not implemented in mock".into()))
-    }
-
-    fn set_brightness(&self) -> Result<(), PlatformError> {
-        Err(PlatformError::NotImplemented("Brightness control not implemented in mock".into()))
     }
 
     fn get_config_path(&self) -> Result<String, PlatformError> {
