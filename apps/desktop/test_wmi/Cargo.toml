@@ -1,8 +1,0 @@
-[package]
-name = "test_wmi"
-version = "0.1.0"
-edition = "2024"
-
-[dependencies]
-windows = "0.62.2"
-wmi = "0.18.4"

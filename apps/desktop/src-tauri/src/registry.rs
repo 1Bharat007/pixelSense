@@ -48,7 +48,7 @@ pub struct ServiceRegistry {
 
 impl ServiceRegistry {
     pub fn new(initial_config: crate::configuration::models::AppConfig) -> Self {
-        let state = DashboardStatePayload {
+        let mut state = DashboardStatePayload {
             comfort: ComfortStatePayload {
                 status: "Waiting for Sensor".into(),
                 recommendation: "Cannot determine comfort without sensor data.".into(),
