@@ -8,7 +8,7 @@ import { useState, useEffect } from "react";
 const START_TIME = Date.now();
 
 export function About() {
-  const { dashboard } = useStore();
+  const { dashboard, hardwareCapabilities } = useStore();
   const [appVersion, setAppVersion] = useState("Loading...");
   const [runningMinutes, setRunningMinutes] = useState(0);
 
@@ -24,15 +24,13 @@ export function About() {
   const ramUsage = dashboard?.performance?.ram_usage_mb ? `${Math.round(dashboard.performance.ram_usage_mb)} MB` : "Watching...";
   const isProtected = dashboard?.comfort?.status === "Protection Enabled";
   
-  // Fake hardware state for UI layout, ideally this would come from backend capabilities
-  // But for RC-14.1, we'll represent what we have.
-  const hasInternal = true;
-  const hasBrightness = true;
-  const hasSensor = true;
+  const hasInternal = hardwareCapabilities?.internal_display ?? false;
+  const hasBrightness = hardwareCapabilities?.brightness_api ? true : false;
+  const hasSensor = hardwareCapabilities?.ambient_available ?? false;
   const hasExternal = false; // Primary display only for now
 
   return (
-    <div className="flex-1 p-10 overflow-y-auto w-full max-w-4xl mx-auto">
+    <div className="flex-1 p-10 overflow-y-auto w-full max-w-3xl mx-auto">
       <header className="mb-10">
         <h1 className="text-3xl font-semibold tracking-tight text-foreground flex items-center gap-3">
           <Info className="w-8 h-8 text-primary" />

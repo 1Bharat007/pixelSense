@@ -4,6 +4,7 @@ pub mod factory;
 pub mod interpolator;
 pub mod manager;
 pub mod providers;
+pub mod worker;
 
 #[cfg(test)]
 mod tests {

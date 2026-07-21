@@ -1,4 +1,5 @@
 pub mod config;
+pub mod context;
 pub mod error;
 pub mod factory;
 pub mod frame;
@@ -16,7 +17,7 @@ mod tests {
     use crate::screen_analysis::providers::mock::MockScreenProvider;
 
     fn make_manager(color: (u8, u8, u8), resolution: SampleResolution) -> ScreenAnalysisManager {
-        let provider = Box::new(MockScreenProvider::new("test"));
+        let mut provider = Box::new(MockScreenProvider::new("test"));
         provider.set_color(color.0, color.1, color.2);
         ScreenAnalysisManager::new(
             AnalysisConfig {
@@ -73,7 +74,7 @@ mod tests {
 
     #[test]
     fn test_capture_unavailable_no_panic() {
-        let provider = Box::new(MockScreenProvider::new("test_unavailable"));
+        let mut provider = Box::new(MockScreenProvider::new("test_unavailable"));
         provider.set_available(false);
         let manager = ScreenAnalysisManager::new(AnalysisConfig::default(), provider);
         let result = manager.analyze_display("test_disp");

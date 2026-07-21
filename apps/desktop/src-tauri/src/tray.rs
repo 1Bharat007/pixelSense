@@ -6,13 +6,26 @@ use tauri::{
 
 pub fn create_tray(app: &AppHandle) -> Result<(), Box<dyn std::error::Error>> {
     let title_i = MenuItem::with_id(app, "title", "PixelSense", false, None::<&str>)?;
-    let status_i = MenuItem::with_id(app, "status", "Protection Active", false, None::<&str>)?;
-    let room_i = MenuItem::with_id(app, "room", "Room Lighting: Watching", false, None::<&str>)?;
-    let pause_i = MenuItem::with_id(app, "pause", "Pause Protection", true, None::<&str>)?;
+    let comfort_i = MenuItem::with_id(app, "comfort", "Comfort: --", false, None::<&str>)?;
+    let brightness_i = MenuItem::with_id(app, "brightness", "Brightness: --", false, None::<&str>)?;
+    let context_i = MenuItem::with_id(app, "context", "Context: --", false, None::<&str>)?;
     let show_i = MenuItem::with_id(app, "show", "Open Dashboard", true, None::<&str>)?;
+    let pause_i = MenuItem::with_id(app, "pause", "Pause", true, None::<&str>)?;
+    let resume_i = MenuItem::with_id(app, "resume", "Resume", true, None::<&str>)?;
+    let manual_i = MenuItem::with_id(app, "manual", "Manual Mode", true, None::<&str>)?;
     let quit_i = MenuItem::with_id(app, "quit", "Exit", true, None::<&str>)?;
     
-    let menu = Menu::with_items(app, &[&title_i, &status_i, &room_i, &pause_i, &show_i, &quit_i])?;
+    let menu = Menu::with_items(app, &[
+        &title_i, 
+        &comfort_i, 
+        &brightness_i, 
+        &context_i, 
+        &show_i, 
+        &pause_i, 
+        &resume_i, 
+        &manual_i, 
+        &quit_i
+    ])?;
     
     let _tray = TrayIconBuilder::new()
         .menu(&menu)
@@ -20,18 +33,15 @@ pub fn create_tray(app: &AppHandle) -> Result<(), Box<dyn std::error::Error>> {
             "quit" => {
                 app.exit(0);
             }
-            "show" => {
+            "show" | "pause" | "resume" | "manual" => {
+                // For now, opening the dashboard allows pausing/resuming via UI.
                 if let Some(window) = app.get_webview_window("main") {
-                    let _ = window.show();
-                    let _ = window.set_focus();
-                }
-            }
-            "pause" => {
-                // Future: Add IPC channel to pause the background worker
-                // For now, opening the dashboard allows pausing via UI.
-                if let Some(window) = app.get_webview_window("main") {
-                    let _ = window.show();
-                    let _ = window.set_focus();
+                    if let Err(e) = window.show() {
+                        log::warn!("Failed to show window from tray: {}", e);
+                    }
+                    if let Err(e) = window.set_focus() {
+                        log::warn!("Failed to focus window from tray: {}", e);
+                    }
                 }
             }
             _ => {}
@@ -45,8 +55,12 @@ pub fn create_tray(app: &AppHandle) -> Result<(), Box<dyn std::error::Error>> {
             {
                 let app = tray.app_handle();
                 if let Some(window) = app.get_webview_window("main") {
-                    let _ = window.show();
-                    let _ = window.set_focus();
+                    if let Err(e) = window.show() {
+                        log::warn!("Failed to show window from tray: {}", e);
+                    }
+                    if let Err(e) = window.set_focus() {
+                        log::warn!("Failed to focus window from tray: {}", e);
+                    }
                 }
             }
         })

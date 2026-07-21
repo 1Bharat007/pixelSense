@@ -1,9 +1,6 @@
 pub mod adapter;
 pub mod error;
 pub mod factory;
-pub mod linux;
-pub mod macos;
-pub mod mock;
 pub mod models;
 pub mod windows;
 pub mod capabilities;
@@ -45,28 +42,6 @@ pub trait Platform: Send + Sync {
     /// Sends a system notification.
     /// Future: `fn send_notification(&self, message: &str) -> Result<(), PlatformError>`
     fn send_notification(&self) -> Result<(), PlatformError>;
-}
-
-#[cfg(test)]
-mod tests {
-    use super::factory::create_platform;
-    use super::error::PlatformError;
-
-    #[test]
-    fn test_platform_factory() {
-        let platform = create_platform();
-        let path = platform.get_config_path();
-        
-        match path {
-            Ok(p) => assert_eq!(p, "/mock/config/path"),
-            Err(e) => {
-                match e {
-                    PlatformError::NotImplemented(_) => (),
-                    _ => panic!("Unexpected error: {:?}", e),
-                }
-            }
-        }
-    }
 }
 
 

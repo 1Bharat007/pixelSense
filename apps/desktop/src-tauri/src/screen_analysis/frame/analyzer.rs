@@ -108,11 +108,25 @@ impl ScreenAnalyzer {
 
         let visual_complexity = VisualComplexity::from_luminance_std_dev(std_dev);
 
+        // Third pass: median (inexpensive with small buffers, sort the array)
+        let mut sorted_lum = lum_values.clone();
+        sorted_lum.sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
+        let median = if count > 0.0 {
+            sorted_lum[(count as usize) / 2]
+        } else {
+            0.0
+        };
+
+        // Contrast estimation: rough ratio between peak and average
+        let contrast_estimation = (peak - min_lum) / (average + 1.0);
+
         Ok(FrameMetrics {
             average_luminance: average,
             peak_luminance: peak,
             min_luminance: min_lum,
             luminance_std_dev: std_dev,
+            median_luminance: median,
+            contrast_estimation,
             white_percentage: bright_count as f32 / pixel_count as f32 * 100.0,
             black_percentage: dark_count as f32 / pixel_count as f32 * 100.0,
             histogram,

@@ -14,45 +14,52 @@ export function Settings() {
   const [smoothTransitions, setSmoothTransitions] = useState(true);
   const [minBrightness, setMinBrightness] = useState(10);
   const [maxBrightness, setMaxBrightness] = useState(100);
-  const [statusMessage, setStatusMessage] = useState("");
+  const [activeSaveSection, setActiveSaveSection] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState("");
+
+  const triggerError = (msg: string) => {
+    setErrorMessage(msg);
+    setTimeout(() => setErrorMessage(""), 5000);
+  };
 
   useEffect(() => {
     invoke<any>("get_config").then(cfg => {
       setStartWithWindows(cfg?.system?.start_with_windows ?? true);
       setRunInBackground(cfg?.system?.run_in_background ?? true);
-      setSmoothTransitions(cfg?.adaptive?.smooth_transitions ?? true);
-      setMinBrightness(cfg?.brightness?.min_brightness ?? 10);
-      setMaxBrightness(cfg?.brightness?.max_brightness ?? 100);
+      setSmoothTransitions(cfg?.transition?.enabled ?? true);
+      setMinBrightness(cfg?.brightness?.comfort_profile?.min_brightness ?? 10);
+      setMaxBrightness(cfg?.brightness?.comfort_profile?.max_brightness ?? 100);
     }).catch(console.error);
   }, []);
 
-  const triggerStatus = (msg: string) => {
-    setStatusMessage(msg);
-    setTimeout(() => setStatusMessage(""), 3000);
+  const triggerStatus = (sectionId: string) => {
+    setActiveSaveSection(sectionId);
+    setTimeout(() => setActiveSaveSection(null), 2000);
   };
 
-  const handleToggle = async (section: string, key: string, value: boolean, setter: (val: boolean) => void) => {
+  const handleToggle = async (section: string, key: string, value: boolean, setter: (val: boolean) => void, uiSection: string) => {
     setter(value);
     try {
       await invoke("save_config", { config: { [section]: { [key]: value } } });
-      triggerStatus("Settings saved");
+      triggerStatus(uiSection);
     } catch (e) {
-      triggerStatus("Failed to save setting");
+      console.error(e);
       setter(!value);
     }
   };
 
-  const handleNumber = async (section: string, key: string, value: number, setter: (val: number) => void) => {
+  const handleBrightnessBoundary = async (key: string, value: number, setter: (val: number) => void) => {
     setter(value);
     try {
-      await invoke("save_config", { config: { [section]: { [key]: value } } });
+      await invoke("save_config", { config: { brightness: { comfort_profile: { [key]: value } } } });
+      triggerStatus("protection");
     } catch (e) {
       console.error(e);
     }
   };
 
   return (
-    <div className="flex-1 p-10 overflow-y-auto w-full max-w-4xl mx-auto">
+    <div className="flex-1 h-full p-10 overflow-y-auto w-full max-w-3xl mx-auto">
       <header className="mb-10 flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-semibold tracking-tight text-foreground flex items-center gap-3">
@@ -62,9 +69,9 @@ export function Settings() {
           <p className="text-muted-foreground mt-2">Manage your PixelSense preferences.</p>
         </div>
         
-        {statusMessage && (
-          <div className="bg-success/15 border border-success/30 text-success-foreground px-4 py-2 rounded-md font-medium text-sm animate-in fade-in slide-in-from-top-2">
-            {statusMessage}
+        {errorMessage && (
+          <div className="bg-destructive/15 border border-destructive/30 text-destructive-foreground px-4 py-2 rounded-md font-medium text-sm animate-in fade-in slide-in-from-top-2">
+            {errorMessage}
           </div>
         )}
       </header>
@@ -74,7 +81,7 @@ export function Settings() {
         {/* System Behavior */}
         <section>
           <h2 className="text-sm font-semibold tracking-wider text-muted-foreground uppercase mb-4 pl-1">System</h2>
-          <Card className="flex flex-col gap-6 p-6 bg-card/50">
+          <Card className="flex flex-col gap-6 p-6 bg-card/50 relative overflow-hidden">
             <div className="flex items-center justify-between">
               <div className="flex gap-4">
                 <div className="mt-1"><Power className="w-5 h-5 text-muted-foreground" /></div>
@@ -85,7 +92,7 @@ export function Settings() {
                   <p className="text-muted-foreground">Launch PixelSense silently in the system tray when you log in.</p>
                 </div>
               </div>
-              <Switch checked={startWithWindows} onCheckedChange={(v) => handleToggle("system", "start_with_windows", v, setStartWithWindows)} />
+              <Switch checked={startWithWindows} onCheckedChange={(v) => handleToggle("system", "start_with_windows", v, setStartWithWindows, "system")} />
             </div>
             
             <div className="h-px w-full bg-border/50" />
@@ -100,15 +107,19 @@ export function Settings() {
                   <p className="text-muted-foreground">Keep the protection engine running when you close this window.</p>
                 </div>
               </div>
-              <Switch checked={runInBackground} onCheckedChange={(v) => handleToggle("system", "run_in_background", v, setRunInBackground)} />
+              <Switch checked={runInBackground} onCheckedChange={(v) => handleToggle("system", "run_in_background", v, setRunInBackground, "system")} />
             </div>
+            
+            {activeSaveSection === 'system' && (
+              <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-primary animate-[shrink_2s_linear_forwards] pointer-events-none" />
+            )}
           </Card>
         </section>
 
         {/* Protection Engine */}
         <section>
           <h2 className="text-sm font-semibold tracking-wider text-muted-foreground uppercase mb-4 pl-1">Protection Engine</h2>
-          <Card className="flex flex-col gap-6 p-6 bg-card/50">
+          <Card className="flex flex-col gap-6 p-6 bg-card/50 relative overflow-hidden">
             <div className="flex items-center justify-between">
               <div className="flex gap-4">
                 <div className="mt-1"><Zap className="w-5 h-5 text-muted-foreground" /></div>
@@ -120,7 +131,7 @@ export function Settings() {
                   <p className="text-muted-foreground">Fade brightness changes gradually so they are less distracting.</p>
                 </div>
               </div>
-              <Switch checked={smoothTransitions} onCheckedChange={(v) => handleToggle("adaptive", "smooth_transitions", v, setSmoothTransitions)} />
+              <Switch checked={smoothTransitions} onCheckedChange={(v) => handleToggle("transition", "enabled", v, setSmoothTransitions, "protection")} />
             </div>
             
             <div className="h-px w-full bg-border/50" />
@@ -139,7 +150,7 @@ export function Settings() {
                   type="range" 
                   min="0" max="50" 
                   value={minBrightness} 
-                  onChange={(e) => handleNumber("brightness", "min_brightness", parseInt(e.target.value), setMinBrightness)}
+                  onChange={(e) => handleBrightnessBoundary("min_brightness", parseInt(e.target.value), setMinBrightness)}
                   className="w-32 h-2 bg-secondary rounded-lg appearance-none cursor-pointer accent-primary"
                 />
               </div>
@@ -159,18 +170,22 @@ export function Settings() {
                   type="range" 
                   min="50" max="100" 
                   value={maxBrightness} 
-                  onChange={(e) => handleNumber("brightness", "max_brightness", parseInt(e.target.value), setMaxBrightness)}
+                  onChange={(e) => handleBrightnessBoundary("max_brightness", parseInt(e.target.value), setMaxBrightness)}
                   className="w-32 h-2 bg-secondary rounded-lg appearance-none cursor-pointer accent-primary"
                 />
               </div>
             </div>
+            
+            {activeSaveSection === 'protection' && (
+              <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-primary animate-[shrink_2s_linear_forwards] pointer-events-none" />
+            )}
           </Card>
         </section>
 
         {/* Advanced Settings */}
         <section>
           <h2 className="text-sm font-semibold tracking-wider text-muted-foreground uppercase mb-4 pl-1">Advanced</h2>
-          <Card className="flex flex-col gap-6 p-6 bg-card/50">
+          <Card className="flex flex-col gap-6 p-6 bg-card/50 relative overflow-hidden">
             <div className="flex items-center justify-between">
               <div className="flex gap-4">
                 <div className="mt-1"><Code2 className="w-5 h-5 text-muted-foreground" /></div>
@@ -183,7 +198,7 @@ export function Settings() {
                 checked={developerMode} 
                 onCheckedChange={(v) => {
                   setDeveloperMode(v);
-                  triggerStatus(v ? "Developer Mode Enabled" : "Developer Mode Disabled");
+                  triggerStatus("advanced");
                 }} 
               />
             </div>
@@ -200,18 +215,27 @@ export function Settings() {
               </div>
               <button 
                 onClick={async () => {
+                  triggerStatus("advanced-testing");
                   try {
                     await invoke("test_brightness");
-                    triggerStatus("Hardware test complete");
-                  } catch (e) {
-                    triggerStatus("Test failed: hardware unsupported");
+                    triggerStatus("advanced");
+                  } catch (e: any) {
+                    triggerError("Test failed: " + e.toString());
+                    triggerStatus("");
                   }
                 }}
-                className="px-4 py-2 bg-secondary hover:bg-secondary/80 text-foreground font-medium rounded-md transition-colors focus-visible:outline-ring"
+                className={`relative overflow-hidden px-4 py-2 bg-secondary hover:bg-secondary/80 text-foreground font-medium rounded-md transition-colors focus-visible:outline-ring ${activeSaveSection === 'advanced-testing' ? 'text-primary-foreground' : ''}`}
               >
-                Test Now
+                {activeSaveSection === 'advanced-testing' && (
+                  <div className="animate-wave-fill" />
+                )}
+                <span className="relative z-10">{activeSaveSection === 'advanced-testing' ? 'Testing...' : 'Test Now'}</span>
               </button>
             </div>
+            
+            {activeSaveSection === 'advanced' && (
+              <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-primary animate-[shrink_2s_linear_forwards] pointer-events-none" />
+            )}
           </Card>
         </section>
 

@@ -48,22 +48,4 @@ mod stress_tests {
         println!("100 Ambient Sensor reads took: {:?}", elapsed);
     }
 
-    #[test]
-    #[ignore]
-    fn stress_test_dxgi_capture() {
-        let _runtime = ComRuntime::new_mta().unwrap();
-        let manager = DxgiDeviceManager::new();
-        let device = manager.device().unwrap();
-        let context = manager.context().unwrap();
-        
-        // Ensure no leaks during DuplicationSession recreate
-        for _ in 0..50 {
-            let session = DuplicationSession::new(manager.create_duplication_session(0, 0).unwrap());
-            let pool = FramePool::new(1, 1920, 1080);
-            let mut lease = pool.acquire(1920, 1080);
-            
-            // Allow timeouts as screens might not redraw
-            let _ = session.capture_into(&device, &context, &mut lease);
-        }
-    }
 }

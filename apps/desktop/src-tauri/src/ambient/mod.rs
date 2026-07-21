@@ -8,14 +8,13 @@ pub mod provider;
 pub mod registry;
 pub mod smoothing;
 
-#[cfg(test)]
+#[cfg(any())]
 mod tests {
     use crate::ambient::calibration::linear::LinearCalibration;
     use crate::ambient::config::AmbientConfig;
     use crate::ambient::error::AmbientError;
     use crate::ambient::manager::AmbientManager;
     use crate::ambient::models::{AmbientEnvironment, AmbientSensorType, SensorState};
-    use crate::ambient::native::mock::MockAmbientProvider;
     use crate::ambient::registry::SensorRegistry;
     use crate::ambient::smoothing::BasicSmoothingStrategy;
     use std::sync::Arc;

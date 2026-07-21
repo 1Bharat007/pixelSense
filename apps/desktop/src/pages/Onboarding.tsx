@@ -8,6 +8,7 @@ export function Onboarding() {
   const { setOnboardingCompleted } = useStore();
   const [step, setStep] = useState(0);
   const [referenceBrightness, setReferenceBrightness] = useState(50);
+  const [calibrationMode, setCalibrationMode] = useState<"quick" | "advanced" | null>(null);
 
   const completeOnboarding = async () => {
     try {
@@ -23,9 +24,9 @@ export function Onboarding() {
       if (e.key === 'Escape') {
         completeOnboarding();
       } else if (e.key === 'Enter' || e.key === ' ') {
-        if (step < steps.length - 1) {
+        if (step < steps.length - 1 && !steps[step].isCalibrationSelection) {
           setStep(s => s + 1);
-        } else {
+        } else if (step === steps.length - 1) {
           completeOnboarding();
         }
       }
@@ -57,8 +58,14 @@ export function Onboarding() {
       icon: <ShieldCheck className="w-12 h-12 text-green-500" />,
     },
     {
-      title: "Calibration",
-      description: "Adjust your display until the brightness feels perfectly comfortable right now. PixelSense will use this as your baseline.",
+      title: "Choose Calibration",
+      description: "How would you like to set up PixelSense?",
+      icon: <SlidersHorizontal className="w-12 h-12 text-accent" />,
+      isCalibrationSelection: true,
+    },
+    {
+      title: calibrationMode === "quick" ? "Quick Calibration" : "Advanced Calibration",
+      description: calibrationMode === "quick" ? "Adjust your display until the brightness feels perfectly comfortable right now. PixelSense will use this as your baseline." : "Set your optimal brightness. In a real advanced flow, you would adjust multiple points on a curve.",
       icon: <SlidersHorizontal className="w-12 h-12 text-accent" />,
       isCalibration: true,
     }
@@ -67,7 +74,7 @@ export function Onboarding() {
   const current = steps[step];
 
   return (
-    <div className="flex-1 flex items-center justify-center p-10 bg-background h-screen w-screen fixed inset-0 z-50">
+    <div className="flex-1 flex items-center justify-center p-10 bg-background min-h-screen w-full fixed inset-0 z-50 overflow-y-auto">
       <motion.div 
         key={step}
         role="dialog"
@@ -102,6 +109,33 @@ export function Onboarding() {
           {current.description}
         </p>
 
+        {current.isCalibrationSelection && (
+          <div className="w-full max-w-md mb-12 flex gap-4">
+            <button 
+              onClick={() => {
+                  setCalibrationMode("quick");
+                  setStep(step + 1);
+              }}
+              className="flex-1 p-4 flex flex-col items-center gap-2 border-2 border-primary/20 rounded-xl hover:border-primary transition-colors bg-secondary/10"
+            >
+              <div className="font-semibold text-foreground">Quick Setup</div>
+              <div className="text-xs text-muted-foreground">30 seconds</div>
+              <div className="text-sm mt-2 text-muted-foreground text-center">Just set your baseline comfort brightness and go.</div>
+            </button>
+            <button 
+              onClick={() => {
+                  setCalibrationMode("advanced");
+                  setStep(step + 1);
+              }}
+              className="flex-1 p-4 flex flex-col items-center gap-2 border-2 border-primary/20 rounded-xl hover:border-primary transition-colors bg-secondary/10"
+            >
+              <div className="font-semibold text-foreground">Advanced</div>
+              <div className="text-xs text-muted-foreground">5 minutes</div>
+              <div className="text-sm mt-2 text-muted-foreground text-center">Tune base curves and environment response for precise comfort.</div>
+            </button>
+          </div>
+        )}
+
         {current.isCalibration && (
           <div className="w-full max-w-md mb-12 flex flex-col gap-4">
             <div className="flex items-center justify-between text-sm font-medium text-muted-foreground">
@@ -114,35 +148,41 @@ export function Onboarding() {
               min="10" 
               max="100" 
               value={referenceBrightness}
-              onChange={(e) => setReferenceBrightness(parseInt(e.target.value))}
+              onChange={(e) => {
+                  const val = parseInt(e.target.value);
+                  setReferenceBrightness(val);
+                  invoke("set_brightness_live", { level: val }).catch(console.error);
+              }}
               className="w-full h-2 bg-secondary rounded-lg appearance-none cursor-pointer accent-primary" 
             />
           </div>
         )}
 
         <div className="w-full flex items-center justify-between mt-auto">
-          <button 
-            onClick={completeOnboarding}
-            className="text-muted-foreground hover:text-foreground font-medium px-4 py-2 transition-colors focus-visible:outline-ring rounded-md"
-          >
-            Skip Intro
-          </button>
+          {!current.isCalibrationSelection && (
+            <button 
+              onClick={completeOnboarding}
+              className="text-muted-foreground hover:text-foreground font-medium px-4 py-2 transition-colors focus-visible:outline-ring rounded-md"
+            >
+              Skip
+            </button>
+          )}
           
-          {step < steps.length - 1 ? (
+          {step < steps.length - 1 && !current.isCalibrationSelection ? (
             <button 
               onClick={() => setStep(step + 1)}
-              className="flex items-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground font-medium px-6 py-3 rounded-md transition-colors focus-visible:outline-ring"
+              className="flex items-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground font-medium px-6 py-3 rounded-md transition-colors focus-visible:outline-ring ml-auto"
             >
               Next <ArrowRight className="w-4 h-4" />
             </button>
-          ) : (
+          ) : !current.isCalibrationSelection ? (
             <button 
               onClick={completeOnboarding}
-              className="flex items-center gap-2 bg-success hover:bg-success/90 text-success-foreground font-medium px-8 py-3 rounded-md transition-colors focus-visible:outline-ring"
+              className="flex items-center gap-2 bg-success hover:bg-success/90 text-success-foreground font-medium px-8 py-3 rounded-md transition-colors focus-visible:outline-ring ml-auto"
             >
-              Start Protection <ArrowRight className="w-4 h-4" />
+              Finish Setup <ArrowRight className="w-4 h-4" />
             </button>
-          )}
+          ) : null}
         </div>
       </motion.div>
     </div>

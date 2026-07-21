@@ -1,8 +1,8 @@
 use crate::brightness::error::BrightnessError;
 use crate::display::domain::{DisplayCapabilities, DisplayInfo};
 
-pub mod windows;
 pub mod mock;
+pub mod native;
 
 pub trait BrightnessProvider: Send + Sync {
     fn set_brightness(

@@ -1,12 +1,13 @@
 use std::sync::{Arc, Mutex, RwLock};
-use std::sync::atomic::{AtomicBool, AtomicI32, Ordering};
+use std::sync::atomic::{AtomicBool, Ordering};
 use crate::commands::{DashboardStatePayload, ComfortStatePayload, AmbientStatePayload, ScreenStatePayload, BrightnessStatePayload, PerformanceStatePayload, EngineHealthPayload};
 use crate::intelligence::manager::IntelligenceManager;
 use crate::intelligence::models::IntelligenceContext;
 use crate::intelligence::models::HistorySummary;
 use crate::platform::hardware::sensor::manager::SensorSession;
 use crate::platform::hardware::wmi::manager::WmiBrightnessManager;
-use std::collections::VecDeque;
+use crate::background::event_log::{SharedEventLog, new_shared_event_log};
+use crate::brightness::memory::AppBrightnessMemory;
 use sysinfo::System;
 
 pub trait AmbientProvider: Send + Sync {
@@ -39,6 +40,10 @@ pub struct ServiceRegistry {
     pub dashboard_state: Arc<Mutex<DashboardStatePayload>>,
     pub worker_running: Arc<AtomicBool>,
     pub watchdog_running: Arc<AtomicBool>,
+    pub transition_worker: Arc<RwLock<Option<Arc<crate::transition::worker::TransitionWorker>>>>,
+    pub brightness_manager: Arc<crate::brightness::manager::BrightnessManager>,
+    pub event_log: SharedEventLog,
+    pub brightness_memory: Arc<Mutex<AppBrightnessMemory>>,
 }
 
 impl ServiceRegistry {
@@ -50,6 +55,7 @@ impl ServiceRegistry {
                 confidence: None,
                 active_profile: "Adaptive".into(),
                 mode: "Adaptive".into(),
+                explanation: None,
             },
             ambient: AmbientStatePayload {
                 lux: None,
@@ -63,6 +69,7 @@ impl ServiceRegistry {
                 peak_luminance: None,
                 visual_complexity: None,
                 current_analysis_time_ms: None,
+                context: None,
             },
             brightness: BrightnessStatePayload {
                 current: None,
@@ -104,160 +111,112 @@ impl ServiceRegistry {
                 active_application: "Unknown".into(),
                 active_display_id: "Unknown".into(),
                 confidence_score: 0.0,
-            }),
+            }, 50, None),
         };
+
+        use crate::brightness::providers::native::NativeBrightnessProvider;
+        use crate::brightness::manager::BrightnessManager;
+        use crate::display::domain::DisplayInfo;
+        let provider = Box::new(NativeBrightnessProvider::new());
+        let brightness_manager = Arc::new(BrightnessManager::new(provider));
+
+        let primary = DisplayInfo {
+            id: "primary".to_string(),
+            name: "Primary".to_string(),
+            manufacturer: None,
+            model: None,
+            width: 1920,
+            height: 1080,
+            refresh_rate: None,
+            is_primary: true,
+            capabilities: Default::default(),
+        };
+
+        if let Ok(b) = brightness_manager.get_brightness(&primary) {
+            state.brightness.current = Some(b);
+            state.brightness.transition_status = "Stable".into();
+        }
 
         Self {
             config: Arc::new(RwLock::new(initial_config)),
             dashboard_state: Arc::new(Mutex::new(state)),
             worker_running: Arc::new(AtomicBool::new(false)),
             watchdog_running: Arc::new(AtomicBool::new(false)),
+            transition_worker: Arc::new(RwLock::new(None)),
+            brightness_manager,
+            event_log: new_shared_event_log(),
+            brightness_memory: Arc::new(Mutex::new(AppBrightnessMemory::new())),
         }
     }
 
     pub fn start_hardware_worker(&self) {
         if self.worker_running.swap(true, Ordering::SeqCst) {
-            // Worker is already running. Rule: Single-Instance Engine.
             return;
         }
 
-        let state_clone = self.dashboard_state.clone();
-        let running_clone = self.worker_running.clone();
-        let config_clone = self.config.clone();
+        // Setup Ambient Pipeline
+        use crate::ambient::manager::AmbientManager;
+        use crate::ambient::registry::SensorRegistry;
+        use crate::ambient::config::AmbientConfig;
+        use crate::ambient::calibration::linear::LinearCalibration;
+        use crate::ambient::smoothing::BasicSmoothingStrategy;
+        use crate::platform::hardware::sensor::provider::NativeSensorProvider;
         
-        // Shared state between Decision Engine and Transition Engine
-        let global_target_brightness = Arc::new(AtomicI32::new(-1));
-        
-        let target_clone_for_transition = global_target_brightness.clone();
-        let running_clone_for_transition = self.worker_running.clone();
-        let config_clone_for_transition = self.config.clone();
-        let state_clone_for_transition = self.dashboard_state.clone();
-        
-        // 1. Transition Engine (Runs Asynchronously at High Frequency)
-        std::thread::spawn(move || {
-            let display_provider: Box<dyn DisplayProvider> = Box::new(WmiBrightnessManager::new());
-            
-            loop {
-                if !running_clone_for_transition.load(Ordering::SeqCst) { break; }
-                
-                let target = target_clone_for_transition.load(Ordering::SeqCst);
-                if target >= 0 {
-                    let mut current = display_provider.brightness().unwrap_or(target as u8) as i32;
-                    if current != target {
-                        if let Ok(mut state) = state_clone_for_transition.lock() {
-                            state.brightness.transition_status = "Active".into();
-                        }
-                        
-                        let step = if target > current { 2 } else { -2 };
-                        current += step;
-                        if step > 0 && current > target { current = target; }
-                        if step < 0 && current < target { current = target; }
-                        
-                        let _ = display_provider.set_brightness(current as u8);
-                    } else {
-                        if let Ok(mut state) = state_clone_for_transition.lock() {
-                            state.brightness.transition_status = "Waiting".into();
-                        }
-                    }
-                }
-                
-                let transition_interval = config_clone_for_transition
-                    .read().unwrap()
-                    .adaptive.transition_interval_ms.unwrap_or(50);
-                std::thread::sleep(std::time::Duration::from_millis(transition_interval));
-            }
-        });
+        let mut ambient_registry = SensorRegistry::new();
+        ambient_registry.register(std::sync::Arc::new(NativeSensorProvider::new()));
+        let ambient = Arc::new(AmbientManager::new(
+            AmbientConfig::default(),
+            ambient_registry,
+            Box::new(LinearCalibration::new(1000.0)),
+            Box::new(BasicSmoothingStrategy::new(2))
+        ));
 
-        // 2. Decision Engine & Sensor Polling (Runs at Low Frequency)
-        std::thread::spawn(move || {
-            let ambient_provider: Box<dyn AmbientProvider> = Box::new(SensorSession::new());
-            let display_provider: Box<dyn DisplayProvider> = Box::new(WmiBrightnessManager::new());
-            let mut lux_history: VecDeque<f32> = VecDeque::new();
-            
-            loop {
-                // Read live configuration from in-memory lock for zero-I/O power efficiency
-                let config = config_clone.read().unwrap().clone();
-                
-                if !config.adaptive.enabled {
-                    if let Ok(mut state) = state_clone.lock() {
-                        state.comfort.status = "Protection Paused".into();
-                        state.brightness.transition_status = "Paused".into();
-                        state.ambient.health = "Paused".into();
-                    }
-                    std::thread::sleep(std::time::Duration::from_millis(2000));
-                    
-                    if !running_clone.load(Ordering::SeqCst) {
-                        break;
-                    }
-                    continue; // Skip hardware polling to save battery
-                }
+        // Setup Screen Pipeline
+        use crate::screen_analysis::manager::ScreenAnalysisManager;
+        use crate::screen_analysis::config::AnalysisConfig;
+        use crate::screen_analysis::providers::windows_provider::WindowsScreenProvider;
+        
+        let screen = Arc::new(ScreenAnalysisManager::new(
+            AnalysisConfig::default(),
+            Box::new(WindowsScreenProvider::new())
+        ));
 
-                let lux_result = ambient_provider.current_lux();
-                let current_lux = lux_result.ok().flatten();
-                
-                let mut target_brightness = None;
-                if let Some(l) = current_lux {
-                    // Update Moving Average Filter (store up to 15 samples, ~15 seconds)
-                    lux_history.push_back(l);
-                    if lux_history.len() > 15 {
-                        lux_history.pop_front();
-                    }
-                    
-                    let avg_lux: f32 = lux_history.iter().sum::<f32>() / (lux_history.len() as f32);
-                    
-                    let baseline_lux = config.brightness.reference_ambient_lux.unwrap_or(100.0);
-                    let delta_lux = avg_lux - baseline_lux;
-                    let ref_bright = config.brightness.reference_brightness.unwrap_or(50) as f32;
-                    let mut b = (ref_bright + (delta_lux * 0.1)) as u8;
-                    if b < 10 { b = 10; } // hard floor 10%
-                    if b > 100 { b = 100; }
-                    
-                    target_brightness = Some(b);
-                }
-                
-                let current_brightness = display_provider.brightness().ok();
-                if let (Some(target), Some(current)) = (target_brightness, current_brightness) {
-                    if (current as i32 - target as i32).abs() > 3 {
-                        global_target_brightness.store(target as i32, Ordering::SeqCst);
-                        if let Ok(mut state) = state_clone.lock() {
-                            state.brightness.target = Some(target);
-                        }
-                    }
-                } else if let Some(target) = target_brightness {
-                    global_target_brightness.store(target as i32, Ordering::SeqCst);
-                }
-                
-                if let Ok(mut state) = state_clone.lock() {
-                    state.ambient.lux = current_lux;
-                    if current_lux.is_some() {
-                        state.ambient.health = "Active".into();
-                        state.ambient.source = "Windows Sensor API".into();
-                        state.comfort.status = "Protection Active".into();
-                    } else {
-                        state.ambient.health = "Unavailable".into();
-                        state.ambient.source = "None".into();
-                        state.comfort.status = "Waiting for Sensor".into();
-                    }
-                    
-                    state.brightness.target = target_brightness;
-                    state.brightness.current = current_brightness;
-                    if target_brightness.is_some() && current_brightness != target_brightness {
-                        state.brightness.transition_status = "Active".into();
-                    } else if target_brightness.is_some() {
-                        state.brightness.transition_status = "Waiting".into();
-                    } else {
-                        state.brightness.transition_status = "Unavailable".into();
-                    }
-                }
-                
-                let poll_interval = config.adaptive.poll_interval_ms.unwrap_or(1000);
-                std::thread::sleep(std::time::Duration::from_millis(poll_interval));
-                
-                if !running_clone.load(Ordering::SeqCst) {
-                    break;
-                }
-            }
-        });
+        // Setup Decision & Comfort Pipeline
+        let intelligence = Arc::new(IntelligenceManager::new());
+        
+        // Setup Brightness Pipeline
+        let brightness = self.brightness_manager.clone();
+
+        // Setup Transition Engine
+        use crate::transition::worker::TransitionWorker;
+        let transition_worker = Arc::new(TransitionWorker::new(
+            brightness.clone(),
+            self.config.clone(),
+            self.worker_running.clone(),
+            self.dashboard_state.clone(),
+        ));
+        
+        if let Ok(mut lock) = self.transition_worker.write() {
+            *lock = Some(transition_worker.clone());
+        }
+        
+        transition_worker.start();
+
+        // Assemble Intelligence Pipeline
+        use crate::intelligence::pipeline::IntelligencePipeline;
+        let pipeline = IntelligencePipeline::new(
+            ambient,
+            screen,
+            intelligence,
+            brightness,
+            transition_worker,
+            self.dashboard_state.clone(),
+            self.config.clone(),
+            self.event_log.clone(),
+            self.worker_running.clone(),
+        );
+
+        pipeline.start();
     }
 
     pub fn start_watchdog(&self) {

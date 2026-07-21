@@ -1,3 +1,3 @@
 [workspace]
-members = ["apps/desktop/src-tauri"]
+members = ["apps/desktop/src-tauri", "apps/desktop/test_wmi", "apps/desktop/wmi_test2"]
 resolver = "2"

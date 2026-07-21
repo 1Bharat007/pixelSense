@@ -13,13 +13,27 @@ struct WmiMonitorBrightness {
     current_brightness: u8,
 }
 
+#[derive(Deserialize, Debug)]
+#[serde(rename_all = "PascalCase")]
+struct WmiMonitorBrightnessMethods {
+    instance_name: String,
+}
+
 impl WmiBrightnessManager {
     pub fn new() -> Self {
         Self {}
     }
 
     fn get_connection(&self) -> Result<WMIConnection, PlatformError> {
-        let com_con = COMLibrary::new().map_err(|e| PlatformError::NativeApiUnavailable(format!("COM Error: {}", e)))?;
+        let com_con = match COMLibrary::new() {
+            Ok(c) => c,
+            Err(e) => {
+                // Tauri already initializes COM for its IPC threads.
+                // If it fails with RPC_E_CHANGED_MODE, we safely assume it's initialized.
+                unsafe { COMLibrary::assume_initialized() }
+            }
+        };
+
         WMIConnection::with_namespace_path("ROOT\\WMI", com_con)
             .map_err(|e| PlatformError::NativeApiUnavailable(format!("WMI Connection Error: {}", e)))
     }
@@ -40,8 +54,7 @@ impl WmiBrightnessManager {
     pub fn set_brightness(&self, level: u8) -> Result<(), PlatformError> {
         let wmi_con = self.get_connection()?;
         
-        // Use wmi crate's raw_query to get instance names
-        let results: Vec<HashMap<String, wmi::Variant>> = wmi_con.raw_query("SELECT InstanceName FROM WmiMonitorBrightnessMethods")
+        let results: Vec<WmiMonitorBrightnessMethods> = wmi_con.query()
             .map_err(|e| PlatformError::NativeApiUnavailable(format!("Method query failed: {}", e)))?;
 
         let mut success = false;
@@ -49,7 +62,7 @@ impl WmiBrightnessManager {
         
         unsafe {
             for res in results {
-                if let Some(wmi::Variant::String(instance_name)) = res.get("InstanceName") {
+                let instance_name = res.instance_name;
                     let class_path = BSTR::from("WmiMonitorBrightnessMethods");
                     let mut class_obj: Option<IWbemClassObject> = None;
                     if svc.GetObject(&class_path, WBEM_GENERIC_FLAG_TYPE(0), None, Some(&mut class_obj), None).is_err() { continue; }
@@ -66,26 +79,33 @@ impl WmiBrightnessManager {
                         Err(_) => continue,
                     };
                         
-                    let timeout_var = VARIANT::from(0u32);
-                    if in_params.Put(&BSTR::from("Timeout"), 0, &timeout_var, 0).is_err() { continue; }
+                    // Timeout is documented as uint32, but WMI often expects VT_I4 (i32) for uint32 properties in Put()
+                    let timeout_var = VARIANT::from(1i32);
+                    if let Err(e) = in_params.Put(&BSTR::from("Timeout"), 0, &timeout_var, 0) { 
+                        return Err(PlatformError::NativeApiUnavailable(format!("Failed to set Timeout parameter (as i32): {}", e)));
+                    }
                         
-                    let bright_var = VARIANT::from(level);
-                    if in_params.Put(&BSTR::from("Brightness"), 0, &bright_var, 0).is_err() { continue; }
+                    // Brightness is uint8, so VT_UI1 (u8) is strictly required
+                    let bright_var = VARIANT::from(level as u8);
+                    if let Err(e) = in_params.Put(&BSTR::from("Brightness"), 0, &bright_var, 0) { 
+                        return Err(PlatformError::NativeApiUnavailable(format!("Failed to set Brightness parameter (as u8): {}", e)));
+                    }
                         
                     let escaped = instance_name.replace("\\", "\\\\");
-                    let path = BSTR::from(format!("WmiMonitorBrightnessMethods.InstanceName='{}'", escaped));
+                    let path = BSTR::from(format!("WmiMonitorBrightnessMethods.InstanceName=\"{}\"", escaped));
                     
-                    if svc.ExecMethod(&path, &method_name, WBEM_GENERIC_FLAG_TYPE(0), None, Some(&in_params), None, None).is_ok() {
-                        success = true;
+                    match svc.ExecMethod(&path, &method_name, WBEM_GENERIC_FLAG_TYPE(0), None, Some(&in_params), None, None) {
+                        Ok(_) => success = true,
+                        Err(e) => return Err(PlatformError::NativeApiUnavailable(format!("ExecMethod WmiSetBrightness failed on {}: {}", escaped, e))),
                     }
-                }
+                // } -> Stray brace removed here
             }
         }
         
         if success {
             Ok(())
         } else {
-            Err(PlatformError::NativeApiUnavailable("Could not set brightness on any internal display".into()))
+            Err(PlatformError::NativeApiUnavailable("No compatible internal display instance found for WMI brightness control.".into()))
         }
     }
 }

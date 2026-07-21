@@ -40,4 +40,8 @@ impl BrightnessManager {
         self.provider
             .set_brightness(display, capabilities, clamped)
     }
+    
+    pub fn get_brightness(&self, display: &DisplayInfo) -> Result<u8, BrightnessError> {
+        self.provider.get_brightness(display)
+    }
 }

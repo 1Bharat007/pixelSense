@@ -1,40 +1,23 @@
 use crate::performance::models::PowerState;
+use windows::Win32::System::Power::{GetSystemPowerStatus, SYSTEM_POWER_STATUS};
 
 pub trait PowerStateAnalyzer: Send + Sync {
     fn current_power_state(&self) -> PowerState;
 }
 
-#[cfg(target_os = "windows")]
 pub struct WindowsPowerAnalyzer;
 
-#[cfg(target_os = "windows")]
 impl PowerStateAnalyzer for WindowsPowerAnalyzer {
     fn current_power_state(&self) -> PowerState {
-        // TODO: Wire to actual GetSystemPowerStatus.
-        // For now, return AC to simulate connected to power.
-        PowerState::AC
-    }
-}
-
-// Fallback/Mock analyzer
-pub struct MockPowerAnalyzer {
-    state: std::sync::Mutex<PowerState>,
-}
-
-impl MockPowerAnalyzer {
-    pub fn new(initial: PowerState) -> Self {
-        Self {
-            state: std::sync::Mutex::new(initial),
+        let mut status = SYSTEM_POWER_STATUS::default();
+        unsafe {
+            if GetSystemPowerStatus(&mut status).is_ok() {
+                // ACLineStatus: 0 = Offline (Battery), 1 = Online (AC), 255 = Unknown
+                if status.ACLineStatus == 0 {
+                    return PowerState::BatteryHigh;
+                }
+            }
         }
-    }
-    
-    pub fn set_state(&self, state: PowerState) {
-        *self.state.lock().unwrap() = state;
-    }
-}
-
-impl PowerStateAnalyzer for MockPowerAnalyzer {
-    fn current_power_state(&self) -> PowerState {
-        *self.state.lock().unwrap()
+        PowerState::AC // Default to AC if unknown or error
     }
 }

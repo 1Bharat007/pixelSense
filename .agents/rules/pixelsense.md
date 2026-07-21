@@ -1,0 +1,6 @@
+---
+trigger: always_on
+---
+
+The primary goal of PixelSense is to eliminate manual brightness adjustments. Every algorithm, feature, and UI decision should be evaluated by one question: "Does this reduce the number of times the user needs to manually change brightness?" If not, it should not be prioritized. PixelSense should feel like Samsung's adaptive brightness experience, but enhanced with screen-content awareness and explainable decisions for Windows.
+Before starting any new sprint, perform a complete audit of the existing implementation. Verify that every previously completed feature still functions correctly and has not regressed. New functionality must never break or disconnect existing functionality. If regressions are found, they take priority over all new features. At the end of every sprint, produce two reports: (1) "New Features Added" and (2) "Regression Audit," explicitly confirming that every previously implemented feature still works through runtime and hardware validation.

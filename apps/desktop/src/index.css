@@ -124,8 +124,8 @@
   }
   
   body {
-    @apply bg-background text-foreground font-sans overflow-hidden antialiased selection:bg-primary/20 selection:text-primary;
-    height: 100vh;
+    @apply bg-background text-foreground font-sans overflow-x-hidden antialiased selection:bg-primary/20 selection:text-primary;
+    min-height: 100vh;
     width: 100vw;
   }
   
@@ -155,5 +155,38 @@
     .bg-primary, .bg-secondary, .bg-accent, .bg-destructive {
       border: 1px solid CanvasText;
     }
+  }
+
+  @keyframes shrink {
+    from {
+      width: 100%;
+    }
+    to {
+      width: 0%;
+    }
+  }
+
+  @keyframes wave-fill-rise {
+    0% { top: 100%; }
+    100% { top: -20px; }
+  }
+
+  @keyframes wave-fill-spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+
+  .animate-wave-fill {
+    position: absolute;
+    width: 200px;
+    height: 200px;
+    background-color: var(--color-primary);
+    border-radius: 40%;
+    left: 50%;
+    margin-left: -100px;
+    animation: 
+      wave-fill-rise 2s ease-in forwards,
+      wave-fill-spin 3s linear infinite;
+    z-index: 0;
   }
 }

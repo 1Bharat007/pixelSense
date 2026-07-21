@@ -2,6 +2,7 @@ pub mod config;
 pub mod display_worker_manager;
 pub mod error;
 pub mod event;
+pub mod event_log;
 pub mod models;
 pub mod profiler;
 pub mod scheduler;
@@ -143,7 +144,8 @@ mod tests {
     fn test_scheduler_backoff_increases_on_no_change() {
         let config = default_config();
         let base = config.base_poll_interval_ms;
-        let mut scheduler = PollingScheduler::new(config);
+        let perf = Arc::new(create_performance_manager(PerformanceConfig::default()));
+        let mut scheduler = PollingScheduler::new(perf);
 
         scheduler.on_no_change();
         let after_one = scheduler.next_interval_ms();
@@ -154,7 +156,8 @@ mod tests {
     fn test_scheduler_resets_on_change_detected() {
         let config = default_config();
         let base = config.base_poll_interval_ms;
-        let mut scheduler = PollingScheduler::new(config);
+        let perf = Arc::new(create_performance_manager(PerformanceConfig::default()));
+        let mut scheduler = PollingScheduler::new(perf);
 
         scheduler.on_no_change();
         scheduler.on_no_change();
@@ -168,7 +171,8 @@ mod tests {
     fn test_scheduler_critical_event_forces_minimum() {
         let config = default_config();
         let minimum = config.minimum_poll_interval_ms;
-        let mut scheduler = PollingScheduler::new(config);
+        let perf = Arc::new(create_performance_manager(PerformanceConfig::default()));
+        let mut scheduler = PollingScheduler::new(perf);
 
         scheduler.on_critical_event();
         let interval = scheduler.next_interval_ms();
@@ -183,7 +187,8 @@ mod tests {
             ..Default::default()
         };
         let maximum = config.maximum_poll_interval_ms;
-        let mut scheduler = PollingScheduler::new(config);
+        let perf = Arc::new(create_performance_manager(PerformanceConfig::default()));
+        let mut scheduler = PollingScheduler::new(perf);
 
         for _ in 0..20 {
             scheduler.on_no_change();

@@ -81,6 +81,12 @@ pub struct FrameMetrics {
     /// Standard deviation of luminance values. High = high contrast scene.
     pub luminance_std_dev: f32,
 
+    /// Median luminance of the sample.
+    pub median_luminance: f32,
+
+    /// Estimated contrast ratio (derived from peak, min, and average).
+    pub contrast_estimation: f32,
+
     /// Percentage of pixels considered "bright" (luminance > 80.0).
     pub white_percentage: f32,
 

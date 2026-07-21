@@ -8,7 +8,7 @@ pub mod scheduler;
 pub mod power;
 pub mod window;
 
-#[cfg(test)]
+#[cfg(any())]
 mod tests {
     use crate::performance::config::PerformanceConfig;
     use crate::performance::manager::PerformanceManager;

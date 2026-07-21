@@ -31,7 +31,7 @@ function App() {
   }, []);
 
   return (
-    <div className="flex h-screen w-full bg-background text-foreground overflow-hidden">
+    <div className="flex min-h-screen w-full bg-background text-foreground overflow-x-hidden">
       
       {/* Sidebar Navigation */}
       <aside className="w-[240px] border-r border-border bg-sidebar flex flex-col pt-6 pb-4 shadow-sm z-10">
@@ -82,7 +82,7 @@ function App() {
       </aside>
 
       {/* Main Content Area */}
-      <main className="flex-1 bg-background relative overflow-hidden">
+      <main className="flex-1 bg-background relative overflow-hidden flex flex-col">
         {activeTab === 'Overview' && <Overview />}
         {activeTab === 'Settings' && <Settings />}
         {activeTab === 'Developer' && developerMode && <Developer />}

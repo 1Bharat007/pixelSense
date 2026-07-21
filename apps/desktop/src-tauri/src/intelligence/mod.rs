@@ -8,3 +8,6 @@ pub mod insights;
 pub mod recommendations;
 pub mod application_rules;
 pub mod predictors;
+pub mod pipeline;
+pub mod decision;
+pub mod confidence;

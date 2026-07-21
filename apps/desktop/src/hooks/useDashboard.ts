@@ -1,10 +1,13 @@
 import { useEffect } from 'react';
 import { useStore } from '../store/useStore';
 import { DashboardService } from '../services/dashboard';
+import { invoke } from '@tauri-apps/api/core';
+import type { EventLogEntry } from '../store/useStore';
 
 export function useDashboard(pollIntervalMs = 500) {
   const setDashboard = useStore((state) => state.setDashboard);
   const setError = useStore((state) => state.setError);
+  const setEventLog = useStore((state) => state.setEventLog);
 
   useEffect(() => {
     let active = true;
@@ -23,7 +26,7 @@ export function useDashboard(pollIntervalMs = 500) {
         if (active) {
           setDashboard(state);
           setError(null);
-          errorCount = 0; // reset on success
+          errorCount = 0;
         }
       } catch (error) {
         console.error('Error fetching dashboard state:', error);
@@ -38,8 +41,17 @@ export function useDashboard(pollIntervalMs = 500) {
         }
       }
 
+      // Fetch event log on a slower cadence (every 5 polls).
+      if (active && errorCount === 0) {
+        try {
+          const events = await invoke<EventLogEntry[]>('get_event_log');
+          if (active) setEventLog(events);
+        } catch {
+          // Non-critical — don't escalate to error state.
+        }
+      }
+
       if (active) {
-        // Exponential backoff up to 10 seconds on consecutive errors
         const nextDelay = errorCount > 0 
           ? Math.min(pollIntervalMs * Math.pow(2, errorCount), 10000)
           : pollIntervalMs;
@@ -49,15 +61,12 @@ export function useDashboard(pollIntervalMs = 500) {
 
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'visible') {
-        // Immediately fetch when becoming visible
         clearTimeout(timeoutId);
         fetchDashboard();
       }
     };
 
     document.addEventListener('visibilitychange', handleVisibilityChange);
-    
-    // Initial fetch triggers the loop
     fetchDashboard();
 
     return () => {
