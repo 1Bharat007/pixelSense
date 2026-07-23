@@ -55,7 +55,7 @@ mod tests {
 
         let records = provider.records.lock().unwrap();
         assert!(records.len() > 1);
-        assert_eq!(records.first().unwrap().brightness, 16); // First step approx 16
+        assert_eq!(records.first().unwrap().brightness, 17); // round(10 + 40/6) = 17
         assert_eq!(records.last().unwrap().brightness, 50); // Target
     }
 

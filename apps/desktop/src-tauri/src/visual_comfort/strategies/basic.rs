@@ -53,12 +53,11 @@ impl CompensationStrategy for BasicCompensationStrategy {
             
             // Apply maximum step change limit (though this is technically also transition logic, 
             // the calculation engine provides the clamped *recommendation*)
-            let mut recommended_brightness = target_brightness_f as u8;
+            let recommended_brightness = target_brightness_f as u8;
             
             let diff = (context.current_monitor_brightness as i16 - recommended_brightness as i16).abs() as u8;
             
-            let action = if diff < config.minimum_change_threshold {
-                recommended_brightness = context.current_monitor_brightness;
+            let action = if diff == 0 {
                 RecommendationAction::NoChange
             } else if context.transition_enabled {
                 RecommendationAction::SmoothTransition
