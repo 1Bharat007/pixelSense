@@ -23,19 +23,31 @@ impl MockScreenProvider {
     }
 
     pub fn set_color(&mut self, r: u8, g: u8, b: u8) {
-        self.color = (r, g, b);
+        // Store in BGRA order (b, g, r) for DXGI output surface compatibility
+        self.color = (b, g, r);
     }
 }
 
 impl ScreenProvider for MockScreenProvider {
-    fn capture_frame(&self, _display_id: &str, _config: &AnalysisConfig) -> Result<RawFrameBuffer, ScreenAnalysisError> {
+    fn capture_frame(&self, _display_id: &str, config: &AnalysisConfig) -> Result<RawFrameBuffer, ScreenAnalysisError> {
         if !self.available {
             return Err(ScreenAnalysisError::CaptureUnavailable("Mock unavailable".into()));
         }
+        let (target_w, target_h) = config.sample_resolution.dimensions();
+        let width = target_w.max(128);
+        let height = target_h.max(128);
+        let total_pixels = (width * height) as usize;
+        let mut pixels = Vec::with_capacity(total_pixels * 4);
+        for _ in 0..total_pixels {
+            pixels.push(self.color.0); // B
+            pixels.push(self.color.1); // G
+            pixels.push(self.color.2); // R
+            pixels.push(255);          // A
+        }
         Ok(RawFrameBuffer {
-            pixels: vec![self.color.0, self.color.1, self.color.2, 255, self.color.0, self.color.1, self.color.2, 255],
-            width: 2,
-            height: 1,
+            pixels,
+            width,
+            height,
         })
     }
 

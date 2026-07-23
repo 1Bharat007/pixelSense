@@ -67,8 +67,8 @@ impl FrameScaler {
             for tx in 0..target_w {
                 let src_x_start = (tx as f32 * block_w) as u32;
                 let src_y_start = (ty as f32 * block_h) as u32;
-                let src_x_end = ((tx as f32 + 1.0) * block_w) as u32;
-                let src_y_end = ((ty as f32 + 1.0) * block_h) as u32;
+                let src_x_end = (((tx as f32 + 1.0) * block_w).ceil() as u32).max(src_x_start + 1);
+                let src_y_end = (((ty as f32 + 1.0) * block_h).ceil() as u32).max(src_y_start + 1);
 
                 let (mut sum_b, mut sum_g, mut sum_r) = (0u64, 0u64, 0u64);
                 let mut count = 0u64;
