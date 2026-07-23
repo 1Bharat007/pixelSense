@@ -145,7 +145,7 @@ mod tests {
         let config = default_config();
         let base = config.base_poll_interval_ms;
         let perf = Arc::new(create_performance_manager(PerformanceConfig::default()));
-        let mut scheduler = PollingScheduler::new(perf);
+        let mut scheduler = PollingScheduler::new(config.clone(), perf);
 
         scheduler.on_no_change();
         let after_one = scheduler.next_interval_ms();
@@ -157,7 +157,7 @@ mod tests {
         let config = default_config();
         let base = config.base_poll_interval_ms;
         let perf = Arc::new(create_performance_manager(PerformanceConfig::default()));
-        let mut scheduler = PollingScheduler::new(perf);
+        let mut scheduler = PollingScheduler::new(config.clone(), perf);
 
         scheduler.on_no_change();
         scheduler.on_no_change();
@@ -172,7 +172,7 @@ mod tests {
         let config = default_config();
         let minimum = config.minimum_poll_interval_ms;
         let perf = Arc::new(create_performance_manager(PerformanceConfig::default()));
-        let mut scheduler = PollingScheduler::new(perf);
+        let mut scheduler = PollingScheduler::new(config.clone(), perf);
 
         scheduler.on_critical_event();
         let interval = scheduler.next_interval_ms();
@@ -188,7 +188,7 @@ mod tests {
         };
         let maximum = config.maximum_poll_interval_ms;
         let perf = Arc::new(create_performance_manager(PerformanceConfig::default()));
-        let mut scheduler = PollingScheduler::new(perf);
+        let mut scheduler = PollingScheduler::new(config.clone(), perf);
 
         for _ in 0..20 {
             scheduler.on_no_change();
