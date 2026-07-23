@@ -16,7 +16,6 @@ mod tests {
     use crate::background::config::BackgroundConfig;
     use crate::background::event::models::{AdaptiveEventKind, EventPriority};
     use crate::background::event::queue::EventQueue;
-    use crate::background::models::{now_ms, WorkerState};
     use crate::background::scheduler::PollingScheduler;
     use crate::background::profiler::PipelineProfiler;
     use crate::background::models::PipelineProfile;
@@ -254,7 +253,6 @@ mod tests {
 
     #[test]
     fn test_worker_already_running_returns_error() {
-        use crate::background::error::BackgroundError;
         let perf = Arc::new(create_performance_manager(PerformanceConfig::default()));
         let hist = Arc::new(HistoryManager::new(PathBuf::from("test_data")));
         let sched = Arc::new(MultiMonitorScheduler::new());

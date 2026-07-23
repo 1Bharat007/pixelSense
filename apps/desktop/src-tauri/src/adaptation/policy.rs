@@ -172,6 +172,7 @@ impl AdaptationPolicy {
         }
     }
 
+    #[allow(dead_code)]
     fn lux_variance(&self) -> f32 {
         if self.lux_history.len() < 2 {
             return 0.0;

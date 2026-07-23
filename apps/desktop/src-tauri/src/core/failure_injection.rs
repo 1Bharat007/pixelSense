@@ -1,10 +1,10 @@
 #[cfg(test)]
 mod tests {
     use std::sync::{Arc, Mutex};
-    use std::time::Duration;
     use std::thread;
     
     // Synthetic Failure Enums representing SRE vectors
+    #[allow(dead_code)]
     #[derive(Debug, Clone, PartialEq)]
     enum SyntheticFailure {
         DdcTimeout,
@@ -14,6 +14,7 @@ mod tests {
         PluginPanic,
     }
 
+    #[allow(dead_code)]
     #[derive(Debug, Clone, PartialEq)]
     enum RecoveryStrategy {
         Retry(u8),

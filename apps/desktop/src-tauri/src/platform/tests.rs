@@ -3,9 +3,6 @@ mod stress_tests {
     use crate::platform::hardware::com::runtime::ComRuntime;
     use crate::platform::hardware::wmi::manager::WmiBrightnessManager;
     use crate::platform::hardware::sensor::manager::SensorSession;
-    use crate::platform::hardware::dxgi::manager::DxgiDeviceManager;
-    use crate::platform::hardware::dxgi::capture::DuplicationSession;
-    use crate::screen_analysis::frame::pool::FramePool;
     use std::time::Instant;
 
     #[test]

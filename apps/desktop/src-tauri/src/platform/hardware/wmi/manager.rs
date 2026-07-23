@@ -1,7 +1,6 @@
 use crate::platform::error::PlatformError;
 use wmi::{COMLibrary, WMIConnection};
 use serde::Deserialize;
-use std::collections::HashMap;
 use windows::core::{BSTR, VARIANT};
 use windows::Win32::System::Wmi::{IWbemClassObject, WBEM_GENERIC_FLAG_TYPE};
 
@@ -27,7 +26,7 @@ impl WmiBrightnessManager {
     fn get_connection(&self) -> Result<WMIConnection, PlatformError> {
         let com_con = match COMLibrary::new() {
             Ok(c) => c,
-            Err(e) => {
+            Err(_e) => {
                 // Tauri already initializes COM for its IPC threads.
                 // If it fails with RPC_E_CHANGED_MODE, we safely assume it's initialized.
                 unsafe { COMLibrary::assume_initialized() }

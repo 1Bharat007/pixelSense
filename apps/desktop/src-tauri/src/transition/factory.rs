@@ -3,6 +3,7 @@ use crate::brightness::manager::BrightnessManager;
 use crate::transition::config::TransitionConfig;
 use crate::transition::manager::TransitionManager;
 use crate::transition::providers::TransitionProvider;
+#[cfg(not(test))]
 use crate::transition::providers::default::DefaultTransitionProvider;
 
 #[cfg(test)]

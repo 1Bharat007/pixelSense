@@ -24,8 +24,7 @@ impl From<NativeDisplay> for DisplayInfo {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-    use crate::display::domain::{DisplayCapabilities, DisplayInfo};
+    use crate::display::domain::DisplayInfo;
     use crate::platform::models::NativeDisplay;
 
     #[test]
