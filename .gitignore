@@ -51,3 +51,11 @@ apps/desktop/src-tauri/WixTools/
 *.key
 *.p12
 *.pfx
+
+# Internal AI tooling rules & scratch files
+.agents/
+rustup-init.exe
+test_ddc.rs
+startup.err
+startup.log
+

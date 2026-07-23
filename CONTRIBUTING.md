@@ -1,101 +1,178 @@
 # Contributing to PixelSense
 
-Thank you for considering contributing to PixelSense! This document covers the essentials to get you started quickly.
+Thanks for thinking about contributing! Whether you're fixing a typo, adding a test, or building a new feature — all help is welcome.
 
-For the complete developer handbook — including architecture rules, coding standards, and detailed PR workflow — see [CONTRIBUTOR_GUIDE.md](CONTRIBUTOR_GUIDE.md).
+This guide will walk you through getting set up and submitting your first pull request.
 
 ---
 
-## Quick Setup
+## Setting Up Your Dev Environment
+
+You'll need three things installed before you can build PixelSense:
+
+### 1. Rust (v1.84 or newer)
+
+Rust is the language the backend is written in. Install it from [rustup.rs](https://rustup.rs/). After installing, open a new terminal and run:
 
 ```bash
-# Prerequisites: Node.js 20+, Rust 1.75+, Visual Studio Build Tools 2022
+rustc --version
+# Should print something like: rustc 1.84.0 (or higher)
+```
 
+### 2. Node.js (v18 or newer)
+
+Node.js runs the frontend build tools. Download it from [nodejs.org](https://nodejs.org/). After installing:
+
+```bash
+node --version
+# Should print something like: v18.x.x (or higher)
+```
+
+### 3. Visual Studio Build Tools 2022
+
+This is needed to compile native Windows code. Download the [Build Tools installer](https://visualstudio.microsoft.com/visual-cpp-build-tools/). During setup, check **"Desktop development with C++"** and install it.
+
+### Clone and Run
+
+```bash
 git clone https://github.com/1Bharat007/pixelSense.git
 cd pixelSense
 npm install
 npm run tauri dev
 ```
 
+The first build takes a few minutes (Rust compiles everything from scratch). After that, rebuilds are fast.
+
+---
+
+## Running the Tests
+
+Before submitting a PR, make sure all tests pass:
+
+```bash
+cd apps/desktop/src-tauri
+cargo test -p app --lib
+```
+
+You should see `85 passed; 0 failed`. Two hardware stress tests are `ignored` by default — that's expected and fine.
+
+Also check for compiler warnings:
+
+```bash
+cargo clippy -- -D warnings
+```
+
+And make sure the code is formatted correctly:
+
+```bash
+cargo fmt -- --check
+```
+
 ---
 
 ## Ways to Contribute
 
-### 🐛 Found a Bug?
+### Found a bug?
 
-1. Search [existing issues](https://github.com/1Bharat007/pixelSense/issues) to avoid duplicates
-2. Open a [Bug Report](https://github.com/1Bharat007/pixelSense/issues/new?template=bug_report.md) with reproduction steps
-3. Include your Windows version, display configuration, and any relevant logs
+1. Check [existing issues](https://github.com/1Bharat007/pixelSense/issues) first to see if it's already reported
+2. If not, open a new issue with:
+   - What you expected to happen
+   - What actually happened
+   - Steps to reproduce it
+   - Your Windows version and display setup (single monitor, multi-monitor, laptop, etc.)
 
-### 💡 Have an Idea?
+### Want to fix or improve something?
 
-1. Open a [Feature Request](https://github.com/1Bharat007/pixelSense/issues/new?template=feature_request.md)
-2. For architectural changes, start a Discussion first — we'll help shape the approach before you invest time coding
+1. Look at the [issues list](https://github.com/1Bharat007/pixelSense/issues) — anything labeled `good first issue` is a small, self-contained task meant for newcomers
+2. Comment on the issue to let others know you're working on it
+3. Fork the repo, make your changes on a branch, and open a PR
 
-### 📝 Improving Documentation?
+### Want to improve documentation?
 
-Documentation PRs are always welcome. No issue required — just submit the PR.
+Documentation PRs don't need an issue first. Just open the PR.
 
-### 🔧 Submitting Code?
+### Have a feature idea?
 
-1. **Open an issue first** for non-trivial changes
-2. **Fork and branch** from `master` with a descriptive name: `feat/ambient-sensor-windows`, `fix/transition-edge-case`
-3. **Follow the coding standards** outlined in [CONTRIBUTOR_GUIDE.md](CONTRIBUTOR_GUIDE.md)
-4. **Test your changes** locally before submitting
-5. **Fill in the PR template** completely
+Open an issue describing what you'd like and why it would help. For bigger ideas (architectural changes, new subsystems), let's discuss it in the issue before you write code — that way we can agree on the right approach first.
 
 ---
 
-## Coding Standards (Summary)
+## Submitting a Pull Request
+
+1. **Fork** the repo and create a branch from `master`:
+   ```bash
+   git checkout -b fix/your-descriptive-branch-name
+   ```
+   Use prefixes like `feat/`, `fix/`, `docs/`, `test/` so the branch name explains what it does.
+
+2. **Make your changes.** Keep the PR focused on one thing — don't mix a bug fix with a refactor.
+
+3. **Test your changes:**
+   ```bash
+   cargo test -p app --lib
+   cargo clippy -- -D warnings
+   cargo fmt -- --check
+   ```
+
+4. **Write a clear PR description.** Explain what you changed and why. If it's a bug fix, describe what was broken.
+
+5. **Submit the PR.** I'll review it and either merge it or leave feedback.
+
+---
+
+## Code Style
 
 ### Rust
-- All fallible operations return `Result<T, E>` — no `unwrap()` or `expect()` in production code
-- Run `cargo fmt`, `cargo clippy -- -D warnings`, and `cargo test` before committing
-- Follow [Conventional Commits](https://www.conventionalcommits.org/) for commit messages
 
-### TypeScript / React
-- No business logic in components — use `services/` and `hooks/`
-- TypeScript strict mode — no untyped `any` without documented justification
-- ARIA labels on all interactive elements
+- **No `unwrap()` or `expect()` in production code.** Always use `?` or proper error handling. Tests can use `unwrap()` for clarity.
+- **Run `cargo fmt` before committing.** This auto-formats everything.
+- **Fix all clippy warnings.** We treat warnings as errors.
+- Each module should have a single, clear responsibility. If you're not sure where something belongs, ask in the issue.
 
----
+### TypeScript / React (Frontend)
 
-## Commit Messages
+- Keep components presentational — business logic goes in `services/` or `hooks/`, not inside components.
+- Use TypeScript types properly — no `any` without a comment explaining why.
+- All interactive elements need ARIA labels for accessibility.
 
-Follow [Conventional Commits](https://www.conventionalcommits.org/):
+### Commit Messages
+
+We follow [Conventional Commits](https://www.conventionalcommits.org/):
 
 ```
 feat(ambient): add Windows native sensor provider
 fix(transition): correct rate limiter edge case
-docs(readme): update quick start instructions
+docs(readme): update installation instructions
 test(comfort): add profile matching edge cases
 ```
+
+The format is: `type(scope): short description`. Common types: `feat`, `fix`, `docs`, `test`, `refactor`, `chore`.
 
 ---
 
 ## What We're Looking For
 
-- Windows DDC/CI brightness improvements
-- macOS and Linux platform providers
-- Test coverage improvements
-- Accessibility improvements
-- Documentation and translations
+- Bug fixes and test coverage improvements
+- Windows DDC/CI and WMI brightness handling improvements
+- Accessibility improvements in the frontend
+- Documentation improvements
+- macOS or Linux platform provider implementations (these are currently empty stubs)
 
-## What We're Not Looking For (Currently)
+## What We're Not Looking For Right Now
 
-- Cloud or networking features
-- AI/ML integrations
+- Cloud, networking, or account features
+- AI / machine learning integrations
 - Color calibration or blue light filtering
-- Any change that persists image or pixel data to disk
+- Anything that saves image or pixel data to disk (privacy is a core design rule)
 
 ---
 
 ## Code of Conduct
 
-This project follows the [Contributor Covenant Code of Conduct](CODE_OF_CONDUCT.md). By participating, you agree to uphold these standards.
+Be kind. Be respectful. We follow the [Contributor Covenant Code of Conduct](CODE_OF_CONDUCT.md).
 
 ---
 
 ## Questions?
 
-Open a [Discussion](https://github.com/1Bharat007/pixelSense/discussions) before investing time in a PR. We're happy to help shape the right approach.
+Open an issue or start a Discussion on GitHub. I'm happy to help you find a good place to start.
