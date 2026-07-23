@@ -174,3 +174,11 @@ MIT — see [LICENSE](LICENSE) for details.
 ---
 
 *Built by [Bharat Bushan](https://github.com/1Bharat007) because screens should be smarter about brightness.*
+
+
+
+> **Note:** Windows may show a "Windows protected your PC" SmartScreen warning
+> when you run the installer, since it isn't signed with a paid code-signing
+> certificate (common for free, independent software). Click **"More info"**
+> then **"Run anyway"** to proceed. You can verify the file is untampered by
+> checking its SHA256 hash matches what's listed in this release's assets.
