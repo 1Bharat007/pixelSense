@@ -36,8 +36,86 @@ impl DisplayProvider for MockProvider {
                     ddc_ci: false,
                 },
             }]),
+            MockScenario::LaptopAndExternal => Ok(vec![
+                DisplayInfo {
+                    id: "mock_laptop_1".into(),
+                    name: "Internal Display".into(),
+                    manufacturer: Some("Mock".into()),
+                    model: None,
+                    width: 1920,
+                    height: 1080,
+                    refresh_rate: Some(60.0),
+                    is_primary: true,
+                    capabilities: DisplayCapabilities {
+                        brightness: true,
+                        hdr: false,
+                        ddc_ci: false,
+                    },
+                },
+                DisplayInfo {
+                    id: "mock_external_1".into(),
+                    name: "External Monitor".into(),
+                    manufacturer: Some("Dell".into()),
+                    model: None,
+                    width: 2560,
+                    height: 1440,
+                    refresh_rate: Some(60.0),
+                    is_primary: false,
+                    capabilities: DisplayCapabilities {
+                        brightness: true,
+                        hdr: false,
+                        ddc_ci: true,
+                    },
+                },
+            ]),
+            MockScenario::TripleWorkstation => Ok(vec![
+                DisplayInfo {
+                    id: "mock_laptop_1".into(),
+                    name: "Internal Display".into(),
+                    manufacturer: Some("Mock".into()),
+                    model: None,
+                    width: 1920,
+                    height: 1080,
+                    refresh_rate: Some(60.0),
+                    is_primary: true,
+                    capabilities: DisplayCapabilities {
+                        brightness: true,
+                        hdr: false,
+                        ddc_ci: false,
+                    },
+                },
+                DisplayInfo {
+                    id: "mock_external_1".into(),
+                    name: "External Monitor 1".into(),
+                    manufacturer: Some("Dell".into()),
+                    model: None,
+                    width: 2560,
+                    height: 1440,
+                    refresh_rate: Some(60.0),
+                    is_primary: false,
+                    capabilities: DisplayCapabilities {
+                        brightness: true,
+                        hdr: false,
+                        ddc_ci: true,
+                    },
+                },
+                DisplayInfo {
+                    id: "mock_external_2".into(),
+                    name: "External Monitor 2".into(),
+                    manufacturer: Some("LG".into()),
+                    model: None,
+                    width: 2560,
+                    height: 1440,
+                    refresh_rate: Some(60.0),
+                    is_primary: false,
+                    capabilities: DisplayCapabilities {
+                        brightness: true,
+                        hdr: false,
+                        ddc_ci: true,
+                    },
+                },
+            ]),
             MockScenario::Empty => Ok(vec![]),
-            _ => Ok(vec![]), // simplify others for now
         }
     }
 }
