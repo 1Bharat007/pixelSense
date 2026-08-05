@@ -26,7 +26,7 @@ tauri-plugin-log = "2"
 tauri-plugin-single-instance = "2"
 chrono = "0.4"
 regex = "1.10"
-wmi = "0.13"
+wmi = "0.18"
 sysinfo = "0.36.1"
 
 [target.'cfg(windows)'.dependencies]
