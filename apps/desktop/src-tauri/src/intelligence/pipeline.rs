@@ -90,7 +90,7 @@ impl IntelligencePipeline {
             let mut adaptation_policy = AdaptationPolicy::new();
 
             // Dynamic polling interval (starts at 2s for fast responsiveness).
-            let mut poll_secs: u64 = 2;
+            let mut poll_secs: u64 = 1;
 
             while running.load(Ordering::SeqCst) {
                 let cycle_start = Instant::now();
@@ -274,22 +274,22 @@ impl IntelligencePipeline {
                 // ── 8. Performance Budget ───────────────────────────────────────────
                 // If cycle took longer than 800ms, reduce frequency to protect CPU.
                 if cycle_ms > 800 {
-                    poll_secs = (poll_secs + 2).min(30);
-                } else if cycle_ms < 200 && poll_secs > 5 {
-                    poll_secs = (poll_secs - 1).max(5);
+                    poll_secs = (poll_secs + 1).min(10);
+                } else if cycle_ms < 200 && poll_secs > 1 {
+                    poll_secs = (poll_secs - 1).max(1);
                 }
 
-                // Adaptive sleep based on context (faster for dynamic content).
-                let context_sleep = match current_context.as_str() {
-                    "Video"   => 2,
-                    "Reading" => 2,
-                    "Coding"  => 2,
-                    "Gaming"  => 10, // Low priority during gaming
-                    _ => poll_secs.min(2),
+                // Adaptive sleep based on context (sub-second for active work).
+                let context_sleep_ms: u64 = match current_context.as_str() {
+                    "Video"   => 2000,  // Video: slow poll is fine
+                    "Gaming"  => 5000,  // Gaming: minimal polling
+                    "Reading" => 1000,  // Reading: moderate
+                    "Coding"  => 500,   // Coding: fast — user switches tabs frequently
+                    _         => 500,   // Default/Desktop: fast
                 };
 
                 let elapsed = cycle_start.elapsed();
-                let sleep_dur = Duration::from_secs(context_sleep).saturating_sub(elapsed);
+                let sleep_dur = Duration::from_millis(context_sleep_ms).saturating_sub(elapsed);
                 std::thread::sleep(sleep_dur);
             }
         });

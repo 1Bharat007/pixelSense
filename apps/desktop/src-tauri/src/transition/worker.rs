@@ -188,7 +188,7 @@ impl TransitionWorker {
                             // Adaptive duration: bigger jumps take longer (smoother visual).
                             let magnitude = (end_brightness - start_brightness).abs();
                             let adaptive_ms = if magnitude > 20.0 {
-                                (dur_ms as f32 * 1.5) as u64  // big jump → slower
+                                dur_ms  // big jump → same speed (no slowdown penalty)
                             } else if magnitude < 8.0 {
                                 (dur_ms as f32 * 0.6) as u64  // small correction → quicker
                             } else {

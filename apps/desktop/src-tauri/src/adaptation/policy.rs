@@ -42,9 +42,9 @@ const MIN_LUX_DELTA: f32 = 5.0;
 /// Minimum luminance change required before we consider adapting.
 const MIN_LUMINANCE_DELTA: f32 = 5.0;
 /// Number of consecutive stable readings before adapting (noise filter).
-const STABILITY_WINDOW: usize = 3;
+const STABILITY_WINDOW: usize = 2;
 /// Duration a context must be stable before we respond to it.
-const CONTEXT_STABILITY_MS: u64 = 500;
+const CONTEXT_STABILITY_MS: u64 = 250;
 
 /// The Adaptation Policy is the "should we adapt?" gate.
 ///
@@ -129,7 +129,7 @@ impl AdaptationPolicy {
 
         // Rule 4: Screen Volatility Check — ignore temporary bright flashes (transient content)
         let lum_variance = self.luminance_variance();
-        if lum_variance > 20.0 {
+        if lum_variance > 50.0 {
             return AdaptationDecision::Skip {
                 reason: format!(
                     "Screen luminance is volatile (σ={:.1}) — likely transient content",
