@@ -18,7 +18,9 @@ pub struct SystemSection {
     pub run_in_background: bool,
 }
 
-fn default_true() -> bool { true }
+fn default_true() -> bool {
+    true
+}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AdaptiveSection {
@@ -40,7 +42,9 @@ pub struct TransitionSection {
     pub cooldown_ms: u64,
 }
 
-fn default_cooldown_ms() -> u64 { 200 }
+fn default_cooldown_ms() -> u64 {
+    200
+}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ComfortProfile {
@@ -85,10 +89,10 @@ impl Default for AppConfig {
             },
             transition: TransitionSection {
                 enabled: true,
-                duration_ms: 250,       // 250ms base (perceptually smooth, fast response)
-                hysteresis_pct: 3,      // 3% minimum change threshold
+                duration_ms: 250,  // 250ms base (perceptually smooth, fast response)
+                hysteresis_pct: 3, // 3% minimum change threshold
                 easing_curve: "Natural".into(), // EaseOutCubic — matches human perception
-                cooldown_ms: 200,       // 200ms cooldown prevents hardware spam
+                cooldown_ms: 200,  // 200ms cooldown prevents hardware spam
             },
             brightness: BrightnessSection {
                 manual_override_suspend_ms: 30000,

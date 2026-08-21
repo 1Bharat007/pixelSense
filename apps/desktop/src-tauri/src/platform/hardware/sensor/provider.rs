@@ -1,9 +1,9 @@
 use crate::ambient::error::AmbientError;
-use crate::ambient::models::{AmbientReading, SensorInfo, AmbientSensorType, AmbientQuality};
+use crate::ambient::models::{AmbientQuality, AmbientReading, AmbientSensorType, SensorInfo};
 use crate::ambient::provider::AmbientProvider;
+use crate::background::models::now_ms;
 use crate::platform::hardware::sensor::manager::SensorSession;
 use std::sync::Mutex;
-use crate::background::models::now_ms;
 
 pub struct NativeSensorProvider {
     session: Mutex<SensorSession>,
@@ -32,9 +32,14 @@ impl AmbientProvider for NativeSensorProvider {
             sampling_frequency: 1000,
         })
     }
-    
+
     fn read_ambient_light(&self) -> Result<AmbientReading, AmbientError> {
-        let lux = self.session.lock().unwrap().read_lux().map_err(|e| AmbientError::ReadFailed(e.to_string()))?;
+        let lux = self
+            .session
+            .lock()
+            .unwrap()
+            .read_lux()
+            .map_err(|e| AmbientError::ReadFailed(e.to_string()))?;
         Ok(AmbientReading {
             source_id: "windows_sensor".into(),
             sensor_name: "Windows Sensor API".into(),
@@ -50,7 +55,7 @@ impl AmbientProvider for NativeSensorProvider {
             is_estimated: false,
         })
     }
-    
+
     fn get_sensor_id(&self) -> String {
         "windows_sensor".into()
     }

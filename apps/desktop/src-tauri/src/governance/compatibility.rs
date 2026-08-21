@@ -1,4 +1,4 @@
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct VersionConstraint {
@@ -21,15 +21,12 @@ impl CompatibilityManager {
     }
 
     pub fn is_plugin_compatible(&self, min_sdk: &str) -> bool {
-        let parse_version = |v: &str| -> Vec<u32> {
-            v.split('.')
-             .filter_map(|s| s.parse::<u32>().ok())
-             .collect()
-        };
+        let parse_version =
+            |v: &str| -> Vec<u32> { v.split('.').filter_map(|s| s.parse::<u32>().ok()).collect() };
 
         let current = parse_version(&self.plugin_sdk_version);
         let min = parse_version(min_sdk);
-        
+
         for (c, m) in current.into_iter().zip(min.into_iter()) {
             if c != m {
                 return c > m;
@@ -38,7 +35,11 @@ impl CompatibilityManager {
         true // equal or all compared segments equal
     }
 
-    pub fn validate_schema_version(&self, current_schema: u32, expected_schema: u32) -> Result<(), String> {
+    pub fn validate_schema_version(
+        &self,
+        current_schema: u32,
+        expected_schema: u32,
+    ) -> Result<(), String> {
         if current_schema != expected_schema {
             return Err(format!(
                 "Schema mismatch: expected {}, got {}",

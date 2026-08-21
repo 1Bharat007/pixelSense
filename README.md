@@ -12,7 +12,7 @@ PixelSense watches how bright your room is and what's on your screen, then adjus
 [![Tauri](https://img.shields.io/badge/tauri-v2-24c8db.svg)](https://tauri.app/)
 [![Rust](https://img.shields.io/badge/rust-1.84+-orange.svg)](https://www.rust-lang.org/)
 [![React](https://img.shields.io/badge/react-19-61dafb.svg)](https://reactjs.org/)
-[![Tests](https://img.shields.io/badge/tests-85%2F85%20passing-brightgreen.svg)](#)
+[![Tests](https://img.shields.io/badge/tests-91%2F91%20passing-brightgreen.svg)](#)
 
 </div>
 

@@ -1,4 +1,3 @@
-use std::sync::{Arc, Mutex};
 use crate::adaptive::config::AdaptiveConfig;
 use crate::adaptive::error::AdaptiveError;
 use crate::adaptive::state::BrightnessState;
@@ -6,6 +5,7 @@ use crate::decision::manager::DecisionManager;
 use crate::decision::models::DecisionContext;
 use crate::display::domain::{DisplayCapabilities, DisplayInfo};
 use crate::transition::manager::{ExecutionMode, TransitionManager};
+use std::sync::{Arc, Mutex};
 
 pub struct AdaptiveBrightnessService {
     decision_manager: DecisionManager,

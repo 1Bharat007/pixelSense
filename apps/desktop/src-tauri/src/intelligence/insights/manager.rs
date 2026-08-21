@@ -1,5 +1,5 @@
-use crate::intelligence::models::IntelligenceContext;
 use crate::intelligence::insights::models::Insight;
+use crate::intelligence::models::IntelligenceContext;
 
 pub struct InsightsEngine;
 
@@ -25,7 +25,10 @@ impl InsightsEngine {
         } else if context.history_summary.manual_overrides_today > 5 {
             insights.push(Insight {
                 title: "Frequent Overrides".into(),
-                description: format!("You changed brightness manually {} times today.", context.history_summary.manual_overrides_today),
+                description: format!(
+                    "You changed brightness manually {} times today.",
+                    context.history_summary.manual_overrides_today
+                ),
                 severity: "Medium".into(),
                 category: "Comfort".into(),
                 confidence: 0.85,

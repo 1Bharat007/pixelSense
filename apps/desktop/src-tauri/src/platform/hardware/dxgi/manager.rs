@@ -1,4 +1,3 @@
-
 pub struct DxgiDeviceManager {}
 
 impl DxgiDeviceManager {

@@ -1,5 +1,5 @@
+use crate::update::models::{UpdateChannel, UpdateManifest, UpdateState};
 use std::sync::RwLock;
-use crate::update::models::{UpdateState, UpdateManifest, UpdateChannel};
 
 pub struct UpdateManager {
     state: RwLock<UpdateState>,
@@ -18,7 +18,7 @@ impl UpdateManager {
     pub fn check_for_updates(&self) -> Result<Option<UpdateManifest>, String> {
         let mut state = self.state.write().unwrap();
         *state = UpdateState::Checking;
-        
+
         // Mocked check for update
         *state = UpdateState::Idle;
         Ok(None)
@@ -27,9 +27,9 @@ impl UpdateManager {
     pub fn rollback(&self) -> Result<(), String> {
         let mut state = self.state.write().unwrap();
         *state = UpdateState::RollbackInitiated;
-        
+
         // Atomic rollback logic would go here
-        
+
         *state = UpdateState::Idle;
         Ok(())
     }

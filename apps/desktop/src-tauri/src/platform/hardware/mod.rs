@@ -1,5 +1,5 @@
-pub mod ddc;
 pub mod com;
-pub mod wmi;
+pub mod ddc;
 pub mod dxgi;
 pub mod sensor;
+pub mod wmi;

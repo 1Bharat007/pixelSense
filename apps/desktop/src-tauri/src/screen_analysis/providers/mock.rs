@@ -29,9 +29,15 @@ impl MockScreenProvider {
 }
 
 impl ScreenProvider for MockScreenProvider {
-    fn capture_frame(&self, _display_id: &str, config: &AnalysisConfig) -> Result<RawFrameBuffer, ScreenAnalysisError> {
+    fn capture_frame(
+        &self,
+        _display_id: &str,
+        config: &AnalysisConfig,
+    ) -> Result<RawFrameBuffer, ScreenAnalysisError> {
         if !self.available {
-            return Err(ScreenAnalysisError::CaptureUnavailable("Mock unavailable".into()));
+            return Err(ScreenAnalysisError::CaptureUnavailable(
+                "Mock unavailable".into(),
+            ));
         }
         let (target_w, target_h) = config.sample_resolution.dimensions();
         let width = target_w.max(128);
@@ -42,7 +48,7 @@ impl ScreenProvider for MockScreenProvider {
             pixels.push(self.color.0); // B
             pixels.push(self.color.1); // G
             pixels.push(self.color.2); // R
-            pixels.push(255);          // A
+            pixels.push(255); // A
         }
         Ok(RawFrameBuffer {
             pixels,

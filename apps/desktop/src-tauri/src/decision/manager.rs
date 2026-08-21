@@ -13,13 +13,18 @@ impl DecisionManager {
         Self { strategy, config }
     }
 
-    pub fn decide_brightness(&self, context: &DecisionContext) -> Result<DecisionResult, DecisionError> {
+    pub fn decide_brightness(
+        &self,
+        context: &DecisionContext,
+    ) -> Result<DecisionResult, DecisionError> {
         // Delegate to strategy
         let mut result = self.strategy.calculate_brightness(context)?;
 
         // Apply global configuration limits
-        result.recommended_brightness = result.recommended_brightness
-            .clamp(self.config.minimum_brightness, self.config.maximum_brightness);
+        result.recommended_brightness = result.recommended_brightness.clamp(
+            self.config.minimum_brightness,
+            self.config.maximum_brightness,
+        );
 
         Ok(result)
     }

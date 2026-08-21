@@ -28,7 +28,7 @@ impl PollingScheduler {
         }
     }
 
-    /// Record that a cycle found no change. 
+    /// Record that a cycle found no change.
     pub fn on_no_change(&mut self) {
         self.performance_manager.report_screen_changed(false);
     }

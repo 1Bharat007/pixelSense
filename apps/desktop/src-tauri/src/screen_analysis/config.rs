@@ -86,7 +86,12 @@ pub enum RegionOfInterest {
 
     /// Analyze a user-defined screen rectangle.
     /// Future: Configurable via the Settings page.
-    Custom { x: u32, y: u32, width: u32, height: u32 },
+    Custom {
+        x: u32,
+        y: u32,
+        width: u32,
+        height: u32,
+    },
 }
 
 /// The analysis mode controls which metrics are calculated per frame.

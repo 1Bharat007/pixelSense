@@ -45,7 +45,10 @@ impl ScreenAnalysisManager {
     ///
     /// The pixel buffer captured by the provider is scaled, analyzed, and then dropped
     /// within this call. No pixel data escapes this function.
-    pub fn analyze_display(&self, display_id: &str) -> Result<ScreenAnalysisResult, ScreenAnalysisError> {
+    pub fn analyze_display(
+        &self,
+        display_id: &str,
+    ) -> Result<ScreenAnalysisResult, ScreenAnalysisError> {
         let started_at = Instant::now();
         let timestamp_ms = ScreenAnalysisResult::timestamp_now();
 

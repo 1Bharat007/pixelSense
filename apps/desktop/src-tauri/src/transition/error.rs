@@ -13,7 +13,9 @@ impl std::fmt::Display for TransitionError {
         match self {
             TransitionError::InvalidDuration(msg) => write!(f, "Invalid duration: {}", msg),
             TransitionError::ExecutionFailed(msg) => write!(f, "Execution failed: {}", msg),
-            TransitionError::TransitionAlreadyRunning(msg) => write!(f, "Transition already running: {}", msg),
+            TransitionError::TransitionAlreadyRunning(msg) => {
+                write!(f, "Transition already running: {}", msg)
+            }
             TransitionError::NotImplemented(msg) => write!(f, "Not implemented: {}", msg),
         }
     }

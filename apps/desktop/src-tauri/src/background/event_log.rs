@@ -1,6 +1,6 @@
+use serde::{Deserialize, Serialize};
 use std::collections::VecDeque;
 use std::sync::{Arc, Mutex};
-use serde::{Deserialize, Serialize};
 
 /// Maximum events stored in memory.
 const MAX_EVENTS: usize = 25;
@@ -129,7 +129,10 @@ mod tests {
     fn test_capacity_limit() {
         let mut log = EventLog::new();
         for i in 0..30 {
-            log.push(LogEvent::new(EventCategory::SystemEvent, format!("Event {}", i)));
+            log.push(LogEvent::new(
+                EventCategory::SystemEvent,
+                format!("Event {}", i),
+            ));
         }
         assert_eq!(log.len(), MAX_EVENTS);
     }
@@ -146,8 +149,8 @@ mod tests {
 
     #[test]
     fn test_with_values() {
-        let event = LogEvent::new(EventCategory::BrightnessChanged, "Adjusted")
-            .with_values("72%", "65%");
+        let event =
+            LogEvent::new(EventCategory::BrightnessChanged, "Adjusted").with_values("72%", "65%");
         assert_eq!(event.before_value, Some("72%".into()));
         assert_eq!(event.after_value, Some("65%".into()));
     }

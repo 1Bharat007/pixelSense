@@ -1,19 +1,25 @@
+use crate::ambient::models::AmbientReading;
 use crate::display::domain::{DisplayCapabilities, DisplayInfo};
 use crate::platform::error::PlatformError;
-use crate::ambient::models::AmbientReading;
 use crate::screen_analysis::frame::scaler::RawFrameBuffer;
 
 /// PlatformFacade acts as the single boundary for all native OS calls.
 /// Subsystems interact with these specialized traits, never directly with Win32/macOS/Linux APIs.
-
 pub trait DisplayPlatform: Send + Sync {
     fn discover_displays(&self) -> Result<Vec<DisplayInfo>, PlatformError>;
-    fn get_display_capabilities(&self, display: &DisplayInfo) -> Result<DisplayCapabilities, PlatformError>;
+    fn get_display_capabilities(
+        &self,
+        display: &DisplayInfo,
+    ) -> Result<DisplayCapabilities, PlatformError>;
 }
 
 pub trait BrightnessPlatform: Send + Sync {
     fn set_internal_brightness(&self, level: u8) -> Result<(), PlatformError>;
-    fn set_external_brightness(&self, display: &DisplayInfo, level: u8) -> Result<(), PlatformError>;
+    fn set_external_brightness(
+        &self,
+        display: &DisplayInfo,
+        level: u8,
+    ) -> Result<(), PlatformError>;
     fn read_hardware_brightness(&self, display: &DisplayInfo) -> Result<u8, PlatformError>;
 }
 

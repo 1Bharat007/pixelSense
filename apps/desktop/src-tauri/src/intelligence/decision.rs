@@ -1,5 +1,5 @@
-use crate::intelligence::models::IntelligenceContext;
 use crate::intelligence::confidence::ConfidenceLevel;
+use crate::intelligence::models::IntelligenceContext;
 use serde::{Deserialize, Serialize};
 
 /// The output of the Decision Engine for one pipeline cycle.
@@ -25,9 +25,9 @@ pub struct DecisionRecord {
 /// Gaming and Video sessions should not be interrupted by brightness changes.
 fn context_sensitivity(context: &str) -> f32 {
     match context {
-        "Gaming" => 0.2,  // Almost never adapt during gaming
-        "Video"  => 0.3,  // Rarely adapt during video
-        "Design" => 0.7,  // Color-sensitive work — conservative
+        "Gaming" => 0.2, // Almost never adapt during gaming
+        "Video" => 0.3,  // Rarely adapt during video
+        "Design" => 0.7, // Color-sensitive work — conservative
         "Coding" => 1.0,
         "Reading" => 1.0,
         _ => 0.9,
@@ -35,7 +35,7 @@ fn context_sensitivity(context: &str) -> f32 {
 }
 
 /// The Decision Engine computes *how much* to change brightness given current conditions.
-/// 
+///
 /// Responsibility: Given a calibrated ComfortProfile and current sensor readings,
 /// produce a DecisionRecord with a concrete brightness recommendation.
 /// The Adaptation Policy (upstream) has already decided *whether* to adapt.
@@ -48,8 +48,8 @@ impl DecisionEngine {
     }
 
     pub fn evaluate(
-        &self, 
-        context: &IntelligenceContext, 
+        &self,
+        context: &IntelligenceContext,
         current_brightness: u8,
         profile_opt: Option<crate::configuration::models::ComfortProfile>,
     ) -> DecisionRecord {
@@ -64,7 +64,7 @@ impl DecisionEngine {
             let ctx_mult = context_sensitivity(&context.active_application);
             // Confidence-based sensitivity for ambient sensor only.
             let conf_mult = confidence.sensitivity_multiplier();
-            
+
             // Overall system sensitivity
             let base_sensitivity = profile.sensitivity * ctx_mult;
 
@@ -79,15 +79,12 @@ impl DecisionEngine {
             let screen_adjustment = luminance_delta * (0.35 * base_sensitivity);
 
             // Stage 3 — Combine adjustments from reference baseline.
-            let mut target_float = profile.reference_brightness as f32
-                + ambient_adjustment
-                + screen_adjustment;
+            let mut target_float =
+                profile.reference_brightness as f32 + ambient_adjustment + screen_adjustment;
 
             // Stage 4 — Apply profile brightness limits.
-            target_float = target_float.clamp(
-                profile.min_brightness as f32,
-                profile.max_brightness as f32,
-            );
+            target_float =
+                target_float.clamp(profile.min_brightness as f32, profile.max_brightness as f32);
 
             // Stage 5 — Apply minimum change threshold (suppress micro-corrections).
             let target = target_float.round() as u8;
@@ -113,7 +110,10 @@ impl DecisionEngine {
             let (observation, reason) = if is_screen_driven {
                 if context.current_screen_luminance > 65.0 {
                     (
-                        format!("Bright screen content detected ({:.0}% luminance).", context.current_screen_luminance),
+                        format!(
+                            "Bright screen content detected ({:.0}% luminance).",
+                            context.current_screen_luminance
+                        ),
                         "Reducing backlight brightness to prevent sudden eye glare.".into(),
                     )
                 } else if context.current_screen_luminance < 35.0 {
@@ -123,19 +123,28 @@ impl DecisionEngine {
                     )
                 } else {
                     (
-                        format!("Screen content luminance is {:.0}%.", context.current_screen_luminance),
+                        format!(
+                            "Screen content luminance is {:.0}%.",
+                            context.current_screen_luminance
+                        ),
                         "Adjusting brightness to maintain perceived visual comfort.".into(),
                     )
                 }
             } else {
                 if context.current_ambient_lux > profile.reference_lux + 20.0 {
                     (
-                        format!("Room is brighter than reference ({:.0} lux vs {:.0} lux baseline).", context.current_ambient_lux, profile.reference_lux),
+                        format!(
+                            "Room is brighter than reference ({:.0} lux vs {:.0} lux baseline).",
+                            context.current_ambient_lux, profile.reference_lux
+                        ),
                         "Increasing brightness to reduce eye strain from ambient glare.".into(),
                     )
                 } else {
                     (
-                        format!("Room is darker than reference ({:.0} lux vs {:.0} lux baseline).", context.current_ambient_lux, profile.reference_lux),
+                        format!(
+                            "Room is darker than reference ({:.0} lux vs {:.0} lux baseline).",
+                            context.current_ambient_lux, profile.reference_lux
+                        ),
                         "Reducing brightness to prevent glare and eye fatigue.".into(),
                     )
                 }

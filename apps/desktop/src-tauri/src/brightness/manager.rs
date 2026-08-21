@@ -37,10 +37,9 @@ impl BrightnessManager {
         // Clamp brightness between 0 and 100
         let clamped = brightness_percent.clamp(0, 100) as u8;
 
-        self.provider
-            .set_brightness(display, capabilities, clamped)
+        self.provider.set_brightness(display, capabilities, clamped)
     }
-    
+
     pub fn get_brightness(&self, display: &DisplayInfo) -> Result<u8, BrightnessError> {
         self.provider.get_brightness(display)
     }

@@ -7,7 +7,9 @@ pub mod strategies;
 #[cfg(test)]
 mod tests {
     use crate::visual_comfort::factory::create_visual_comfort_engine;
-    use crate::visual_comfort::models::{ComfortConfig, VisualComfortContext, RecommendationAction, ComfortProfile};
+    use crate::visual_comfort::models::{
+        ComfortConfig, ComfortProfile, RecommendationAction, VisualComfortContext,
+    };
     use std::thread;
     use std::time::Duration;
 
@@ -20,7 +22,7 @@ mod tests {
                 display_identifier: "disp_1".into(),
                 ambient_light: 100.0,
                 average_screen_luminance: 50.0, // locked luminance
-                monitor_brightness: 50,       // locked brightness
+                monitor_brightness: 50,         // locked brightness
                 comfort_timestamp: 0,
                 calibration_quality: 1.0,
                 schema_version: 1,
@@ -40,12 +42,15 @@ mod tests {
     fn test_compensation_dark_to_bright() {
         let engine = create_visual_comfort_engine(ComfortConfig::default());
         let ctx = mock_context();
-        
+
         let result = engine.calculate_comfort(ctx);
         // Luminance doubled (50 -> 100).
         // Brightness should halve (50 -> 25) to compensate.
         assert_eq!(result.recommendation.recommended_brightness, 25);
-        assert_eq!(result.recommendation.action, RecommendationAction::SmoothTransition);
+        assert_eq!(
+            result.recommendation.action,
+            RecommendationAction::SmoothTransition
+        );
     }
 
     #[test]
@@ -53,7 +58,7 @@ mod tests {
         let engine = create_visual_comfort_engine(ComfortConfig::default());
         let mut ctx = mock_context();
         ctx.screen_luminance = Some(25.0); // Halved
-        
+
         let result = engine.calculate_comfort(ctx);
         // Brightness should double (50 -> 100).
         assert_eq!(result.recommendation.recommended_brightness, 100);
@@ -65,10 +70,10 @@ mod tests {
             minimum_change_threshold: 10, // high threshold
             ..Default::default()
         });
-        
+
         let mut ctx = mock_context();
         ctx.screen_luminance = Some(45.0); // Minor change
-        
+
         let result = engine.calculate_comfort(ctx);
         assert_eq!(result.recommendation.action, RecommendationAction::Ignore);
     }
@@ -79,17 +84,17 @@ mod tests {
             minimum_update_interval: 500,
             ..Default::default()
         });
-        
+
         let ctx1 = mock_context();
         let result1 = engine.calculate_comfort(ctx1.clone());
         assert_ne!(result1.recommendation.action, RecommendationAction::Ignore);
-        
+
         let result2 = engine.calculate_comfort(ctx1.clone());
         // Should be rate limited immediately after
         assert_eq!(result2.recommendation.action, RecommendationAction::Ignore);
-        
+
         thread::sleep(Duration::from_millis(600));
-        
+
         let result3 = engine.calculate_comfort(ctx1.clone());
         // Should pass after interval
         assert_ne!(result3.recommendation.action, RecommendationAction::Ignore);
@@ -100,7 +105,7 @@ mod tests {
         let engine = create_visual_comfort_engine(ComfortConfig::default());
         let mut ctx = mock_context();
         ctx.current_comfort_profile = None;
-        
+
         let result = engine.calculate_comfort(ctx);
         assert_eq!(result.recommendation.action, RecommendationAction::NoChange);
     }
@@ -119,12 +124,18 @@ mod tests {
                 let mut ctx = mock_context();
                 ctx.ambient_light = Some(lux as f32);
                 ctx.screen_luminance = Some(luminance as f32);
-                
+
                 let result = engine.calculate_comfort(ctx);
-                
-                if result.recommendation.action != RecommendationAction::Ignore && result.recommendation.action != RecommendationAction::NoChange {
+
+                if result.recommendation.action != RecommendationAction::Ignore
+                    && result.recommendation.action != RecommendationAction::NoChange
+                {
                     let b = result.recommendation.recommended_brightness;
-                    assert!(b >= 10 && b <= 100, "Property violated: brightness {} is out of bounds [10, 100]", b);
+                    assert!(
+                        b >= 10 && b <= 100,
+                        "Property violated: brightness {} is out of bounds [10, 100]",
+                        b
+                    );
                 }
             }
         }

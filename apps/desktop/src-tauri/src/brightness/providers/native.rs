@@ -25,27 +25,30 @@ impl BrightnessProvider for NativeBrightnessProvider {
         if !display.is_primary {
             return Ok(());
         }
-        
+
         // 1. Try Native WMI first (Internal laptops)
         let wmi_res = self.wmi_manager.set_brightness(level);
-        
+
         // 2. Try Native DDC/CI (External desktop monitors)
         let ddc_success;
-        
+
         struct EnumState {
             level: u8,
             success: bool,
         }
-        
+
         let mut enum_state = EnumState {
             level,
             success: false,
         };
 
         unsafe {
-            use windows::Win32::Graphics::Gdi::{EnumDisplayMonitors, HDC, HMONITOR};
-            use windows::Win32::Devices::Display::{GetNumberOfPhysicalMonitorsFromHMONITOR, GetPhysicalMonitorsFromHMONITOR, SetMonitorBrightness, PHYSICAL_MONITOR};
+            use windows::Win32::Devices::Display::{
+                GetNumberOfPhysicalMonitorsFromHMONITOR, GetPhysicalMonitorsFromHMONITOR,
+                SetMonitorBrightness, PHYSICAL_MONITOR,
+            };
             use windows::Win32::Foundation::{BOOL, LPARAM, TRUE};
+            use windows::Win32::Graphics::Gdi::{EnumDisplayMonitors, HDC, HMONITOR};
 
             unsafe extern "system" fn monitor_enum_proc(
                 hmonitor: HMONITOR,
@@ -55,15 +58,20 @@ impl BrightnessProvider for NativeBrightnessProvider {
             ) -> BOOL {
                 let state = &mut *(lparam.0 as *mut EnumState);
                 let mut count: u32 = 0;
-                if GetNumberOfPhysicalMonitorsFromHMONITOR(hmonitor, &mut count).is_ok() && count > 0 {
-                    let mut physical_monitors: Vec<PHYSICAL_MONITOR> = vec![PHYSICAL_MONITOR::default(); count as usize];
+                if GetNumberOfPhysicalMonitorsFromHMONITOR(hmonitor, &mut count).is_ok()
+                    && count > 0
+                {
+                    let mut physical_monitors: Vec<PHYSICAL_MONITOR> =
+                        vec![PHYSICAL_MONITOR::default(); count as usize];
                     if GetPhysicalMonitorsFromHMONITOR(hmonitor, &mut physical_monitors).is_ok() {
                         for pm in &physical_monitors {
                             if SetMonitorBrightness(pm.hPhysicalMonitor, state.level as u32) != 0 {
                                 state.success = true;
                             }
                         }
-                        let _ = windows::Win32::Devices::Display::DestroyPhysicalMonitors(&physical_monitors);
+                        let _ = windows::Win32::Devices::Display::DestroyPhysicalMonitors(
+                            &physical_monitors,
+                        );
                     }
                 }
                 TRUE // Continue enumeration
@@ -77,14 +85,17 @@ impl BrightnessProvider for NativeBrightnessProvider {
             );
             ddc_success = enum_state.success;
         }
-        
+
         if let Err(e) = wmi_res {
             if !ddc_success {
                 // Both hardware attempts failed
-                return Err(BrightnessError::PlatformFailure(format!("DDC/CI failed and WMI failed: {}", e)));
+                return Err(BrightnessError::PlatformFailure(format!(
+                    "DDC/CI failed and WMI failed: {}",
+                    e
+                )));
             }
         }
-        
+
         Ok(())
     }
 
@@ -92,9 +103,10 @@ impl BrightnessProvider for NativeBrightnessProvider {
         if !display.is_primary {
             return Ok(50);
         }
-        
+
         // For reading, WMI is the most reliable native source.
-        self.wmi_manager.get_brightness()
+        self.wmi_manager
+            .get_brightness()
             .map_err(|e| BrightnessError::PlatformFailure(e.to_string()))
     }
 }

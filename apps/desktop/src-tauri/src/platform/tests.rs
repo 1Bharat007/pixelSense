@@ -1,8 +1,8 @@
 #[cfg(test)]
 mod stress_tests {
     use crate::platform::hardware::com::runtime::ComRuntime;
-    use crate::platform::hardware::wmi::manager::WmiBrightnessManager;
     use crate::platform::hardware::sensor::manager::SensorSession;
+    use crate::platform::hardware::wmi::manager::WmiBrightnessManager;
     use std::time::Instant;
 
     #[test]
@@ -24,7 +24,7 @@ mod stress_tests {
         for _ in 0..100 {
             let _val = wmi.get_brightness().unwrap();
         }
-        
+
         let elapsed = start.elapsed();
         println!("100 WMI Brightness reads took: {:?}", elapsed);
         // Ensure no memory exhaustion
@@ -44,5 +44,4 @@ mod stress_tests {
         let elapsed = start.elapsed();
         println!("100 Ambient Sensor reads took: {:?}", elapsed);
     }
-
 }

@@ -84,7 +84,10 @@ impl WorkerWatchdog {
                 // Attempt restart
                 match self.worker.restart() {
                     Ok(_) => {
-                        log::info!("Watchdog: worker '{}' restarted successfully", health.worker_id.0);
+                        log::info!(
+                            "Watchdog: worker '{}' restarted successfully",
+                            health.worker_id.0
+                        );
                     }
                     Err(e) => {
                         log::error!("Watchdog: restart failed — {}", e);
@@ -93,12 +96,14 @@ impl WorkerWatchdog {
             }
         }
 
-        self.running.store(false, std::sync::atomic::Ordering::Relaxed);
+        self.running
+            .store(false, std::sync::atomic::Ordering::Relaxed);
         log::info!("WorkerWatchdog stopped");
     }
 
     pub fn stop(&self) {
-        self.running.store(false, std::sync::atomic::Ordering::Relaxed);
+        self.running
+            .store(false, std::sync::atomic::Ordering::Relaxed);
     }
 
     pub fn is_running(&self) -> bool {

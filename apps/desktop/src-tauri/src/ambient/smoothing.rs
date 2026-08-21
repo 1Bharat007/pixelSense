@@ -39,7 +39,7 @@ impl AmbientSmoothingStrategy for BasicSmoothingStrategy {
 
         let sum: f32 = history.iter().sum();
         let count = history.len() as f32;
-        
+
         sum / count
     }
 

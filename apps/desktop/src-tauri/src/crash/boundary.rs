@@ -1,6 +1,6 @@
-use std::panic;
-use crate::crash::models::{RecoveryPolicy, CrashReport, CrashReason};
 use crate::background::models::now_ms;
+use crate::crash::models::{CrashReason, CrashReport, RecoveryPolicy};
+use std::panic;
 
 pub struct CrashBoundary {
     subsystem_id: String,
@@ -21,7 +21,7 @@ impl CrashBoundary {
         F: FnOnce() -> R + panic::UnwindSafe,
     {
         let result = panic::catch_unwind(f);
-        
+
         match result {
             Ok(val) => Ok(val),
             Err(err) => {

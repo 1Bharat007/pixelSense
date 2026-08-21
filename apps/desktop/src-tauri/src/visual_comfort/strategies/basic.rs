@@ -1,5 +1,6 @@
 use crate::visual_comfort::models::{
-    ComfortConfig, ComfortRecommendation, RecommendationAction, VisualComfortContext, VisualComfortResult,
+    ComfortConfig, ComfortRecommendation, RecommendationAction, VisualComfortContext,
+    VisualComfortResult,
 };
 use crate::visual_comfort::strategies::CompensationStrategy;
 
@@ -40,8 +41,9 @@ impl CompensationStrategy for BasicCompensationStrategy {
             // locked_emitted = profile.average_screen_luminance * (profile.monitor_brightness / 100)
             // current_emitted = current_luminance * (current_brightness / 100)
 
-            let locked_emitted = profile.average_screen_luminance * (profile.monitor_brightness as f32 / 100.0);
-            
+            let locked_emitted =
+                profile.average_screen_luminance * (profile.monitor_brightness as f32 / 100.0);
+
             // To maintain locked_emitted, new_brightness = (locked_emitted / current_luminance) * 100
             let mut target_brightness_f = if luminance > 0.0 {
                 (locked_emitted / luminance) * 100.0
@@ -49,14 +51,18 @@ impl CompensationStrategy for BasicCompensationStrategy {
                 profile.monitor_brightness as f32
             };
 
-            target_brightness_f = target_brightness_f.clamp(config.minimum_brightness as f32, config.maximum_brightness as f32);
-            
-            // Apply maximum step change limit (though this is technically also transition logic, 
+            target_brightness_f = target_brightness_f.clamp(
+                config.minimum_brightness as f32,
+                config.maximum_brightness as f32,
+            );
+
+            // Apply maximum step change limit (though this is technically also transition logic,
             // the calculation engine provides the clamped *recommendation*)
             let recommended_brightness = target_brightness_f as u8;
-            
-            let diff = (context.current_monitor_brightness as i16 - recommended_brightness as i16).abs() as u8;
-            
+
+            let diff = (context.current_monitor_brightness as i16 - recommended_brightness as i16)
+                .abs() as u8;
+
             let action = if diff == 0 {
                 RecommendationAction::NoChange
             } else if context.transition_enabled {
@@ -69,7 +75,8 @@ impl CompensationStrategy for BasicCompensationStrategy {
                 recommendation: ComfortRecommendation {
                     recommended_brightness,
                     confidence: context.confidence,
-                    reason: "Calculated inverse proportional brightness based on luminance shift".into(),
+                    reason: "Calculated inverse proportional brightness based on luminance shift"
+                        .into(),
                     action,
                 },
                 comfort_delta: diff as f32,

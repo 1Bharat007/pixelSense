@@ -1,17 +1,17 @@
+use crate::adaptation::policy::{AdaptationPolicy, PolicyContext};
 use crate::ambient::manager::AmbientManager;
-use crate::screen_analysis::manager::ScreenAnalysisManager;
-use crate::screen_analysis::context::detect_context;
+use crate::background::event_log::{EventCategory, LogEvent, SharedEventLog};
+use crate::brightness::manager::BrightnessManager;
+use crate::commands::DashboardStatePayload;
+use crate::display::domain::{DisplayCapabilities, DisplayInfo};
 use crate::intelligence::manager::IntelligenceManager;
 use crate::intelligence::models::IntelligenceContext;
-use crate::brightness::manager::BrightnessManager;
-use crate::display::domain::{DisplayInfo, DisplayCapabilities};
-use crate::commands::DashboardStatePayload;
-use crate::transition::worker::TransitionWorker;
 use crate::platform::application::active_window::get_active_application;
-use crate::adaptation::policy::{AdaptationPolicy, PolicyContext};
-use crate::background::event_log::{EventCategory, LogEvent, SharedEventLog};
-use std::sync::{Arc, Mutex, RwLock};
+use crate::screen_analysis::context::detect_context;
+use crate::screen_analysis::manager::ScreenAnalysisManager;
+use crate::transition::worker::TransitionWorker;
 use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::{Arc, Mutex, RwLock};
 use std::time::{Duration, Instant};
 
 pub struct IntelligencePipeline {
@@ -124,7 +124,10 @@ impl IntelligencePipeline {
                     }
                 };
                 let current_lux = ambient_reading.as_ref().map(|r| r.lux).unwrap_or(0.0);
-                let current_confidence = ambient_reading.as_ref().map(|r| r.confidence).unwrap_or(0.0);
+                let current_confidence = ambient_reading
+                    .as_ref()
+                    .map(|r| r.confidence)
+                    .unwrap_or(0.0);
 
                 // ── 3. Screen Pipeline ──────────────────────────────────────────────
                 let screen_result = match screen.analyze_display("primary") {
@@ -132,7 +135,8 @@ impl IntelligencePipeline {
                         if let Ok(mut ds) = dashboard_state.lock() {
                             ds.health.screen_engine = "Running".into();
                         }
-                        current_context = detect_context(&res.metrics, last_screen_metrics.as_ref(), &active_app);
+                        current_context =
+                            detect_context(&res.metrics, last_screen_metrics.as_ref(), &active_app);
                         last_screen_metrics = Some(res.metrics.clone());
                         Some(res)
                     }
@@ -172,7 +176,10 @@ impl IntelligencePipeline {
                         let lock = transition.suspend_until.lock().unwrap();
                         lock.map(|until| Instant::now() < until).unwrap_or(false)
                     },
-                    is_fullscreen: false, // TODO: detect via Win32 GetForegroundWindow fullscreen check
+                    // TODO: implement Win32 GetForegroundWindow fullscreen detection.
+                    // When implemented, fullscreen VIDEO must still adapt (only Gaming pauses).
+                    // See adaptation/policy.rs Rule 2 for the gate logic.
+                    is_fullscreen: false,
                 };
                 let adaptation_decision = adaptation_policy.should_adapt(&policy_ctx);
 
@@ -186,7 +193,8 @@ impl IntelligencePipeline {
                         total_events: total_events as usize,
                         brightness_changes_today,
                         manual_overrides_today,
-                        longest_session_minutes: (session_start_time.elapsed().as_secs() / 60) as u32,
+                        longest_session_minutes: (session_start_time.elapsed().as_secs() / 60)
+                            as u32,
                         average_ambient_lux: current_lux,
                     },
                     current_ambient_lux: current_lux,
@@ -205,43 +213,59 @@ impl IntelligencePipeline {
                 );
 
                 // ── 6. Transition Gate ──────────────────────────────────────────────
-                if adaptation_decision.is_adapt() {
-                    if let Some(target) = payload.current_decision.target_brightness {
-                        let prev_target = last_decision_target.unwrap_or(current_brightness);
-                        if (target as i32 - prev_target as i32).abs() >= 3 {
-                            let previous_target = transition.target_brightness.load(Ordering::SeqCst);
-                            if target != previous_target {
-                                // Log the brightness change event with Reason
-                                if let Ok(mut log) = event_log.lock() {
-                                    let reason = payload.current_decision.reason.clone();
-                                    log.push(
-                                        LogEvent::new(
-                                            EventCategory::BrightnessChanged,
-                                            &format!("Reason: {}", reason),
-                                        )
-                                        .with_values(
-                                            format!("{}%", current_brightness),
-                                            format!("{}%", target),
-                                        ),
-                                    );
+                match &adaptation_decision {
+                    crate::adaptation::policy::AdaptationDecision::FastConfirm => {
+                        // Big luminance jump detected but not yet confirmed.
+                        // Signal the dashboard so the user can see the system working,
+                        // then re-sample quickly without touching the hardware.
+                        if let Ok(mut ds) = dashboard_state.lock() {
+                            ds.brightness.transition_status = "Confirming…".into();
+                        }
+                        // Sleep the fast-confirm interval, then loop immediately.
+                        let elapsed = cycle_start.elapsed();
+                        let fast_sleep = Duration::from_millis(150).saturating_sub(elapsed);
+                        std::thread::sleep(fast_sleep);
+                        continue;
+                    }
+                    crate::adaptation::policy::AdaptationDecision::Adapt { .. } => {
+                        if let Some(target) = payload.current_decision.target_brightness {
+                            let prev_target = last_decision_target.unwrap_or(current_brightness);
+                            if (target as i32 - prev_target as i32).abs() >= 3 {
+                                let previous_target =
+                                    transition.target_brightness.load(Ordering::SeqCst);
+                                if target != previous_target {
+                                    if let Ok(mut log) = event_log.lock() {
+                                        let reason = payload.current_decision.reason.clone();
+                                        log.push(
+                                            LogEvent::new(
+                                                EventCategory::BrightnessChanged,
+                                                &format!("Reason: {}", reason),
+                                            )
+                                            .with_values(
+                                                format!("{}%", current_brightness),
+                                                format!("{}%", target),
+                                            ),
+                                        );
+                                    }
+                                    transition.set_target(target);
+                                    brightness_changes_today += 1;
+                                    last_decision_target = Some(target);
                                 }
-                                transition.set_target(target);
-                                brightness_changes_today += 1;
-                                last_decision_target = Some(target);
                             }
                         }
                     }
-                } else {
-                    // Log when adaptation was skipped (for debugging).
-                    // Only log once per skip reason to avoid flooding.
-                    if let Ok(mut log) = event_log.lock() {
-                        let reason = adaptation_decision.reason().to_string();
-                        // Only push if different from last event
-                        let last_skip = log.get_recent().first()
-                            .filter(|e| e.category == EventCategory::AdaptationSkipped)
-                            .map(|e| e.description.clone());
-                        if last_skip.as_deref() != Some(&reason) {
-                            log.push(LogEvent::new(EventCategory::AdaptationSkipped, reason));
+                    crate::adaptation::policy::AdaptationDecision::Skip { .. } => {
+                        // Log when adaptation was skipped (for debugging).
+                        if let Ok(mut log) = event_log.lock() {
+                            let reason = adaptation_decision.reason().to_string();
+                            let last_skip = log
+                                .get_recent()
+                                .first()
+                                .filter(|e| e.category == EventCategory::AdaptationSkipped)
+                                .map(|e| e.description.clone());
+                            if last_skip.as_deref() != Some(&reason) {
+                                log.push(LogEvent::new(EventCategory::AdaptationSkipped, reason));
+                            }
                         }
                     }
                 }
@@ -279,13 +303,20 @@ impl IntelligencePipeline {
                     poll_secs = (poll_secs - 1).max(1);
                 }
 
-                // Adaptive sleep based on context (sub-second for active work).
+                // Adaptive sleep based on context.
+                //
+                // IMPORTANT: Video deliberately gets the *same* fast poll rate as Coding.
+                // Video content has the most sudden luminance changes of any context
+                // (scene cuts, explosions, daylight transitions). Polling slowly for Video
+                // was Cause A of the ~10-second brightness lag. Do NOT re-introduce a slow
+                // Video interval here — the fast-confirm burst mechanism handles the
+                // power-efficiency vs. responsiveness tradeoff for volatile content.
                 let context_sleep_ms: u64 = match current_context.as_str() {
-                    "Video"   => 2000,  // Video: slow poll is fine
-                    "Gaming"  => 5000,  // Gaming: minimal polling
-                    "Reading" => 1000,  // Reading: moderate
-                    "Coding"  => 500,   // Coding: fast — user switches tabs frequently
-                    _         => 500,   // Default/Desktop: fast
+                    "Gaming" => 5000,  // Gaming: minimal polling, fast-confirm still triggers if needed
+                    "Reading" => 1000, // Reading: moderate — content rarely changes abruptly
+                    "Video" => 500,    // Video: fast — scene changes need quick detection
+                    "Coding" => 500,   // Coding: fast — user switches tabs frequently
+                    _ => 500,          // Default/Desktop: fast
                 };
 
                 let elapsed = cycle_start.elapsed();

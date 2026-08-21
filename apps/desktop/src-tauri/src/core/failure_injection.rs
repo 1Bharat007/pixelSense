@@ -2,7 +2,7 @@
 mod tests {
     use std::sync::{Arc, Mutex};
     use std::thread;
-    
+
     // Synthetic Failure Enums representing SRE vectors
     #[allow(dead_code)]
     #[derive(Debug, Clone, PartialEq)]
@@ -37,7 +37,7 @@ mod tests {
 
         fn inject_failure(&self, failure: SyntheticFailure) -> RecoveryStrategy {
             self.failure_log.lock().unwrap().push(failure.clone());
-            
+
             match failure {
                 SyntheticFailure::DdcTimeout => RecoveryStrategy::Retry(3),
                 SyntheticFailure::I2cBusBusy => RecoveryStrategy::Retry(1),
@@ -51,11 +51,11 @@ mod tests {
     #[test]
     fn test_ddc_timeout_recovery_consistency() {
         let boundary = MockCrashBoundary::new();
-        
+
         // Assert identical failures yield identical, deterministic recovery paths
         let r1 = boundary.inject_failure(SyntheticFailure::DdcTimeout);
         let r2 = boundary.inject_failure(SyntheticFailure::DdcTimeout);
-        
+
         assert_eq!(r1, RecoveryStrategy::Retry(3));
         assert_eq!(r1, r2, "Recovery paths must be deterministic");
     }
@@ -64,24 +64,28 @@ mod tests {
     fn test_plugin_panic_sandbox_isolation() {
         let boundary = MockCrashBoundary::new();
         let recovery = boundary.inject_failure(SyntheticFailure::PluginPanic);
-        
+
         // Assert a plugin panic never yields a Crash state
         assert_eq!(recovery, RecoveryStrategy::DisableFeature);
-        assert_ne!(recovery, RecoveryStrategy::Crash, "Crash boundary failed to trap plugin panic");
+        assert_ne!(
+            recovery,
+            RecoveryStrategy::Crash,
+            "Crash boundary failed to trap plugin panic"
+        );
     }
 
     #[test]
     fn test_event_storm_queue_survival() {
         let boundary = Arc::new(MockCrashBoundary::new());
         let b1 = boundary.clone();
-        
+
         // Simulate an event storm from multiple threads
         let t1 = thread::spawn(move || {
             for _ in 0..100 {
                 b1.inject_failure(SyntheticFailure::EventStorm);
             }
         });
-        
+
         let b2 = boundary.clone();
         let t2 = thread::spawn(move || {
             for _ in 0..100 {
@@ -91,7 +95,7 @@ mod tests {
 
         t1.join().unwrap();
         t2.join().unwrap();
-        
+
         let log = boundary.failure_log.lock().unwrap();
         assert_eq!(log.len(), 200, "Event bus dropped events during storm");
     }

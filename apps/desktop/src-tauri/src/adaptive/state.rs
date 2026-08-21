@@ -20,7 +20,8 @@ impl BrightnessState {
     }
 
     pub fn update_brightness(&mut self, display_id: &str, brightness: u8) {
-        self.current_brightness.insert(display_id.to_string(), brightness);
+        self.current_brightness
+            .insert(display_id.to_string(), brightness);
     }
 }
 

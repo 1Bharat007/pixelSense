@@ -1,9 +1,9 @@
-use std::sync::{Arc, Mutex};
-use std::path::PathBuf;
 use crate::experience::history::models::HistoryEvent;
-use crate::experience::history::storage::JsonlStorage;
 use crate::experience::history::rotation::RotationStrategy;
+use crate::experience::history::storage::JsonlStorage;
 use crate::intelligence::models::HistorySummary;
+use std::path::PathBuf;
+use std::sync::{Arc, Mutex};
 
 pub struct HistoryManager {
     storage: Arc<Mutex<JsonlStorage>>,
@@ -13,10 +13,10 @@ impl HistoryManager {
     pub fn new(app_data_dir: PathBuf) -> Self {
         let history_dir = app_data_dir.join("history");
         std::fs::create_dir_all(&history_dir).unwrap_or_default();
-        
+
         let rotation = RotationStrategy::new(history_dir);
         let storage = JsonlStorage::new(rotation);
-        
+
         Self {
             storage: Arc::new(Mutex::new(storage)),
         }

@@ -6,7 +6,7 @@ pub struct PerformanceConfig {
     pub battery_high_policy: OptimizationPolicy,
     pub battery_low_policy: OptimizationPolicy,
     pub battery_saver_policy: OptimizationPolicy,
-    
+
     // Backoff settings for static screen
     pub static_screen_backoff_base_ms: u64,
     pub static_screen_backoff_max_ms: u64,

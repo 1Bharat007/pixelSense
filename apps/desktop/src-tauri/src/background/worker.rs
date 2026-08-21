@@ -7,12 +7,12 @@ use crate::background::models::{
     WorkerState,
 };
 use crate::background::profiler::PipelineProfiler;
-use crate::performance::scheduler::CentralScheduler;
-use crate::performance::budget::PerformanceBudgetManager;
 use crate::background::service::Service;
-use crate::performance::manager::PerformanceManager;
 use crate::experience::history::manager::HistoryManager;
 use crate::experience::multi_monitor::scheduler::MultiMonitorScheduler;
+use crate::performance::budget::PerformanceBudgetManager;
+use crate::performance::manager::PerformanceManager;
+use crate::performance::scheduler::CentralScheduler;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex};
 use std::thread;
@@ -48,38 +48,45 @@ pub struct BackgroundWorker {
     history_manager: Arc<HistoryManager>,
     #[allow(dead_code)] // Reserved for future multi-monitor coordination
     multi_monitor_scheduler: Arc<MultiMonitorScheduler>,
-    
+
     // Core Engines
     screen_manager: Arc<crate::screen_analysis::manager::ScreenAnalysisManager>,
     visual_comfort: Arc<crate::visual_comfort::engine::VisualComfortEngine>,
     adaptive_service: Arc<crate::adaptive::service::AdaptiveBrightnessService>,
-    
+
     // Hardware integration
     sensor_session: Arc<crate::platform::hardware::sensor::manager::SensorSession>,
 }
 
 impl BackgroundWorker {
     pub fn new(
-        config: BackgroundConfig, 
+        config: BackgroundConfig,
         performance_manager: Arc<PerformanceManager>,
         history_manager: Arc<HistoryManager>,
-        multi_monitor_scheduler: Arc<MultiMonitorScheduler>
+        multi_monitor_scheduler: Arc<MultiMonitorScheduler>,
     ) -> Self {
         let id = WorkerId::new("background_adaptive_worker");
         let health = WorkerHealth::initial(id.clone(), config.base_poll_interval_ms);
 
         // Instantiate core pipelines
-        let screen_manager = Arc::new(crate::screen_analysis::factory::create_screen_analysis_manager(
-            crate::screen_analysis::config::AnalysisConfig::default()
-        ));
-        
-        let visual_comfort = Arc::new(crate::visual_comfort::factory::create_visual_comfort_engine(
-            crate::visual_comfort::models::ComfortConfig::default()
-        ));
-        
+        let screen_manager = Arc::new(
+            crate::screen_analysis::factory::create_screen_analysis_manager(
+                crate::screen_analysis::config::AnalysisConfig::default(),
+            ),
+        );
+
+        let visual_comfort = Arc::new(
+            crate::visual_comfort::factory::create_visual_comfort_engine(
+                crate::visual_comfort::models::ComfortConfig::default(),
+            ),
+        );
+
         let brightness_manager = Arc::new(crate::brightness::factory::create_brightness_manager());
-        let adaptive_service = Arc::new(crate::adaptive::factory::create_adaptive_service(brightness_manager));
-        let sensor_session = Arc::new(crate::platform::hardware::sensor::manager::SensorSession::new());
+        let adaptive_service = Arc::new(crate::adaptive::factory::create_adaptive_service(
+            brightness_manager,
+        ));
+        let sensor_session =
+            Arc::new(crate::platform::hardware::sensor::manager::SensorSession::new());
 
         Self {
             id,
@@ -120,7 +127,10 @@ impl BackgroundWorker {
     fn set_state(&self, new_state: WorkerState) {
         if let Ok(mut h) = self.health.lock() {
             h.current_state = new_state;
-            h.running = matches!(h.current_state, WorkerState::Running | WorkerState::Recovering);
+            h.running = matches!(
+                h.current_state,
+                WorkerState::Running | WorkerState::Recovering
+            );
         }
     }
 
@@ -137,10 +147,9 @@ impl BackgroundWorker {
 
     /// Read the latest health snapshot. Non-blocking.
     pub fn get_health(&self) -> WorkerHealth {
-        self.health
-            .lock()
-            .map(|h| h.clone())
-            .unwrap_or_else(|_| WorkerHealth::initial(self.id.clone(), self.config.base_poll_interval_ms))
+        self.health.lock().map(|h| h.clone()).unwrap_or_else(|_| {
+            WorkerHealth::initial(self.id.clone(), self.config.base_poll_interval_ms)
+        })
     }
 
     /// Read diagnostics snapshot. Non-blocking.
@@ -203,7 +212,7 @@ impl BackgroundWorker {
                 }
                 h.error_count += pipeline_result.error_count;
                 // Since CentralScheduler has dynamic sleep per component, we report average loop delay
-                h.current_poll_interval_ms = 200; 
+                h.current_poll_interval_ms = 200;
             }
 
             if self.cancel_token.load(Ordering::Relaxed) {
@@ -217,12 +226,16 @@ impl BackgroundWorker {
         log::info!("BackgroundWorker '{}' stopped cleanly", self.id.0);
     }
 
-    fn execute_cycle(&self, scheduler: &mut CentralScheduler, budget: Arc<PerformanceBudgetManager>) -> PipelineResult {
+    fn execute_cycle(
+        &self,
+        scheduler: &mut CentralScheduler,
+        budget: Arc<PerformanceBudgetManager>,
+    ) -> PipelineResult {
         let cycle_start = Instant::now();
         let error_count = 0u32;
         let mut changed_brightness = false;
         let mut _skipped_reason: Option<String> = None;
-        
+
         let perf_state = self.performance_manager.evaluate_performance_state();
 
         let ambient_start = Instant::now();
@@ -262,8 +275,11 @@ impl BackgroundWorker {
         let vce_start = Instant::now();
         let comfort_result = self.visual_comfort.calculate_comfort(ctx);
         let mut target_brightness = None;
-        if comfort_result.recommendation.action != crate::visual_comfort::models::RecommendationAction::Ignore
-            && comfort_result.recommendation.action != crate::visual_comfort::models::RecommendationAction::NoChange {
+        if comfort_result.recommendation.action
+            != crate::visual_comfort::models::RecommendationAction::Ignore
+            && comfort_result.recommendation.action
+                != crate::visual_comfort::models::RecommendationAction::NoChange
+        {
             target_brightness = Some(comfort_result.recommendation.recommended_brightness);
             changed_brightness = true;
         }
@@ -272,7 +288,11 @@ impl BackgroundWorker {
         // ── Step 5: Brightness + Transition (non-fatal) ───────────────────────
         let brightness_start = Instant::now();
         if let Some(tb) = target_brightness {
-            let caps = crate::display::domain::DisplayCapabilities { brightness: true, hdr: false, ddc_ci: true };
+            let caps = crate::display::domain::DisplayCapabilities {
+                brightness: true,
+                hdr: false,
+                ddc_ci: true,
+            };
             let display = crate::display::domain::DisplayInfo {
                 id: "default".into(),
                 name: "Primary Display".into(),
@@ -285,12 +305,15 @@ impl BackgroundWorker {
                 capabilities: caps.clone(),
             };
             let decision_ctx = crate::decision::models::DecisionContext {
-                ambient_light: ambient_lux.map(|lux| crate::decision::models::AmbientLightReading { lux }),
+                ambient_light: ambient_lux
+                    .map(|lux| crate::decision::models::AmbientLightReading { lux }),
                 user_brightness_preference: Some(tb),
                 comfort_preference: crate::decision::models::ComfortLevel::Balanced,
                 time_of_day: crate::decision::models::TimeOfDay::Day,
             };
-            let _ = self.adaptive_service.execute_pipeline(&display, &caps, &decision_ctx);
+            let _ = self
+                .adaptive_service
+                .execute_pipeline(&display, &caps, &decision_ctx);
         }
         let brightness_ms = brightness_start.elapsed().as_millis() as u64;
         let transition_ms: u64 = 0;
@@ -306,7 +329,7 @@ impl BackgroundWorker {
             transition_ms,
             total_ms,
         });
-        
+
         // Feed real CPU time metric into the budget manager
         budget.report_metrics(total_ms as f32 / 100.0, 30); // Synthetic report
 

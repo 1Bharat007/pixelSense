@@ -1,6 +1,6 @@
-use std::path::PathBuf;
 use std::fs;
 use std::io::Write;
+use std::path::PathBuf;
 
 pub struct StorageManager {
     base_path: PathBuf,
@@ -38,7 +38,7 @@ impl StorageManager {
     pub fn read(&self, relative_path: &str) -> Result<Vec<u8>, String> {
         let mut target_path = self.base_path.clone();
         target_path.push(relative_path);
-        
+
         fs::read(&target_path).map_err(|e| e.to_string())
     }
 

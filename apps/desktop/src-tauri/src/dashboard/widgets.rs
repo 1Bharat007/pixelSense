@@ -24,7 +24,7 @@ impl WidgetRegistry {
     pub fn get_all_widgets_json(&self) -> String {
         let providers = self.providers.read().unwrap();
         let mut json_widgets = Vec::new();
-        
+
         for provider in providers.values() {
             json_widgets.push(provider.get_widget_json());
         }

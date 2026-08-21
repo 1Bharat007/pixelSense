@@ -22,12 +22,12 @@ impl ComfortStabilizer for DefaultComfortStabilizer {
         if !config.stabilization_enabled {
             return raw_luminance;
         }
-        
+
         let mut last_lum = self.last_luminance.lock().unwrap();
         if let Some(prev) = *last_lum {
             // Simple Exponential Weighted Moving Average (EWMA)
             // Alpha determines smoothing factor. Alpha = 0.2 means 20% new, 80% old.
-            let alpha = 0.2_f32; 
+            let alpha = 0.2_f32;
             let smoothed = prev * (1.0 - alpha) + raw_luminance * alpha;
             *last_lum = Some(smoothed);
             smoothed

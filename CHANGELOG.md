@@ -5,6 +5,20 @@ All notable changes to PixelSense are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0] - 2026-08-21
+
+### Added
+- **Fast-Confirm Burst Engine**: Two-sample confirmation model that catches sustained scene cuts (e.g. 5-second film explosions, dark-to-bright scene shifts) within ~150–250ms while rejecting single-frame flashes.
+- **Scene-Change Adaptation Benchmark**: Dedicated `adaptation_latency` benchmark target and regression tests (`tests/performance_scene_change.rs`) measuring sub-microsecond single-tick evaluation and <=2-tick confirmation.
+- **UI Responsiveness Feedback**: Live "Confirming…" indicator on the dashboard during the 150ms fast-sample burst.
+
+### Fixed
+- **Video Scene-Change Latency Elimination**: Reduced video polling interval from 2000ms down to 500ms (matching active workspace contexts).
+- **Variance Filter Removal**: Replaced the destructive variance filter (`lum_variance > 50.0`) which was incorrectly discarding real movie scene changes as "transient content".
+- **Fullscreen Video Adaptation**: Fixed policy gate so fullscreen video playback continues adapting backlight brightness for eye comfort without interruption.
+
+---
+
 ## [1.1.0] - 2026-08-21
 
 ### Added
@@ -84,7 +98,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-[Unreleased]: https://github.com/1Bharat007/pixelSense/compare/v1.1.0...HEAD
+[Unreleased]: https://github.com/1Bharat007/pixelSense/compare/v1.2.0...HEAD
+[1.2.0]: https://github.com/1Bharat007/pixelSense/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/1Bharat007/pixelSense/compare/v1.0.1...v1.1.0
 [1.0.1]: https://github.com/1Bharat007/pixelSense/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/1Bharat007/pixelSense/compare/v0.1.0...v1.0.0
