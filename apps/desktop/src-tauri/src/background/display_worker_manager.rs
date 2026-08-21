@@ -1,5 +1,5 @@
 use crate::background::error::BackgroundError;
-use crate::background::models::{DisplayWorkerId, now_ms};
+use crate::background::models::{now_ms, DisplayWorkerId};
 use std::collections::HashMap;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex};
@@ -42,10 +42,7 @@ impl DisplayWorkerManager {
 
     /// Spawn a lightweight monitoring thread for the given display.
     /// The thread runs until its `cancel_token` is set to true.
-    pub fn spawn_worker(
-        &self,
-        display_id: String,
-    ) -> Result<(), BackgroundError> {
+    pub fn spawn_worker(&self, display_id: String) -> Result<(), BackgroundError> {
         let cancel_token = Arc::new(AtomicBool::new(false));
         let token_clone = Arc::clone(&cancel_token);
         let display_id_clone = display_id.clone();

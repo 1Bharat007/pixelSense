@@ -11,42 +11,45 @@
 #![allow(clippy::too_many_arguments)]
 #![allow(clippy::needless_borrows_for_generic_args)]
 
-pub mod brightness;
-pub mod display;
-pub mod commands;
-pub mod ambient;
-pub mod visual_comfort;
-pub mod configuration;
-pub mod platform;
-pub mod transition;
-pub mod decision;
-pub mod adaptive;
-pub mod screen_analysis;
-pub mod background;
-pub mod performance;
-pub mod tray;
-pub mod experience;
-pub mod intelligence;
-pub mod core;
-pub mod plugin;
-pub mod governance;
-pub mod security;
-pub mod crash;
-pub mod installer;
-pub mod update;
-pub mod logging;
-pub mod diagnostics;
-pub mod dashboard;
-pub mod registry;
 pub mod adaptation;
+pub mod adaptive;
+pub mod ambient;
+pub mod background;
+pub mod brightness;
+pub mod commands;
+pub mod configuration;
+pub mod core;
+pub mod crash;
+pub mod dashboard;
+pub mod decision;
+pub mod diagnostics;
+pub mod display;
+pub mod experience;
+pub mod governance;
+pub mod installer;
+pub mod intelligence;
+pub mod logging;
+pub mod performance;
+pub mod platform;
+pub mod plugin;
+pub mod registry;
+pub mod screen_analysis;
+pub mod security;
+pub mod transition;
+pub mod tray;
+pub mod update;
+pub mod visual_comfort;
 
-#[cfg_attr(mobile, tauri::mobile_entry_point)]
-use tauri::Manager;
 use registry::ServiceRegistry;
 use std::time::Instant;
+#[cfg_attr(mobile, tauri::mobile_entry_point)]
+use tauri::Manager;
 
 pub fn run(start_time: Instant) {
-    println!("{}ms | Tauri Builder created", start_time.elapsed().as_millis());
+    println!(
+        "{}ms | Tauri Builder created",
+        start_time.elapsed().as_millis()
+    );
 
     let mut builder = tauri::Builder::default();
 
@@ -55,10 +58,10 @@ pub fn run(start_time: Instant) {
         builder = builder.plugin(
             tauri_plugin_log::Builder::default()
                 .level(log::LevelFilter::Info)
-                .build()
+                .build(),
         );
     }
-    
+
     // Initialize single-instance plugin
     builder = builder.plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| {
         println!("Second instance launched. Restoring existing window...");
@@ -68,8 +71,11 @@ pub fn run(start_time: Instant) {
             let _ = window.set_focus();
         }
     }));
-    
-    println!("{}ms | Plugins initialized", start_time.elapsed().as_millis());
+
+    println!(
+        "{}ms | Plugins initialized",
+        start_time.elapsed().as_millis()
+    );
 
     builder
         .setup(move |app| {
@@ -85,7 +91,7 @@ pub fn run(start_time: Instant) {
                 None => {
                     eprintln!("FATAL ERROR: Main window could not be retrieved from Tauri.");
                     let _ = std::fs::write("startup.log", "FATAL: Main window missing\n");
-                    
+
                     #[cfg(windows)]
                     {
                         let _ = std::process::Command::new("powershell")
@@ -98,7 +104,7 @@ pub fn run(start_time: Instant) {
                     std::process::exit(1);
                 }
             };
-            
+
             // 4. Show Window
             if let Err(e) = window.show() {
                 eprintln!("FATAL ERROR: Failed to show window: {e}");
@@ -121,7 +127,7 @@ pub fn run(start_time: Instant) {
             app.manage(registry);
 
             let state = app.state::<ServiceRegistry>();
-            
+
             // 8. Auto-start Engine if Previously Enabled
             if is_adaptive_enabled {
                 println!("{}ms | Engine Started", start_time.elapsed().as_millis());
@@ -138,23 +144,23 @@ pub fn run(start_time: Instant) {
                 loop {
                     std::thread::sleep(std::time::Duration::from_secs(600));
                     sys.refresh_all();
-                    
+
                     let pid = sysinfo::get_current_pid().unwrap();
                     let process = sys.process(pid);
                     let cpu = process.map(|p| p.cpu_usage()).unwrap_or(0.0);
                     let ram = process.map(|p| p.memory()).unwrap_or(0) / 1024 / 1024;
-                    
+
                     let health = if let Ok(ds) = state_for_soak.dashboard_state.lock() {
                         format!("Ambient: {} | Transition: {}", ds.health.ambient_engine, ds.health.transition_engine)
                     } else {
                         "Locked".into()
                     };
-                    
+
                     println!("\n=== SOAK TEST 10-MIN SNAPSHOT ===");
                     println!("RAM: {} MB", ram);
                     println!("CPU: {:.1}%", cpu);
                     println!("Engine state: {}", health);
-                    
+
                     if let Ok(log) = state_for_soak.event_log.lock() {
                         if let Some(last_error) = log.get_recent().iter().find(|e| e.description.to_lowercase().contains("error") || e.description.to_lowercase().contains("fail")) {
                             println!("Last hardware error: {}", last_error.description);
@@ -199,13 +205,3 @@ pub fn run(start_time: Instant) {
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
-
-
-
-
-
-
-
-
-
-

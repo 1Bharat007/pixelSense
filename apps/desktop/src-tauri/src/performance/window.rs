@@ -1,7 +1,11 @@
-use windows::Win32::Foundation::RECT;
-use windows::Win32::UI::WindowsAndMessaging::{GetForegroundWindow, GetWindowRect, GetDesktopWindow};
-use windows::Win32::Graphics::Gdi::{MonitorFromWindow, GetMonitorInfoW, MONITOR_DEFAULTTONEAREST, MONITORINFO};
 use std::mem;
+use windows::Win32::Foundation::RECT;
+use windows::Win32::Graphics::Gdi::{
+    GetMonitorInfoW, MonitorFromWindow, MONITORINFO, MONITOR_DEFAULTTONEAREST,
+};
+use windows::Win32::UI::WindowsAndMessaging::{
+    GetDesktopWindow, GetForegroundWindow, GetWindowRect,
+};
 
 pub trait ActiveWindowAnalyzer: Send + Sync {
     /// Returns true if the currently focused window is running in fullscreen mode

@@ -1,4 +1,4 @@
-use crate::installer::models::{InstallerManifest, InstallValidationResult};
+use crate::installer::models::{InstallValidationResult, InstallerManifest};
 use crate::platform::capabilities::PlatformCapabilities;
 
 pub struct InstallerValidator {
@@ -13,9 +13,9 @@ impl InstallerValidator {
     pub fn validate_environment(&self) -> InstallValidationResult {
         // Mocked implementation for architecture blueprint
         let platform_caps = PlatformCapabilities::detect();
-        
+
         let is_compatible = platform_caps.os_version >= self.manifest.min_os_version;
-        
+
         InstallValidationResult {
             is_compatible,
             has_permissions: true, // Assuming true for now

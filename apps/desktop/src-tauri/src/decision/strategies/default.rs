@@ -17,7 +17,10 @@ impl Default for DefaultDecisionStrategy {
 }
 
 impl DecisionStrategy for DefaultDecisionStrategy {
-    fn calculate_brightness(&self, context: &DecisionContext) -> Result<DecisionResult, DecisionError> {
+    fn calculate_brightness(
+        &self,
+        context: &DecisionContext,
+    ) -> Result<DecisionResult, DecisionError> {
         let mut confidence: f32 = 0.5;
         let mut reasoning = String::new();
         let mut target_brightness: f32;
@@ -25,7 +28,7 @@ impl DecisionStrategy for DefaultDecisionStrategy {
         // 1. Process Ambient Light or Fallback to TimeOfDay
         if let Some(ambient) = &context.ambient_light {
             confidence += 0.3; // High confidence when we have sensor data
-            
+
             if ambient.lux < 10.0 {
                 target_brightness = 15.0; // Dark room
                 reasoning.push_str("Dark room detected. ");

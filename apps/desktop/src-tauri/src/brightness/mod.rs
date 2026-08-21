@@ -27,7 +27,11 @@ mod tests {
     #[test]
     fn test_set_brightness_0() {
         let manager = create_brightness_manager();
-        let caps = DisplayCapabilities { brightness: true, hdr: false, ddc_ci: false };
+        let caps = DisplayCapabilities {
+            brightness: true,
+            hdr: false,
+            ddc_ci: false,
+        };
         let display = create_dummy_display("Laptop", caps.clone());
 
         assert!(manager.set_brightness(&display, &caps, 0).is_ok());
@@ -36,7 +40,11 @@ mod tests {
     #[test]
     fn test_set_brightness_50() {
         let manager = create_brightness_manager();
-        let caps = DisplayCapabilities { brightness: true, hdr: false, ddc_ci: false };
+        let caps = DisplayCapabilities {
+            brightness: true,
+            hdr: false,
+            ddc_ci: false,
+        };
         let display = create_dummy_display("Laptop", caps.clone());
 
         assert!(manager.set_brightness(&display, &caps, 50).is_ok());
@@ -45,7 +53,11 @@ mod tests {
     #[test]
     fn test_set_brightness_100() {
         let manager = create_brightness_manager();
-        let caps = DisplayCapabilities { brightness: true, hdr: false, ddc_ci: false };
+        let caps = DisplayCapabilities {
+            brightness: true,
+            hdr: false,
+            ddc_ci: false,
+        };
         let display = create_dummy_display("Laptop", caps.clone());
 
         assert!(manager.set_brightness(&display, &caps, 100).is_ok());
@@ -54,7 +66,11 @@ mod tests {
     #[test]
     fn test_set_brightness_out_of_range_clamped() {
         let manager = create_brightness_manager();
-        let caps = DisplayCapabilities { brightness: true, hdr: false, ddc_ci: false };
+        let caps = DisplayCapabilities {
+            brightness: true,
+            hdr: false,
+            ddc_ci: false,
+        };
         let display = create_dummy_display("Laptop", caps.clone());
 
         // Should clamp and succeed without panicking
@@ -65,17 +81,28 @@ mod tests {
     #[test]
     fn test_set_brightness_unsupported_display() {
         let manager = create_brightness_manager();
-        let caps = DisplayCapabilities { brightness: false, hdr: false, ddc_ci: false };
+        let caps = DisplayCapabilities {
+            brightness: false,
+            hdr: false,
+            ddc_ci: false,
+        };
         let display = create_dummy_display("Projector", caps.clone());
 
         let result = manager.set_brightness(&display, &caps, 50);
-        assert!(matches!(result, Err(BrightnessError::UnsupportedDisplay(_))));
+        assert!(matches!(
+            result,
+            Err(BrightnessError::UnsupportedDisplay(_))
+        ));
     }
 
     #[test]
     fn test_multiple_consecutive_changes() {
         let manager = create_brightness_manager();
-        let caps = DisplayCapabilities { brightness: true, hdr: false, ddc_ci: false };
+        let caps = DisplayCapabilities {
+            brightness: true,
+            hdr: false,
+            ddc_ci: false,
+        };
         let display = create_dummy_display("Laptop", caps.clone());
 
         assert!(manager.set_brightness(&display, &caps, 10).is_ok());

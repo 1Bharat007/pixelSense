@@ -1,10 +1,10 @@
-use serde::{Serialize, Deserialize};
+use crate::configuration::models::AppConfig;
+use crate::intelligence::manager::IntelligencePayload;
+use serde::{Deserialize, Serialize};
 use std::fs::File;
 use std::io::{BufRead, BufReader};
 use std::path::PathBuf;
 use tauri::Manager;
-use crate::configuration::models::AppConfig;
-use crate::intelligence::manager::IntelligencePayload;
 pub fn load_config_from_disk(app: &tauri::AppHandle) -> AppConfig {
     if let Ok(config_dir) = app.path().app_config_dir() {
         let config_path = config_dir.join("config.json");
@@ -30,7 +30,7 @@ pub fn save_config(
 ) -> Result<(), String> {
     let mut current_config = state.config.read().unwrap().clone();
     let mut current_value = serde_json::to_value(&current_config).unwrap();
-    
+
     fn deep_merge(a: &mut serde_json::Value, b: serde_json::Value) {
         match (a, b) {
             (serde_json::Value::Object(ref mut a_map), serde_json::Value::Object(b_map)) => {
@@ -45,34 +45,31 @@ pub fn save_config(
     }
 
     deep_merge(&mut current_value, config);
-    
+
     if let Ok(merged) = serde_json::from_value::<AppConfig>(current_value.clone()) {
         current_config = merged;
-        
+
         // Update in-memory lock
         if let Ok(mut cfg) = state.config.write() {
             *cfg = current_config.clone();
         }
     } else {
-        return Err("Failed to parse merged config structure. Missing required fields?".to_string());
+        return Err(
+            "Failed to parse merged config structure. Missing required fields?".to_string(),
+        );
     }
-    
+
     let config_dir = app.path().app_config_dir().map_err(|e| e.to_string())?;
     std::fs::create_dir_all(&config_dir).map_err(|e| e.to_string())?;
     let config_path = config_dir.join("config.json");
     let content = serde_json::to_string_pretty(&current_config).map_err(|e| e.to_string())?;
     std::fs::write(config_path, content).map_err(|e| e.to_string())?;
-    
+
     Ok(())
 }
 
-
-
 #[tauri::command]
-pub fn lock_current_comfort(
-    _display_id: String,
-    _profile_name: String,
-) -> Result<(), String> {
+pub fn lock_current_comfort(_display_id: String, _profile_name: String) -> Result<(), String> {
     Ok(())
 }
 
@@ -149,7 +146,9 @@ pub struct DashboardStatePayload {
 }
 
 #[tauri::command]
-pub async fn get_dashboard_state(state: tauri::State<'_, crate::registry::ServiceRegistry>) -> Result<DashboardStatePayload, String> {
+pub async fn get_dashboard_state(
+    state: tauri::State<'_, crate::registry::ServiceRegistry>,
+) -> Result<DashboardStatePayload, String> {
     let dashboard_state = state.dashboard_state.lock().unwrap();
     Ok(dashboard_state.clone())
 }
@@ -183,20 +182,18 @@ pub struct NotificationEvent {
 pub fn get_history() -> Result<Vec<HistoryEvent>, String> {
     let path = PathBuf::from("history.jsonl");
     let mut events = Vec::new();
-    
+
     if let Ok(file) = File::open(path) {
         let reader = BufReader::new(file);
-        for line in reader.lines() {
-            if let Ok(line_str) = line {
-                if let Ok(event) = serde_json::from_str::<HistoryEvent>(&line_str) {
-                    events.push(event);
-                }
+        for line_str in reader.lines().map_while(Result::ok) {
+            if let Ok(event) = serde_json::from_str::<HistoryEvent>(&line_str) {
+                events.push(event);
             }
         }
     }
-    
+
     // Sort descending by timestamp
-    events.sort_by(|a, b| b.timestamp.cmp(&a.timestamp));
+    events.sort_by_key(|b| std::cmp::Reverse(b.timestamp));
     Ok(events)
 }
 
@@ -204,19 +201,17 @@ pub fn get_history() -> Result<Vec<HistoryEvent>, String> {
 pub fn get_notifications() -> Result<Vec<NotificationEvent>, String> {
     let path = PathBuf::from("notifications.jsonl");
     let mut events = Vec::new();
-    
+
     if let Ok(file) = File::open(path) {
         let reader = BufReader::new(file);
-        for line in reader.lines() {
-            if let Ok(line_str) = line {
-                if let Ok(event) = serde_json::from_str::<NotificationEvent>(&line_str) {
-                    events.push(event);
-                }
+        for line_str in reader.lines().map_while(Result::ok) {
+            if let Ok(event) = serde_json::from_str::<NotificationEvent>(&line_str) {
+                events.push(event);
             }
         }
     }
-    
-    events.sort_by(|a, b| b.timestamp.cmp(&a.timestamp));
+
+    events.sort_by_key(|b| std::cmp::Reverse(b.timestamp));
     Ok(events)
 }
 
@@ -231,11 +226,13 @@ pub struct CapabilityReport {
 }
 
 #[tauri::command]
-pub async fn start_engine(state: tauri::State<'_, crate::registry::ServiceRegistry>) -> Result<CapabilityReport, String> {
+pub async fn start_engine(
+    state: tauri::State<'_, crate::registry::ServiceRegistry>,
+) -> Result<CapabilityReport, String> {
     use crate::brightness::providers::native::NativeBrightnessProvider;
     use crate::brightness::providers::BrightnessProvider;
-    use crate::display::domain::{DisplayInfo, DisplayCapabilities};
-    
+    use crate::display::domain::{DisplayCapabilities, DisplayInfo};
+
     let provider = NativeBrightnessProvider::new();
     let display = DisplayInfo {
         id: "primary".to_string(),
@@ -248,34 +245,55 @@ pub async fn start_engine(state: tauri::State<'_, crate::registry::ServiceRegist
         is_primary: true,
         capabilities: DisplayCapabilities::default(),
     };
-    
+
     let (supported, failure_reason) = match provider.get_brightness(&display) {
         Ok(v) => {
             let _current_brightness = v;
             (true, None)
-        },
+        }
         Err(e) => (false, Some(e.to_string())),
     };
-    
-    let wmi_available = supported; 
-    let ddc_available = supported; 
+
+    let wmi_available = supported;
+    let ddc_available = supported;
     let sensor_session = crate::platform::hardware::sensor::manager::SensorSession::new();
     let sensor_available = sensor_session.read_lux().is_ok();
     let internal_display = true;
-    
+
     // Print the requested concise Hardware Report
     println!("\n=== Hardware Report ===");
     println!("Internal Display\n  Supported");
     println!("External Display\n  Not Connected");
-    println!("Ambient Sensor\n  {}", if sensor_available { "Supported" } else { "Unavailable" });
-    println!("Brightness API\n  {}", if let Some(ref e) = failure_reason { format!("FAILED - {}", e) } else { "WMI/DDC".to_string() });
-    println!("Read-back\n  {}\n", if supported { "Supported" } else { "Unsupported" });
+    println!(
+        "Ambient Sensor\n  {}",
+        if sensor_available {
+            "Supported"
+        } else {
+            "Unavailable"
+        }
+    );
+    println!(
+        "Brightness API\n  {}",
+        if let Some(ref e) = failure_reason {
+            format!("FAILED - {}", e)
+        } else {
+            "WMI/DDC".to_string()
+        }
+    );
+    println!(
+        "Read-back\n  {}\n",
+        if supported {
+            "Supported"
+        } else {
+            "Unsupported"
+        }
+    );
 
     if supported {
         // Start hardware engine workers asynchronously so UI never blocks
         state.start_watchdog();
         state.start_hardware_worker();
-        
+
         if let Ok(mut lock) = state.dashboard_state.lock() {
             lock.health.ambient_engine = "Running".into();
             lock.health.transition_engine = "Running".into();
@@ -288,7 +306,7 @@ pub async fn start_engine(state: tauri::State<'_, crate::registry::ServiceRegist
             lock.comfort.status = "Disabled (Hardware Error)".into();
         }
     }
-    
+
     Ok(CapabilityReport {
         wmi_available,
         ddc_available,
@@ -300,24 +318,33 @@ pub async fn start_engine(state: tauri::State<'_, crate::registry::ServiceRegist
 }
 
 #[tauri::command]
-pub async fn stop_engine(state: tauri::State<'_, crate::registry::ServiceRegistry>) -> Result<(), String> {
-    state.worker_running.store(false, std::sync::atomic::Ordering::SeqCst);
-    state.watchdog_running.store(false, std::sync::atomic::Ordering::SeqCst);
-    
+pub async fn stop_engine(
+    state: tauri::State<'_, crate::registry::ServiceRegistry>,
+) -> Result<(), String> {
+    state
+        .worker_running
+        .store(false, std::sync::atomic::Ordering::SeqCst);
+    state
+        .watchdog_running
+        .store(false, std::sync::atomic::Ordering::SeqCst);
+
     if let Ok(mut lock) = state.dashboard_state.lock() {
         lock.health.ambient_engine = "Stopped".into();
         lock.health.transition_engine = "Stopped".into();
         lock.comfort.status = "Protection Paused".into();
     }
-    
+
     Ok(())
 }
 
 #[tauri::command]
-pub async fn set_brightness_live(state: tauri::State<'_, crate::registry::ServiceRegistry>, level: u8) -> Result<(), String> {
-    use crate::display::domain::{DisplayInfo, DisplayCapabilities};
-    use crate::background::event_log::{LogEvent, EventCategory};
-    
+pub async fn set_brightness_live(
+    state: tauri::State<'_, crate::registry::ServiceRegistry>,
+    level: u8,
+) -> Result<(), String> {
+    use crate::background::event_log::{EventCategory, LogEvent};
+    use crate::display::domain::{DisplayCapabilities, DisplayInfo};
+
     // 1. Suspend automation for the configured duration
     if let Ok(lock) = state.transition_worker.read() {
         if let Some(worker) = &*lock {
@@ -350,9 +377,15 @@ pub async fn set_brightness_live(state: tauri::State<'_, crate::registry::Servic
     };
 
     // 3. Apply the brightness change
-    if let Err(e) = state.brightness_manager.set_brightness(&display, &capabilities, level as i32) {
+    if let Err(e) = state
+        .brightness_manager
+        .set_brightness(&display, &capabilities, level as i32)
+    {
         if let Ok(mut log) = state.event_log.lock() {
-            log.push(LogEvent::new(EventCategory::SystemEvent, &format!("IPC: set_brightness failed - {}", e)));
+            log.push(LogEvent::new(
+                EventCategory::SystemEvent,
+                &format!("IPC: set_brightness failed - {}", e),
+            ));
         }
         return Err(e.to_string());
     }
@@ -371,10 +404,12 @@ pub async fn set_brightness_live(state: tauri::State<'_, crate::registry::Servic
             break;
         }
     }
-    
+
     if !success {
         let err_msg = format!("This monitor doesn't support automatic brightness (value rejected by hardware). Readback was {} but target was {}", readback, level);
-        if let Ok(mut log) = state.event_log.lock() { log.push(LogEvent::new(EventCategory::SystemEvent, &err_msg)); }
+        if let Ok(mut log) = state.event_log.lock() {
+            log.push(LogEvent::new(EventCategory::SystemEvent, &err_msg));
+        }
         return Err(err_msg);
     }
 
@@ -396,8 +431,11 @@ pub async fn set_brightness_live(state: tauri::State<'_, crate::registry::Servic
     // 6. Log the manual override to EventLog (IPC Verification complete)
     if let Ok(mut log) = state.event_log.lock() {
         log.push(
-            LogEvent::new(EventCategory::BrightnessChanged, "Manual override (IPC Verified)")
-                .with_values(format!("{}%", previous), format!("{}%", readback)),
+            LogEvent::new(
+                EventCategory::BrightnessChanged,
+                "Manual override (IPC Verified)",
+            )
+            .with_values(format!("{}%", previous), format!("{}%", readback)),
         );
     }
 
@@ -405,9 +443,11 @@ pub async fn set_brightness_live(state: tauri::State<'_, crate::registry::Servic
 }
 
 #[tauri::command]
-pub fn test_brightness(state: tauri::State<'_, crate::registry::ServiceRegistry>) -> Result<(), String> {
-    use crate::display::domain::{DisplayInfo, DisplayCapabilities};
-    
+pub fn test_brightness(
+    state: tauri::State<'_, crate::registry::ServiceRegistry>,
+) -> Result<(), String> {
+    use crate::display::domain::{DisplayCapabilities, DisplayInfo};
+
     let provider = &state.brightness_manager;
     let display = DisplayInfo {
         id: "primary".to_string(),
@@ -425,14 +465,18 @@ pub fn test_brightness(state: tauri::State<'_, crate::registry::ServiceRegistry>
         hdr: false,
         ddc_ci: true,
     };
-    
+
     // Get current brightness
     let start_time = std::time::Instant::now();
-    let original = provider.get_brightness(&display).map_err(|e| format!("Failed to read initial brightness: {}", e))?;
-    
+    let original = provider
+        .get_brightness(&display)
+        .map_err(|e| format!("Failed to read initial brightness: {}", e))?;
+
     // Set to 20
-    provider.set_brightness(&display, &capabilities, 20).map_err(|e| format!("Failed to send set_brightness command: {}", e))?;
-    
+    provider
+        .set_brightness(&display, &capabilities, 20)
+        .map_err(|e| format!("Failed to send set_brightness command: {}", e))?;
+
     // Verify
     let mut verify = 0;
     let mut success = false;
@@ -444,13 +488,16 @@ pub fn test_brightness(state: tauri::State<'_, crate::registry::ServiceRegistry>
             break;
         }
     }
-    
+
     if !success {
         // Restore original just in case it was slow
         let _ = provider.set_brightness(&display, &capabilities, original as i32);
-        return Err(format!("Display rejected the brightness change (read-back mismatch). Read {} but expected 20.", verify));
+        return Err(format!(
+            "Display rejected the brightness change (read-back mismatch). Read {} but expected 20.",
+            verify
+        ));
     }
-    
+
     println!("\n=== Test Brightness Request ===");
     println!("Current:\n  {}%", original);
     println!("Target:\n  20%");
@@ -458,19 +505,22 @@ pub fn test_brightness(state: tauri::State<'_, crate::registry::ServiceRegistry>
     println!("Write:\n  SUCCESS");
     println!("Read-back:\n  {}%", verify);
     println!("Elapsed:\n  {} ms\n", start_time.elapsed().as_millis());
-    
+
     // Wait
     std::thread::sleep(std::time::Duration::from_millis(2000));
-    
+
     // Restore
     let restore_start = std::time::Instant::now();
     if let Err(e) = provider.set_brightness(&display, &capabilities, original as i32) {
-        return Err(format!("Test succeeded but failed to restore original brightness: {}", e));
+        return Err(format!(
+            "Test succeeded but failed to restore original brightness: {}",
+            e
+        ));
     }
-    
+
     std::thread::sleep(std::time::Duration::from_millis(100));
     let restored = provider.get_brightness(&display).unwrap_or(0);
-    
+
     println!("\n=== Test Restore Request ===");
     println!("Current:\n  20%");
     println!("Target:\n  {}%", original);
@@ -510,11 +560,15 @@ pub async fn get_brightness_memory(
     state: tauri::State<'_, crate::registry::ServiceRegistry>,
 ) -> Result<Vec<BrightnessMemoryEntry>, String> {
     let memory = state.brightness_memory.lock().map_err(|e| e.to_string())?;
-    let entries = memory.all_preferences().into_iter().map(|r| BrightnessMemoryEntry {
-        app_name: r.app_name.clone(),
-        preferred_brightness: r.preferred_brightness,
-        override_count: r.override_count,
-    }).collect();
+    let entries = memory
+        .all_preferences()
+        .into_iter()
+        .map(|r| BrightnessMemoryEntry {
+            app_name: r.app_name.clone(),
+            preferred_brightness: r.preferred_brightness,
+            override_count: r.override_count,
+        })
+        .collect();
     Ok(entries)
 }
 
@@ -524,9 +578,9 @@ pub async fn get_brightness_memory(
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct HardwareCapabilities {
-    pub brightness_api: String,      // "WMI", "DDC/CI", "Unsupported"
+    pub brightness_api: String, // "WMI", "DDC/CI", "Unsupported"
     pub brightness_available: bool,
-    pub ambient_sensor: String,      // "Hardware", "Unavailable"
+    pub ambient_sensor: String, // "Hardware", "Unavailable"
     pub ambient_available: bool,
     pub internal_display: bool,
     pub failure_reason: Option<String>,
@@ -538,7 +592,7 @@ pub async fn get_hardware_capabilities(
 ) -> Result<HardwareCapabilities, String> {
     use crate::brightness::providers::native::NativeBrightnessProvider;
     use crate::brightness::providers::BrightnessProvider;
-    use crate::display::domain::{DisplayInfo, DisplayCapabilities};
+    use crate::display::domain::{DisplayCapabilities, DisplayInfo};
 
     let provider = NativeBrightnessProvider::new();
     let display = DisplayInfo {
@@ -561,16 +615,24 @@ pub async fn get_hardware_capabilities(
     // Check ambient sensor availability from live health state.
     let ambient_available = {
         let ds = state.dashboard_state.lock().map_err(|e| e.to_string())?;
-        !ds.health.ambient_engine.contains("Unavailable") && !ds.health.ambient_engine.contains("Error")
+        !ds.health.ambient_engine.contains("Unavailable")
+            && !ds.health.ambient_engine.contains("Error")
     };
 
     Ok(HardwareCapabilities {
-        brightness_api: if brightness_available { "WMI Native".into() } else { "Unsupported".into() },
+        brightness_api: if brightness_available {
+            "WMI Native".into()
+        } else {
+            "Unsupported".into()
+        },
         brightness_available,
-        ambient_sensor: if ambient_available { "Hardware Sensor".into() } else { "Unavailable".into() },
+        ambient_sensor: if ambient_available {
+            "Hardware Sensor".into()
+        } else {
+            "Unavailable".into()
+        },
         ambient_available,
         internal_display: brightness_available, // Internal display implies brightness control
         failure_reason,
     })
 }
-

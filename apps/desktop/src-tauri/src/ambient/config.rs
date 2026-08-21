@@ -1,8 +1,8 @@
 #[derive(Debug, Clone)]
 pub struct AmbientConfig {
-    pub minimum_poll_interval: u64, // ms
+    pub minimum_poll_interval: u64,   // ms
     pub preferred_poll_interval: u64, // ms
-    pub maximum_poll_interval: u64, // ms
+    pub maximum_poll_interval: u64,   // ms
     pub minimum_change_threshold: f32,
     pub smoothing_enabled: bool,
     pub fallback_enabled: bool,

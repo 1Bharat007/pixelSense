@@ -1,10 +1,10 @@
-use std::sync::Arc;
 use crate::brightness::manager::BrightnessManager;
 use crate::display::domain::{DisplayCapabilities, DisplayInfo};
 use crate::transition::config::TransitionConfig;
 use crate::transition::error::TransitionError;
 use crate::transition::interpolator::LinearInterpolator;
 use crate::transition::providers::TransitionProvider;
+use std::sync::Arc;
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum ExecutionMode {

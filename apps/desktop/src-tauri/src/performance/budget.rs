@@ -1,4 +1,4 @@
-use std::sync::atomic::{AtomicU32, AtomicBool, Ordering};
+use std::sync::atomic::{AtomicBool, AtomicU32, Ordering};
 
 /// PerformanceBudgetManager monitors the background worker's CPU, Memory, and Latency.
 /// It dynamically throttles operations if limits are exceeded.
@@ -19,9 +19,10 @@ impl PerformanceBudgetManager {
 
     /// Report current metrics to the budget manager
     pub fn report_metrics(&self, cpu: f32, mem_mb: u32) {
-        self.cpu_usage_pct.store((cpu * 100.0) as u32, Ordering::Release);
+        self.cpu_usage_pct
+            .store((cpu * 100.0) as u32, Ordering::Release);
         self.memory_usage_mb.store(mem_mb, Ordering::Release);
-        
+
         // Target: <1% CPU and <50MB Memory
         let throttle = cpu > 1.0 || mem_mb > 50;
         self.is_throttled.store(throttle, Ordering::Release);

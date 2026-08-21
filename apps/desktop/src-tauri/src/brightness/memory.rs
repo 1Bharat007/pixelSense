@@ -1,5 +1,5 @@
-use std::collections::HashMap;
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 
 /// Number of consecutive manual overrides before we consider it a "preference".
 const LEARN_THRESHOLD: u32 = 3;
@@ -67,7 +67,10 @@ impl AppBrightnessMemory {
         }
 
         let app_key = normalize_app_name(app);
-        let entry = self.pending.entry(app_key.clone()).or_insert((brightness, 0));
+        let entry = self
+            .pending
+            .entry(app_key.clone())
+            .or_insert((brightness, 0));
 
         // If the new brightness is within 5% of last recorded, count it.
         if (brightness as i32 - entry.0 as i32).abs() <= 5 {
@@ -86,12 +89,15 @@ impl AppBrightnessMemory {
                 .unwrap_or_default()
                 .as_millis() as u64;
 
-            self.preferences.insert(app_key.clone(), AppBrightnessRecord {
-                app_name: app_key,
-                preferred_brightness: confirmed_brightness,
-                override_count: LEARN_THRESHOLD,
-                last_updated_ms: now_ms,
-            });
+            self.preferences.insert(
+                app_key.clone(),
+                AppBrightnessRecord {
+                    app_name: app_key,
+                    preferred_brightness: confirmed_brightness,
+                    override_count: LEARN_THRESHOLD,
+                    last_updated_ms: now_ms,
+                },
+            );
 
             self.save();
         }
@@ -125,9 +131,7 @@ impl Default for AppBrightnessMemory {
 }
 
 fn normalize_app_name(app: &str) -> String {
-    app.to_lowercase()
-        .trim_end_matches(".exe")
-        .to_string()
+    app.to_lowercase().trim_end_matches(".exe").to_string()
 }
 
 #[cfg(test)]
@@ -154,7 +158,7 @@ mod tests {
         let mut memory = AppBrightnessMemory::new();
         memory.record_override("chrome", 50);
         memory.record_override("chrome", 80); // Big jump — resets count
-        // Only 1 count toward 80, shouldn't be confirmed yet
+                                              // Only 1 count toward 80, shouldn't be confirmed yet
         assert!(memory.get_preference("chrome").is_none());
     }
 

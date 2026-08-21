@@ -14,19 +14,22 @@ pub fn create_tray(app: &AppHandle) -> Result<(), Box<dyn std::error::Error>> {
     let resume_i = MenuItem::with_id(app, "resume", "Resume", true, None::<&str>)?;
     let manual_i = MenuItem::with_id(app, "manual", "Manual Mode", true, None::<&str>)?;
     let quit_i = MenuItem::with_id(app, "quit", "Exit", true, None::<&str>)?;
-    
-    let menu = Menu::with_items(app, &[
-        &title_i, 
-        &comfort_i, 
-        &brightness_i, 
-        &context_i, 
-        &show_i, 
-        &pause_i, 
-        &resume_i, 
-        &manual_i, 
-        &quit_i
-    ])?;
-    
+
+    let menu = Menu::with_items(
+        app,
+        &[
+            &title_i,
+            &comfort_i,
+            &brightness_i,
+            &context_i,
+            &show_i,
+            &pause_i,
+            &resume_i,
+            &manual_i,
+            &quit_i,
+        ],
+    )?;
+
     let _tray = TrayIconBuilder::new()
         .menu(&menu)
         .on_menu_event(|app, event| match event.id.as_ref() {
@@ -65,6 +68,6 @@ pub fn create_tray(app: &AppHandle) -> Result<(), Box<dyn std::error::Error>> {
             }
         })
         .build(app)?;
-        
+
     Ok(())
 }

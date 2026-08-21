@@ -34,11 +34,12 @@ impl ComfortScoreEngine {
         let ambient_match = (context.confidence_score * 30.0) as u8;
 
         // 2. Screen Luminance (20%) - Normalize luminance 0-100 to a score
-        let lum_score = if context.current_screen_luminance > 20.0 && context.current_screen_luminance < 80.0 {
-            20
-        } else {
-            10
-        };
+        let lum_score =
+            if context.current_screen_luminance > 20.0 && context.current_screen_luminance < 80.0 {
+                20
+            } else {
+                10
+            };
 
         // 3. Brightness Level (15%) - Just a placeholder since target is dynamic
         let brightness_level = 15;
@@ -54,7 +55,11 @@ impl ComfortScoreEngine {
 
         // 7. Manual Preference (10%)
         let overrides = context.history_summary.manual_overrides_today;
-        let manual_preference = if overrides > 5 { 5 } else { 10 - overrides as u8 };
+        let manual_preference = if overrides > 5 {
+            5
+        } else {
+            10 - overrides as u8
+        };
 
         let total = ambient_match
             + lum_score

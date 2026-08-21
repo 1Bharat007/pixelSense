@@ -1,4 +1,4 @@
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
 /// Summarized read-only context passed to plugins to prevent direct backend manager access.
 #[derive(Debug, Clone, Serialize, Deserialize)]

@@ -1,6 +1,6 @@
-use crate::plugin::traits::{PixelSensePlugin, RecommendationPlugin};
-use crate::plugin::models::{PluginManifest, PluginHealth};
 use crate::plugin::context::PluginContext;
+use crate::plugin::models::{PluginHealth, PluginManifest};
+use crate::plugin::traits::{PixelSensePlugin, RecommendationPlugin};
 
 pub struct ComfortBuiltinPlugin {
     manifest: PluginManifest,

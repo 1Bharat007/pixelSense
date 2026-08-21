@@ -1,11 +1,11 @@
 pub mod default;
 pub mod mock;
 
-use std::sync::Arc;
 use crate::brightness::manager::BrightnessManager;
 use crate::display::domain::{DisplayCapabilities, DisplayInfo};
 use crate::transition::error::TransitionError;
 use crate::transition::interpolator::TransitionStep;
+use std::sync::Arc;
 
 pub trait TransitionProvider: Send + Sync {
     /// Executes the transition steps asynchronously.

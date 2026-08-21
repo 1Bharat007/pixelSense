@@ -97,7 +97,10 @@ impl EventQueue {
 
     /// Drain all Critical events without touching other queues.
     pub fn drain_critical(&self) -> Vec<AdaptiveEvent> {
-        self.critical.lock().map(|mut q| q.drain(..).collect()).unwrap_or_default()
+        self.critical
+            .lock()
+            .map(|mut q| q.drain(..).collect())
+            .unwrap_or_default()
     }
 
     /// Total events across all queues.

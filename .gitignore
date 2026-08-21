@@ -58,4 +58,6 @@ rustup-init.exe
 test_ddc.rs
 startup.err
 startup.log
+.venv/
+venv/
 

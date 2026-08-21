@@ -1,6 +1,6 @@
+use crate::intelligence::behavior::models::UserBehaviorSnapshot;
 use crate::intelligence::models::IntelligenceContext;
 use crate::intelligence::recommendations::models::Recommendation;
-use crate::intelligence::behavior::models::UserBehaviorSnapshot;
 
 pub struct RecommendationEngine;
 
@@ -27,10 +27,12 @@ impl RecommendationEngine {
             });
         }
 
-        if behavior.active_application == "Photoshop" && context.comfort_profile != "Color Critical" {
+        if behavior.active_application == "Photoshop" && context.comfort_profile != "Color Critical"
+        {
             recommendations.push(Recommendation {
                 title: "Enable Color Accurate Mode".into(),
-                reason: "Photoshop is active. Adaptive brightness may distort perceived colors.".into(),
+                reason: "Photoshop is active. Adaptive brightness may distort perceived colors."
+                    .into(),
                 priority: "Medium".into(),
                 estimated_benefit: "Ensures perfect color grading accuracy".into(),
                 dismissable: true,

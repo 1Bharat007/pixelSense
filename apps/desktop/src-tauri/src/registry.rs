@@ -1,13 +1,16 @@
-use std::sync::{Arc, Mutex, RwLock};
-use std::sync::atomic::{AtomicBool, Ordering};
-use crate::commands::{DashboardStatePayload, ComfortStatePayload, AmbientStatePayload, ScreenStatePayload, BrightnessStatePayload, PerformanceStatePayload, EngineHealthPayload};
+use crate::background::event_log::{new_shared_event_log, SharedEventLog};
+use crate::brightness::memory::AppBrightnessMemory;
+use crate::commands::{
+    AmbientStatePayload, BrightnessStatePayload, ComfortStatePayload, DashboardStatePayload,
+    EngineHealthPayload, PerformanceStatePayload, ScreenStatePayload,
+};
 use crate::intelligence::manager::IntelligenceManager;
-use crate::intelligence::models::IntelligenceContext;
 use crate::intelligence::models::HistorySummary;
+use crate::intelligence::models::IntelligenceContext;
 use crate::platform::hardware::sensor::manager::SensorSession;
 use crate::platform::hardware::wmi::manager::WmiBrightnessManager;
-use crate::background::event_log::{SharedEventLog, new_shared_event_log};
-use crate::brightness::memory::AppBrightnessMemory;
+use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::{Arc, Mutex, RwLock};
 use sysinfo::System;
 
 pub trait AmbientProvider: Send + Sync {
@@ -94,28 +97,32 @@ impl ServiceRegistry {
                 comfort_engine: "Waiting".into(),
                 transition_engine: "Waiting".into(),
             },
-            intelligence: IntelligenceManager::new().generate_payload(&IntelligenceContext {
-                current_time_ms: 0,
-                comfort_profile: "Adaptive".into(),
-                history_summary: HistorySummary {
-                    total_events: 0,
-                    brightness_changes_today: 0,
-                    manual_overrides_today: 0,
-                    longest_session_minutes: 0,
-                    average_ambient_lux: 0.0,
+            intelligence: IntelligenceManager::new().generate_payload(
+                &IntelligenceContext {
+                    current_time_ms: 0,
+                    comfort_profile: "Adaptive".into(),
+                    history_summary: HistorySummary {
+                        total_events: 0,
+                        brightness_changes_today: 0,
+                        manual_overrides_today: 0,
+                        longest_session_minutes: 0,
+                        average_ambient_lux: 0.0,
+                    },
+                    current_ambient_lux: 0.0,
+                    current_screen_luminance: 0.0,
+                    worker_running: false,
+                    performance_policy: "Balanced".into(),
+                    active_application: "Unknown".into(),
+                    active_display_id: "Unknown".into(),
+                    confidence_score: 0.0,
                 },
-                current_ambient_lux: 0.0,
-                current_screen_luminance: 0.0,
-                worker_running: false,
-                performance_policy: "Balanced".into(),
-                active_application: "Unknown".into(),
-                active_display_id: "Unknown".into(),
-                confidence_score: 0.0,
-            }, 50, None),
+                50,
+                None,
+            ),
         };
 
-        use crate::brightness::providers::native::NativeBrightnessProvider;
         use crate::brightness::manager::BrightnessManager;
+        use crate::brightness::providers::native::NativeBrightnessProvider;
         use crate::display::domain::DisplayInfo;
         let provider = Box::new(NativeBrightnessProvider::new());
         let brightness_manager = Arc::new(BrightnessManager::new(provider));
@@ -155,35 +162,35 @@ impl ServiceRegistry {
         }
 
         // Setup Ambient Pipeline
+        use crate::ambient::calibration::linear::LinearCalibration;
+        use crate::ambient::config::AmbientConfig;
         use crate::ambient::manager::AmbientManager;
         use crate::ambient::registry::SensorRegistry;
-        use crate::ambient::config::AmbientConfig;
-        use crate::ambient::calibration::linear::LinearCalibration;
         use crate::ambient::smoothing::BasicSmoothingStrategy;
         use crate::platform::hardware::sensor::provider::NativeSensorProvider;
-        
+
         let mut ambient_registry = SensorRegistry::new();
         ambient_registry.register(std::sync::Arc::new(NativeSensorProvider::new()));
         let ambient = Arc::new(AmbientManager::new(
             AmbientConfig::default(),
             ambient_registry,
             Box::new(LinearCalibration::new(1000.0)),
-            Box::new(BasicSmoothingStrategy::new(2))
+            Box::new(BasicSmoothingStrategy::new(2)),
         ));
 
         // Setup Screen Pipeline
-        use crate::screen_analysis::manager::ScreenAnalysisManager;
         use crate::screen_analysis::config::AnalysisConfig;
+        use crate::screen_analysis::manager::ScreenAnalysisManager;
         use crate::screen_analysis::providers::windows_provider::WindowsScreenProvider;
-        
+
         let screen = Arc::new(ScreenAnalysisManager::new(
             AnalysisConfig::default(),
-            Box::new(WindowsScreenProvider::new())
+            Box::new(WindowsScreenProvider::new()),
         ));
 
         // Setup Decision & Comfort Pipeline
         let intelligence = Arc::new(IntelligenceManager::new());
-        
+
         // Setup Brightness Pipeline
         let brightness = self.brightness_manager.clone();
 
@@ -195,11 +202,11 @@ impl ServiceRegistry {
             self.worker_running.clone(),
             self.dashboard_state.clone(),
         ));
-        
+
         if let Ok(mut lock) = self.transition_worker.write() {
             *lock = Some(transition_worker.clone());
         }
-        
+
         transition_worker.start();
 
         // Assemble Intelligence Pipeline
@@ -230,14 +237,14 @@ impl ServiceRegistry {
             let mut sys = System::new_all();
             let pid = sysinfo::get_current_pid().expect("Failed to get current PID");
             let mut critical_strikes = 0;
-            
+
             loop {
                 sys.refresh_processes(sysinfo::ProcessesToUpdate::Some(&[pid]), true);
                 if let Some(process) = sys.process(pid) {
                     let memory_usage_mb = process.memory() as f32 / 1024.0 / 1024.0;
                     // Note: sysinfo cpu_usage is total across all cores.
                     // We can divide by sys.cpus().len() if we want per-core average.
-                    
+
                     if let Ok(mut state) = state_clone.lock() {
                         state.performance.ram_usage_mb = Some(memory_usage_mb);
                         state.health.watchdog = "Active".into();
@@ -261,7 +268,7 @@ impl ServiceRegistry {
                         critical_strikes = 0; // Reset on healthy memory
                     }
                 }
-                
+
                 std::thread::sleep(std::time::Duration::from_secs(5));
             }
         });

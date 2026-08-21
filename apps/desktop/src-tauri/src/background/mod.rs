@@ -14,21 +14,21 @@ pub mod worker;
 #[cfg(test)]
 mod tests {
     use crate::background::config::BackgroundConfig;
+    use crate::background::display_worker_manager::DisplayWorkerManager;
     use crate::background::event::models::{AdaptiveEventKind, EventPriority};
     use crate::background::event::queue::EventQueue;
-    use crate::background::scheduler::PollingScheduler;
-    use crate::background::profiler::PipelineProfiler;
     use crate::background::models::PipelineProfile;
-    use crate::background::display_worker_manager::DisplayWorkerManager;
-    use crate::background::service_manager::ServiceManager;
+    use crate::background::profiler::PipelineProfiler;
+    use crate::background::scheduler::PollingScheduler;
     use crate::background::service::Service;
+    use crate::background::service_manager::ServiceManager;
     use crate::background::worker::BackgroundWorker;
-    use crate::performance::factory::create_performance_manager;
-    use crate::performance::config::PerformanceConfig;
     use crate::experience::history::manager::HistoryManager;
     use crate::experience::multi_monitor::scheduler::MultiMonitorScheduler;
-    use std::sync::Arc;
+    use crate::performance::config::PerformanceConfig;
+    use crate::performance::factory::create_performance_manager;
     use std::path::PathBuf;
+    use std::sync::Arc;
     use std::thread;
     use std::time::Duration;
 
@@ -86,7 +86,11 @@ mod tests {
         }
 
         // Only one should survive deduplication
-        assert_eq!(queue.len(), 1, "Identical Normal events should be deduplicated to 1");
+        assert_eq!(
+            queue.len(),
+            1,
+            "Identical Normal events should be deduplicated to 1"
+        );
     }
 
     #[test]
@@ -134,7 +138,11 @@ mod tests {
 
         let critical_events = queue.drain_critical();
         assert_eq!(critical_events.len(), 1);
-        assert_eq!(queue.len(), 1, "Normal event must remain after drain_critical");
+        assert_eq!(
+            queue.len(),
+            1,
+            "Normal event must remain after drain_critical"
+        );
     }
 
     // ─── Scheduler Tests ───────────────────────────────────────────────────────
@@ -163,7 +171,10 @@ mod tests {
         scheduler.on_change_detected();
 
         let interval = scheduler.next_interval_ms();
-        assert_eq!(interval, base, "Interval should reset to base after change detected");
+        assert_eq!(
+            interval, base,
+            "Interval should reset to base after change detected"
+        );
     }
 
     #[test]
@@ -175,7 +186,10 @@ mod tests {
 
         scheduler.on_critical_event();
         let interval = scheduler.next_interval_ms();
-        assert_eq!(interval, minimum, "Critical event must force minimum interval");
+        assert_eq!(
+            interval, minimum,
+            "Critical event must force minimum interval"
+        );
     }
 
     #[test]
@@ -203,12 +217,24 @@ mod tests {
     fn test_profiler_stores_latest_only() {
         let profiler = PipelineProfiler::new();
 
-        profiler.record(PipelineProfile { total_ms: 10, ..Default::default() });
-        profiler.record(PipelineProfile { total_ms: 20, ..Default::default() });
-        profiler.record(PipelineProfile { total_ms: 30, ..Default::default() });
+        profiler.record(PipelineProfile {
+            total_ms: 10,
+            ..Default::default()
+        });
+        profiler.record(PipelineProfile {
+            total_ms: 20,
+            ..Default::default()
+        });
+        profiler.record(PipelineProfile {
+            total_ms: 30,
+            ..Default::default()
+        });
 
         let latest = profiler.get_latest().unwrap();
-        assert_eq!(latest.total_ms, 30, "Profiler must only keep the latest record");
+        assert_eq!(
+            latest.total_ms, 30,
+            "Profiler must only keep the latest record"
+        );
     }
 
     #[test]
@@ -258,7 +284,7 @@ mod tests {
         let sched = Arc::new(MultiMonitorScheduler::new());
         let worker = BackgroundWorker::new(default_config(), perf, hist, sched);
         worker.start().unwrap();
-        // The state is now Initializing — the run_loop hasn't been called, so 
+        // The state is now Initializing — the run_loop hasn't been called, so
         // a second start should return AlreadyRunning.
         // (Full integration would require a thread; this tests the Service contract.)
         let result = worker.start();
@@ -272,7 +298,7 @@ mod tests {
     fn test_service_manager_starts_and_stops_no_panic() {
         let manager = ServiceManager::new(default_config(), PathBuf::from("test_data"));
         let _ = manager.start(); // may succeed or fail depending on thread availability
-        let _ = manager.stop();  // must not panic regardless
+        let _ = manager.stop(); // must not panic regardless
     }
 
     #[test]

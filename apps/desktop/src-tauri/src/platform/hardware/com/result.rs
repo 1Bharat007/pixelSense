@@ -1,5 +1,5 @@
-use windows::core::HRESULT;
 use crate::platform::error::PlatformError;
+use windows::core::HRESULT;
 
 /// Centralized mapper for HRESULT to PlatformError.
 /// Never compare HRESULTs directly outside this struct.
@@ -11,26 +11,43 @@ impl PlatformResultMapper {
         // We can match on specific HRESULTs here.
         // Windows HRESULTs are i32 natively in the windows crate.
         let code = hr.0;
-        
+
         match code {
             // E_ACCESSDENIED
-            -2147024891 => PlatformError::NativeApiUnavailable(format!("{}: Access Denied", context)),
+            -2147024891 => {
+                PlatformError::NativeApiUnavailable(format!("{}: Access Denied", context))
+            }
             // E_OUTOFMEMORY
-            -2147024882 => PlatformError::NativeApiUnavailable(format!("{}: Out of Memory", context)),
+            -2147024882 => {
+                PlatformError::NativeApiUnavailable(format!("{}: Out of Memory", context))
+            }
             // E_INVALIDARG
-            -2147024809 => PlatformError::NativeApiUnavailable(format!("{}: Invalid Argument", context)),
+            -2147024809 => {
+                PlatformError::NativeApiUnavailable(format!("{}: Invalid Argument", context))
+            }
             // RPC_E_DISCONNECTED
-            -2147417848 => PlatformError::NativeApiUnavailable(format!("{}: RPC Disconnected (Object Dead)", context)),
-            
+            -2147417848 => PlatformError::NativeApiUnavailable(format!(
+                "{}: RPC Disconnected (Object Dead)",
+                context
+            )),
+
             // DXGI Errors
             // DXGI_ERROR_DEVICE_REMOVED
-            -2005270523 => PlatformError::NativeApiUnavailable(format!("{}: DXGI Device Removed", context)),
+            -2005270523 => {
+                PlatformError::NativeApiUnavailable(format!("{}: DXGI Device Removed", context))
+            }
             // DXGI_ERROR_ACCESS_LOST
-            -2005270490 => PlatformError::NativeApiUnavailable(format!("{}: DXGI Access Lost", context)),
+            -2005270490 => {
+                PlatformError::NativeApiUnavailable(format!("{}: DXGI Access Lost", context))
+            }
             // DXGI_ERROR_WAIT_TIMEOUT
-            -2005270524 => PlatformError::NativeApiUnavailable(format!("{}: DXGI Wait Timeout", context)),
-            
-            _ => PlatformError::NativeApiUnavailable(format!("{}: HRESULT 0x{:08X}", context, code)),
+            -2005270524 => {
+                PlatformError::NativeApiUnavailable(format!("{}: DXGI Wait Timeout", context))
+            }
+
+            _ => {
+                PlatformError::NativeApiUnavailable(format!("{}: HRESULT 0x{:08X}", context, code))
+            }
         }
     }
 }

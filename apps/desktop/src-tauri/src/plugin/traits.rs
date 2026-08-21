@@ -1,14 +1,14 @@
-use crate::plugin::models::{PluginManifest, PluginHealth};
 use crate::plugin::context::PluginContext;
+use crate::plugin::models::{PluginHealth, PluginManifest};
 
 /// The base trait all plugins must implement.
 pub trait PixelSensePlugin: Send + Sync {
     fn manifest(&self) -> &PluginManifest;
     fn health(&self) -> PluginHealth;
-    
+
     fn initialize(&mut self) -> Result<(), String>;
     fn shutdown(&mut self) -> Result<(), String>;
-    
+
     /// Called periodically with the read-only context.
     fn on_tick(&mut self, context: &PluginContext) -> Result<(), String>;
 }

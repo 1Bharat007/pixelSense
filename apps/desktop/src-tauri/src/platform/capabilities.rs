@@ -13,7 +13,7 @@ pub struct PlatformCapabilities {
     pub power_state: bool,
     pub window_tracking: bool,
     pub display_enumeration: bool,
-    
+
     // Expanded Capabilities
     pub plugin_support: bool,
     pub updater: bool,

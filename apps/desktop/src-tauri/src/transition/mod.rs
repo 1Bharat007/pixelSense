@@ -8,16 +8,20 @@ pub mod worker;
 
 #[cfg(test)]
 mod tests {
-    use std::sync::Arc;
     use crate::brightness::manager::BrightnessManager;
     use crate::brightness::providers::mock::MockBrightnessProvider;
     use crate::display::domain::{DisplayCapabilities, DisplayInfo};
     use crate::transition::config::TransitionConfig;
     use crate::transition::manager::TransitionManager;
     use crate::transition::providers::mock::MockTransitionProvider;
+    use std::sync::Arc;
 
     fn create_dummy_display() -> (DisplayInfo, DisplayCapabilities) {
-        let caps = DisplayCapabilities { brightness: true, hdr: false, ddc_ci: false };
+        let caps = DisplayCapabilities {
+            brightness: true,
+            hdr: false,
+            ddc_ci: false,
+        };
         let display = DisplayInfo {
             id: "laptop_id".into(),
             name: "Laptop".into(),
@@ -32,10 +36,14 @@ mod tests {
         (display, caps)
     }
 
-    fn setup() -> (Arc<BrightnessManager>, MockTransitionProvider, TransitionManager) {
+    fn setup() -> (
+        Arc<BrightnessManager>,
+        MockTransitionProvider,
+        TransitionManager,
+    ) {
         let brightness_provider = Box::new(MockBrightnessProvider::new());
         let brightness_manager = Arc::new(BrightnessManager::new(brightness_provider));
-        
+
         let mock_provider = MockTransitionProvider::new();
         let manager = TransitionManager::new(
             Box::new(mock_provider.clone()),
@@ -51,7 +59,16 @@ mod tests {
         let (_bm, provider, manager) = setup();
         let (display, caps) = create_dummy_display();
 
-        manager.transition_brightness(&display, &caps, 10, 50, 100, crate::transition::manager::ExecutionMode::Transition).unwrap();
+        manager
+            .transition_brightness(
+                &display,
+                &caps,
+                10,
+                50,
+                100,
+                crate::transition::manager::ExecutionMode::Transition,
+            )
+            .unwrap();
 
         let records = provider.records.lock().unwrap();
         assert!(records.len() > 1);
@@ -64,7 +81,16 @@ mod tests {
         let (_bm, provider, manager) = setup();
         let (display, caps) = create_dummy_display();
 
-        manager.transition_brightness(&display, &caps, 100, 0, 50, crate::transition::manager::ExecutionMode::Transition).unwrap();
+        manager
+            .transition_brightness(
+                &display,
+                &caps,
+                100,
+                0,
+                50,
+                crate::transition::manager::ExecutionMode::Transition,
+            )
+            .unwrap();
 
         let records = provider.records.lock().unwrap();
         assert!(records.len() > 1);
@@ -76,7 +102,16 @@ mod tests {
         let (_bm, provider, manager) = setup();
         let (display, caps) = create_dummy_display();
 
-        manager.transition_brightness(&display, &caps, 50, 50, 100, crate::transition::manager::ExecutionMode::Transition).unwrap();
+        manager
+            .transition_brightness(
+                &display,
+                &caps,
+                50,
+                50,
+                100,
+                crate::transition::manager::ExecutionMode::Transition,
+            )
+            .unwrap();
 
         let records = provider.records.lock().unwrap();
         assert_eq!(records.len(), 1);
@@ -89,7 +124,16 @@ mod tests {
         let (_bm, provider, manager) = setup();
         let (display, caps) = create_dummy_display();
 
-        manager.transition_brightness(&display, &caps, 10, 80, 0, crate::transition::manager::ExecutionMode::Transition).unwrap();
+        manager
+            .transition_brightness(
+                &display,
+                &caps,
+                10,
+                80,
+                0,
+                crate::transition::manager::ExecutionMode::Transition,
+            )
+            .unwrap();
 
         let records = provider.records.lock().unwrap();
         assert_eq!(records.len(), 1);
@@ -102,7 +146,16 @@ mod tests {
         let (display, caps) = create_dummy_display();
 
         // 10 seconds duration
-        manager.transition_brightness(&display, &caps, 0, 100, 10000, crate::transition::manager::ExecutionMode::Transition).unwrap();
+        manager
+            .transition_brightness(
+                &display,
+                &caps,
+                0,
+                100,
+                10000,
+                crate::transition::manager::ExecutionMode::Transition,
+            )
+            .unwrap();
 
         let records = provider.records.lock().unwrap();
         assert_eq!(records.len(), 625); // 10000 / 16
@@ -115,7 +168,16 @@ mod tests {
         let (display, caps) = create_dummy_display();
 
         // Duration shorter than tick interval
-        manager.transition_brightness(&display, &caps, 10, 20, 5, crate::transition::manager::ExecutionMode::Transition).unwrap();
+        manager
+            .transition_brightness(
+                &display,
+                &caps,
+                10,
+                20,
+                5,
+                crate::transition::manager::ExecutionMode::Transition,
+            )
+            .unwrap();
 
         let records = provider.records.lock().unwrap();
         assert_eq!(records.len(), 1);
@@ -127,7 +189,16 @@ mod tests {
         let (_bm, provider, manager) = setup();
         let (display, caps) = create_dummy_display();
 
-        manager.transition_brightness(&display, &caps, 0, 10, 32, crate::transition::manager::ExecutionMode::Transition).unwrap();
+        manager
+            .transition_brightness(
+                &display,
+                &caps,
+                0,
+                10,
+                32,
+                crate::transition::manager::ExecutionMode::Transition,
+            )
+            .unwrap();
 
         let records = provider.records.lock().unwrap();
         assert_eq!(records.len(), 2);
@@ -142,11 +213,19 @@ mod tests {
 
         *provider.interrupted.lock().unwrap() = true;
 
-        manager.transition_brightness(&display, &caps, 0, 100, 100, crate::transition::manager::ExecutionMode::Transition).unwrap();
+        manager
+            .transition_brightness(
+                &display,
+                &caps,
+                0,
+                100,
+                100,
+                crate::transition::manager::ExecutionMode::Transition,
+            )
+            .unwrap();
 
         let records = provider.records.lock().unwrap();
         // Since interrupted is true, the loop breaks immediately.
         assert_eq!(records.len(), 0);
     }
 }
-

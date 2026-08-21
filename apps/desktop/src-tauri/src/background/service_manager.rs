@@ -3,15 +3,15 @@ use crate::background::display_worker_manager::DisplayWorkerManager;
 use crate::background::error::BackgroundError;
 use crate::background::models::{BackgroundDiagnostics, ServiceId, WorkerHealth};
 use crate::background::service::Service;
-use crate::background::worker::BackgroundWorker;
 use crate::background::watchdog::WorkerWatchdog;
-use crate::performance::factory::create_performance_manager;
-use crate::performance::config::PerformanceConfig;
+use crate::background::worker::BackgroundWorker;
 use crate::experience::history::manager::HistoryManager;
 use crate::experience::multi_monitor::scheduler::MultiMonitorScheduler;
+use crate::performance::config::PerformanceConfig;
+use crate::performance::factory::create_performance_manager;
+use std::path::PathBuf;
 use std::sync::Arc;
 use std::thread;
-use std::path::PathBuf;
 
 /// Central lifecycle controller for all PixelSense background services.
 ///
@@ -46,13 +46,14 @@ impl ServiceManager {
     pub fn new(config: BackgroundConfig, app_data_dir: PathBuf) -> Self {
         let history_manager = Arc::new(HistoryManager::new(app_data_dir));
         let multi_monitor_scheduler = Arc::new(MultiMonitorScheduler::new());
-        let performance_manager = Arc::new(create_performance_manager(PerformanceConfig::default()));
-        
+        let performance_manager =
+            Arc::new(create_performance_manager(PerformanceConfig::default()));
+
         let worker = Arc::new(BackgroundWorker::new(
-            config.clone(), 
-            performance_manager, 
-            Arc::clone(&history_manager), 
-            Arc::clone(&multi_monitor_scheduler)
+            config.clone(),
+            performance_manager,
+            Arc::clone(&history_manager),
+            Arc::clone(&multi_monitor_scheduler),
         ));
         let _watchdog = Arc::new(WorkerWatchdog::new(Arc::clone(&worker), config.clone()));
         let display_manager = Arc::new(DisplayWorkerManager::new());
@@ -65,10 +66,9 @@ impl ServiceManager {
             config,
         };
 
-        manager.services.push((
-            ServiceId::new("background_adaptive_worker"),
-            worker,
-        ));
+        manager
+            .services
+            .push((ServiceId::new("background_adaptive_worker"), worker));
 
         manager
     }
@@ -126,7 +126,10 @@ impl ServiceManager {
                 return service.restart();
             }
         }
-        Err(BackgroundError::StartFailed(format!("Service '{}' not found", service_id)))
+        Err(BackgroundError::StartFailed(format!(
+            "Service '{}' not found",
+            service_id
+        )))
     }
 
     /// Aggregate health report across all services.

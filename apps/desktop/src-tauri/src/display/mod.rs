@@ -71,4 +71,3 @@ mod tests {
         assert_eq!(display, deserialized);
     }
 }
-

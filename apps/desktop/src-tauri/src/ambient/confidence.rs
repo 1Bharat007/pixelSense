@@ -1,4 +1,6 @@
-use crate::ambient::models::{AmbientQuality, AmbientSensorType, SensorHealth, SensorInfo, SensorState};
+use crate::ambient::models::{
+    AmbientQuality, AmbientSensorType, SensorHealth, SensorInfo, SensorState,
+};
 use crate::background::models::now_ms;
 
 /// Evaluates the confidence score of an ambient reading.
@@ -14,7 +16,9 @@ impl ConfidenceEvaluator {
         stale_timeout_ms: u64,
         calibration_penalty: f32, // 0.0 means perfect calibration bounds
     ) -> (f32, AmbientQuality, bool) {
-        if health.current_state == SensorState::Unavailable || *sensor_type == AmbientSensorType::EstimatedUnavailable {
+        if health.current_state == SensorState::Unavailable
+            || *sensor_type == AmbientSensorType::EstimatedUnavailable
+        {
             return (0.0, AmbientQuality::Poor, false);
         }
 
@@ -40,7 +44,8 @@ impl ConfidenceEvaluator {
 
         // 4. Sensor Health (10%)
         let health_ratio = if health.total_updates > 0 {
-            let success_rate = (health.total_updates.saturating_sub(health.missed_updates)) as f32 / health.total_updates as f32;
+            let success_rate = (health.total_updates.saturating_sub(health.missed_updates)) as f32
+                / health.total_updates as f32;
             success_rate.clamp(0.0, 1.0)
         } else {
             1.0 // Assume healthy if no history
@@ -50,7 +55,8 @@ impl ConfidenceEvaluator {
         // 5. Calibration Quality (10%)
         let cal_score = 0.10 * (1.0 - calibration_penalty.clamp(0.0, 1.0));
 
-        let mut total_confidence = hw_score + freshness_score + stability_score + health_score + cal_score;
+        let mut total_confidence =
+            hw_score + freshness_score + stability_score + health_score + cal_score;
         total_confidence = total_confidence.clamp(0.0, 1.0);
 
         if is_stale {

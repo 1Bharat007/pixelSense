@@ -1,6 +1,6 @@
-use std::sync::mpsc::{channel, Sender, Receiver};
-use std::sync::Mutex;
 use crate::platform::error::PlatformError;
+use std::sync::mpsc::{channel, Receiver, Sender};
+use std::sync::Mutex;
 
 /// Defines the priority of a native event.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
@@ -27,8 +27,13 @@ pub enum PlatformEvent {
 impl PlatformEvent {
     pub fn priority(&self) -> EventPriority {
         match self {
-            Self::DisplayConnected(_) | Self::DisplayDisconnected(_) | Self::SessionLocked | Self::SessionUnlocked => EventPriority::Critical,
-            Self::DisplayConfigurationChanged | Self::PowerSourceChanged { .. } | Self::ForegroundWindowChanged { .. } => EventPriority::High,
+            Self::DisplayConnected(_)
+            | Self::DisplayDisconnected(_)
+            | Self::SessionLocked
+            | Self::SessionUnlocked => EventPriority::Critical,
+            Self::DisplayConfigurationChanged
+            | Self::PowerSourceChanged { .. }
+            | Self::ForegroundWindowChanged { .. } => EventPriority::High,
             Self::BatterySaverChanged { .. } => EventPriority::Normal,
         }
     }
@@ -53,7 +58,8 @@ impl PlatformEventBus {
     /// Dispatches an event from a native Win32 callback into the application loop.
     pub fn dispatch(&self, event: PlatformEvent) -> Result<(), PlatformError> {
         let tx = self.sender.lock().unwrap();
-        tx.send(event).map_err(|_| PlatformError::NativeApiUnavailable("Event queue closed".into()))
+        tx.send(event)
+            .map_err(|_| PlatformError::NativeApiUnavailable("Event queue closed".into()))
     }
 
     /// Receives the next available event (non-blocking in real implementation via try_recv).

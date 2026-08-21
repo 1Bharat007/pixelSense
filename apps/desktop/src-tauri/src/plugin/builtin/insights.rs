@@ -1,6 +1,6 @@
-use crate::plugin::traits::{PixelSensePlugin, DashboardWidgetPlugin};
-use crate::plugin::models::{PluginManifest, PluginHealth};
 use crate::plugin::context::PluginContext;
+use crate::plugin::models::{PluginHealth, PluginManifest};
+use crate::plugin::traits::{DashboardWidgetPlugin, PixelSensePlugin};
 
 pub struct InsightsBuiltinPlugin {
     manifest: PluginManifest,
@@ -54,6 +54,7 @@ impl DashboardWidgetPlugin for InsightsBuiltinPlugin {
             "title": "Daily Insights",
             "type": "chart",
             "data": [10, 20, 15, 30]
-        }"#.into()
+        }"#
+        .into()
     }
 }

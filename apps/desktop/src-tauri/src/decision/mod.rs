@@ -13,7 +13,10 @@ mod tests {
     use crate::decision::strategies::default::DefaultDecisionStrategy;
 
     fn setup() -> DecisionManager {
-        DecisionManager::new(Box::new(DefaultDecisionStrategy::new()), DecisionConfig::default())
+        DecisionManager::new(
+            Box::new(DefaultDecisionStrategy::new()),
+            DecisionConfig::default(),
+        )
     }
 
     #[test]
@@ -26,7 +29,7 @@ mod tests {
             time_of_day: TimeOfDay::Day,
         };
         let result = manager.decide_brightness(&ctx).unwrap();
-        
+
         assert_eq!(result.recommended_brightness, 90);
         assert_eq!(result.confidence, 0.8);
         assert!(result.reasoning.contains("Bright room"));
@@ -42,7 +45,7 @@ mod tests {
             time_of_day: TimeOfDay::Night,
         };
         let result = manager.decide_brightness(&ctx).unwrap();
-        
+
         assert_eq!(result.recommended_brightness, 15);
         assert_eq!(result.confidence, 0.8);
         assert!(result.reasoning.contains("Dark room"));
@@ -58,7 +61,7 @@ mod tests {
             time_of_day: TimeOfDay::Day,
         };
         let result = manager.decide_brightness(&ctx).unwrap();
-        
+
         // Medium base = 50. 50 * 1.25 = 62.5 -> round -> 63
         assert_eq!(result.recommended_brightness, 63);
         assert!(result.reasoning.contains("comfort multiplier"));
@@ -69,12 +72,12 @@ mod tests {
         let manager = setup();
         let ctx = DecisionContext {
             ambient_light: Some(AmbientLightReading { lux: 5.0 }), // Dark
-            user_brightness_preference: Some(100), // Override to 100
+            user_brightness_preference: Some(100),                 // Override to 100
             comfort_preference: ComfortLevel::Balanced,
             time_of_day: TimeOfDay::Night,
         };
         let result = manager.decide_brightness(&ctx).unwrap();
-        
+
         assert_eq!(result.recommended_brightness, 100);
         assert_eq!(result.confidence, 1.0);
         assert!(result.reasoning.contains("User preference overridden"));
@@ -90,23 +93,23 @@ mod tests {
             time_of_day: TimeOfDay::Evening, // Base 40
         };
         let result = manager.decide_brightness(&ctx).unwrap();
-        
+
         assert_eq!(result.recommended_brightness, 40);
         assert_eq!(result.confidence, 0.5); // Fallback confidence
         assert!(result.reasoning.contains("Fallback to time-of-day"));
     }
-    
+
     #[test]
     fn test_conflicting_inputs() {
         let manager = setup();
         let ctx = DecisionContext {
             ambient_light: Some(AmbientLightReading { lux: 2000.0 }), // Super bright
-            user_brightness_preference: Some(10), // User wants very dim
-            comfort_preference: ComfortLevel::VeryBright, // Wants bright
-            time_of_day: TimeOfDay::Night, // Night time
+            user_brightness_preference: Some(10),                     // User wants very dim
+            comfort_preference: ComfortLevel::VeryBright,             // Wants bright
+            time_of_day: TimeOfDay::Night,                            // Night time
         };
         let result = manager.decide_brightness(&ctx).unwrap();
-        
+
         // User preference is absolute override
         assert_eq!(result.recommended_brightness, 10);
         assert_eq!(result.confidence, 1.0);

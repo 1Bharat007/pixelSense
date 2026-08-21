@@ -1,9 +1,9 @@
-use std::sync::{Arc, Mutex};
 use crate::brightness::manager::BrightnessManager;
 use crate::display::domain::{DisplayCapabilities, DisplayInfo};
 use crate::transition::error::TransitionError;
 use crate::transition::interpolator::TransitionStep;
 use crate::transition::providers::TransitionProvider;
+use std::sync::{Arc, Mutex};
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct MockExecutionRecord {
@@ -51,8 +51,9 @@ impl TransitionProvider for MockTransitionProvider {
             }
 
             // Execute brightness update immediately in the mock
-            let _ = brightness_manager.set_brightness(&display, &capabilities, step.brightness as i32);
-            
+            let _ =
+                brightness_manager.set_brightness(&display, &capabilities, step.brightness as i32);
+
             current_time += step.delay_ms;
             records.push(MockExecutionRecord {
                 brightness: step.brightness,

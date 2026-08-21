@@ -1,6 +1,6 @@
+use crate::crash::models::{CrashReport, RecoveryPolicy};
 use std::collections::VecDeque;
 use std::sync::RwLock;
-use crate::crash::models::{CrashReport, RecoveryPolicy};
 
 pub struct CrashManager {
     reports: RwLock<VecDeque<CrashReport>>,
@@ -25,15 +25,21 @@ impl CrashManager {
             RecoveryPolicy::Disable => {
                 // E.g., if a plugin crashes, disable it via PluginManager
                 println!("CrashManager: Disabling subsystem {}", report.subsystem_id);
-            },
+            }
             RecoveryPolicy::Restart => {
-                println!("CrashManager: Scheduling restart for {}", report.subsystem_id);
-            },
+                println!(
+                    "CrashManager: Scheduling restart for {}",
+                    report.subsystem_id
+                );
+            }
             RecoveryPolicy::Fallback => {
                 println!("CrashManager: Falling back for {}", report.subsystem_id);
-            },
+            }
             _ => {
-                println!("CrashManager: Handled {} with {:?}", report.subsystem_id, report.policy_applied);
+                println!(
+                    "CrashManager: Handled {} with {:?}",
+                    report.subsystem_id, report.policy_applied
+                );
             }
         }
     }
