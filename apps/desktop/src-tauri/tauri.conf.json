@@ -1,7 +1,7 @@
 {
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
   "productName": "PixelSense",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "identifier": "com.pixelsense.app",
   "build": {
     "frontendDist": "../dist",
@@ -35,7 +35,9 @@
   },
   "bundle": {
     "active": true,
-    "targets": ["nsis"],
+    "targets": [
+      "nsis"
+    ],
     "publisher": "PixelSense Contributors",
     "copyright": "Copyright © 2026 PixelSense Contributors",
     "shortDescription": "Intelligent adaptive display brightness for Windows",
