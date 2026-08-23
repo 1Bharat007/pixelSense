@@ -1,6 +1,6 @@
-use std::time::Instant;
 use crate::performance::budget::PerformanceBudgetManager;
 use std::sync::Arc;
+use std::time::Instant;
 
 /// CentralScheduler coordinates all periodic tasks (Ambient, Screen Analysis, Dashboard)
 /// to ensure there is only one polling engine driving the background worker.
@@ -30,7 +30,11 @@ impl CentralScheduler {
 
     pub fn should_poll_ambient(&mut self) -> bool {
         let now = self.now_ms();
-        let interval = if self.budget_manager.is_throttled() { 1000 } else { 200 };
+        let interval = if self.budget_manager.is_throttled() {
+            1000
+        } else {
+            200
+        };
         if now - self.last_ambient_ms >= interval {
             self.last_ambient_ms = now;
             true
@@ -41,7 +45,11 @@ impl CentralScheduler {
 
     pub fn should_poll_screen(&mut self) -> bool {
         let now = self.now_ms();
-        let interval = if self.budget_manager.is_throttled() { 2000 } else { 500 };
+        let interval = if self.budget_manager.is_throttled() {
+            2000
+        } else {
+            500
+        };
         if now - self.last_screen_ms >= interval {
             self.last_screen_ms = now;
             true

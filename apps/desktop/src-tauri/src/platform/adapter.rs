@@ -1,5 +1,5 @@
-use crate::display::domain::{DisplayCapabilities, DisplayInfo};
 use super::models::NativeDisplay;
+use crate::display::domain::{DisplayCapabilities, DisplayInfo};
 
 /// Converts the internal NativeDisplay into the domain's DisplayInfo.
 impl From<NativeDisplay> for DisplayInfo {
@@ -8,7 +8,7 @@ impl From<NativeDisplay> for DisplayInfo {
             id: native.id,
             name: native.name,
             manufacturer: None, // Not acquired in native discovery yet
-            model: None, // Not acquired in native discovery yet
+            model: None,        // Not acquired in native discovery yet
             width: native.width,
             height: native.height,
             refresh_rate: native.refresh_rate,

@@ -44,7 +44,12 @@ impl FeatureFlagRegistry {
         if let Some(&overridden) = self.overrides.read().unwrap().get(key) {
             return overridden;
         }
-        
-        self.flags.read().unwrap().get(key).map(|f| f.enabled_by_default).unwrap_or(false)
+
+        self.flags
+            .read()
+            .unwrap()
+            .get(key)
+            .map(|f| f.enabled_by_default)
+            .unwrap_or(false)
     }
 }

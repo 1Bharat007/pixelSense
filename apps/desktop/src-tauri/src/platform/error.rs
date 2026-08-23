@@ -14,9 +14,15 @@ impl std::fmt::Display for PlatformError {
         match self {
             PlatformError::UnsupportedPlatform(msg) => write!(f, "Unsupported platform: {}", msg),
             PlatformError::NotImplemented(msg) => write!(f, "Not implemented: {}", msg),
-            PlatformError::NativeApiUnavailable(msg) => write!(f, "Native API unavailable: {}", msg),
-            PlatformError::InvalidConfigurationPath(msg) => write!(f, "Invalid configuration path: {}", msg),
-            PlatformError::NotificationUnavailable(msg) => write!(f, "Notification unavailable: {}", msg),
+            PlatformError::NativeApiUnavailable(msg) => {
+                write!(f, "Native API unavailable: {}", msg)
+            }
+            PlatformError::InvalidConfigurationPath(msg) => {
+                write!(f, "Invalid configuration path: {}", msg)
+            }
+            PlatformError::NotificationUnavailable(msg) => {
+                write!(f, "Notification unavailable: {}", msg)
+            }
         }
     }
 }

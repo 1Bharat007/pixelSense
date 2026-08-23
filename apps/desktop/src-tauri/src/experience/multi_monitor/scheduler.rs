@@ -1,6 +1,6 @@
 use std::collections::HashMap;
-use std::time::{Instant, Duration};
 use std::sync::{Arc, Mutex};
+use std::time::{Duration, Instant};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum PriorityTier {
@@ -62,7 +62,7 @@ impl MultiMonitorScheduler {
                     state.last_activity = Instant::now();
                 }
             }
-            
+
             // Promote the target display to Tier 1
             if let Some(state) = displays.get_mut(display_id) {
                 state.priority = PriorityTier::Tier1Focused;
@@ -87,7 +87,9 @@ impl MultiMonitorScheduler {
         if let Ok(mut displays) = self.displays.lock() {
             let now = Instant::now();
             for state in displays.values_mut() {
-                if state.priority == PriorityTier::Tier2Active && now.duration_since(state.last_activity) > self.tier2_timeout {
+                if state.priority == PriorityTier::Tier2Active
+                    && now.duration_since(state.last_activity) > self.tier2_timeout
+                {
                     state.priority = PriorityTier::Tier3Idle;
                 }
             }

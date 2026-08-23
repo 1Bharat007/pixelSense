@@ -38,7 +38,9 @@ impl SensorRegistry {
                 return Ok(reading);
             }
         }
-        Err(AmbientError::SensorUnavailable("No sensors available in registry".into()))
+        Err(AmbientError::SensorUnavailable(
+            "No sensors available in registry".into(),
+        ))
     }
 
     pub fn suspend_all(&self) {

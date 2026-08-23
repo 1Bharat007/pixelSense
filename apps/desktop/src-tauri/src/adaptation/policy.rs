@@ -102,14 +102,17 @@ impl AdaptationPolicy {
         // Rule 2: Pause during fullscreen gaming or video — don't interrupt immersive sessions.
         if ctx.is_fullscreen && (ctx.app_context == "Gaming" || ctx.app_context == "Video") {
             return AdaptationDecision::Skip {
-                reason: format!("Fullscreen {} session active — pausing adaptation", ctx.app_context),
+                reason: format!(
+                    "Fullscreen {} session active — pausing adaptation",
+                    ctx.app_context
+                ),
             };
         }
 
         // Rule 3: Check if we have a meaningful screen luminance change or a valid ambient lux change.
         use crate::intelligence::confidence::ConfidenceLevel;
         let ambient_valid = ConfidenceLevel::from_score(ctx.confidence).should_adapt();
-        
+
         let screen_changed = match self.last_adapted_luminance {
             Some(last_lum) => (ctx.current_luminance - last_lum).abs() >= MIN_LUMINANCE_DELTA,
             None => true,
@@ -178,7 +181,11 @@ impl AdaptationPolicy {
             return 0.0;
         }
         let mean = self.lux_history.iter().sum::<f32>() / self.lux_history.len() as f32;
-        let variance = self.lux_history.iter().map(|&x| (x - mean).powi(2)).sum::<f32>()
+        let variance = self
+            .lux_history
+            .iter()
+            .map(|&x| (x - mean).powi(2))
+            .sum::<f32>()
             / self.lux_history.len() as f32;
         variance
     }
@@ -188,7 +195,11 @@ impl AdaptationPolicy {
             return 0.0;
         }
         let mean = self.luminance_history.iter().sum::<f32>() / self.luminance_history.len() as f32;
-        let variance = self.luminance_history.iter().map(|&x| (x - mean).powi(2)).sum::<f32>()
+        let variance = self
+            .luminance_history
+            .iter()
+            .map(|&x| (x - mean).powi(2))
+            .sum::<f32>()
             / self.luminance_history.len() as f32;
         variance
     }
@@ -221,7 +232,9 @@ mod tests {
         let mut ctx = make_ctx(200.0, 0.9, "Coding");
         ctx.manual_override_active = true;
         // Fill history
-        for _ in 0..5 { policy.observe(200.0, 50.0); }
+        for _ in 0..5 {
+            policy.observe(200.0, 50.0);
+        }
         let decision = policy.should_adapt(&ctx);
         assert!(!decision.is_adapt());
     }
@@ -229,7 +242,9 @@ mod tests {
     #[test]
     fn test_low_confidence_skips() {
         let mut policy = AdaptationPolicy::new();
-        for _ in 0..5 { policy.observe(200.0, 50.0); }
+        for _ in 0..5 {
+            policy.observe(200.0, 50.0);
+        }
         let ctx = make_ctx(200.0, 0.05, "Coding");
         assert!(!policy.should_adapt(&ctx).is_adapt());
     }
@@ -237,7 +252,9 @@ mod tests {
     #[test]
     fn test_fullscreen_gaming_skips() {
         let mut policy = AdaptationPolicy::new();
-        for _ in 0..5 { policy.observe(200.0, 50.0); }
+        for _ in 0..5 {
+            policy.observe(200.0, 50.0);
+        }
         let mut ctx = make_ctx(200.0, 0.9, "Gaming");
         ctx.is_fullscreen = true;
         assert!(!policy.should_adapt(&ctx).is_adapt());

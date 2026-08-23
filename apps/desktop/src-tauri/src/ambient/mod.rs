@@ -19,7 +19,10 @@ mod tests {
     use crate::ambient::smoothing::BasicSmoothingStrategy;
     use std::sync::Arc;
 
-    fn create_test_manager(provider: Arc<MockAmbientProvider>, config: Option<AmbientConfig>) -> AmbientManager {
+    fn create_test_manager(
+        provider: Arc<MockAmbientProvider>,
+        config: Option<AmbientConfig>,
+    ) -> AmbientManager {
         let mut registry = SensorRegistry::new();
         registry.register(provider);
         AmbientManager::new(
@@ -45,18 +48,18 @@ mod tests {
     fn test_sensor_unavailable_fallback_policy() {
         let provider = Arc::new(MockAmbientProvider::new());
         provider.set_available(false); // Disable sensor
-        
+
         let manager = create_test_manager(provider, None);
-        
+
         let result = manager.get_ambient_light();
         assert!(result.is_ok());
         let reading = result.unwrap();
-        
+
         // Assert fallback policy matches
         assert_eq!(reading.sensor_type, AmbientSensorType::EstimatedUnavailable);
         assert_eq!(reading.confidence, 0.0);
         assert_eq!(reading.is_estimated, true);
-        
+
         let health = manager.get_health();
         assert_eq!(health.current_state, SensorState::Unavailable);
     }
@@ -65,14 +68,14 @@ mod tests {
     fn test_threshold_filtering() {
         let provider = Arc::new(MockAmbientProvider::new());
         provider.set_lux(100.0);
-        
+
         let mut config = AmbientConfig::default();
         config.minimum_change_threshold = 10.0;
         config.smoothing_enabled = false;
-        
+
         let mut registry = SensorRegistry::new();
         registry.register(provider.clone());
-        
+
         let manager = AmbientManager::new(
             config,
             registry,
@@ -98,14 +101,14 @@ mod tests {
     #[test]
     fn test_smoothing() {
         let provider = Arc::new(MockAmbientProvider::new());
-        
+
         let mut config = AmbientConfig::default();
         config.minimum_change_threshold = 0.0; // Disable threshold
         config.smoothing_enabled = true;
-        
+
         let mut registry = SensorRegistry::new();
         registry.register(provider.clone());
-        
+
         let manager = AmbientManager::new(
             config,
             registry,

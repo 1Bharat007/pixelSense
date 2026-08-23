@@ -14,10 +14,13 @@ fn main() {
         } else {
             "Unknown panic"
         };
-        
-        let location = info.location().map(|l| format!("{}:{}:{}", l.file(), l.line(), l.column())).unwrap_or_else(|| "unknown".into());
+
+        let location = info
+            .location()
+            .map(|l| format!("{}:{}:{}", l.file(), l.line(), l.column()))
+            .unwrap_or_else(|| "unknown".into());
         let msg = format!("[{}] PANIC at {}: {}\n", timestamp, location, payload);
-        
+
         let _ = std::fs::write("panic.log", msg.clone());
         eprintln!("{}", msg);
     }));

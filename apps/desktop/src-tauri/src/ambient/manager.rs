@@ -1,8 +1,11 @@
 use crate::ambient::calibration::CalibrationStrategy;
-use crate::ambient::config::AmbientConfig;
 use crate::ambient::confidence::ConfidenceEvaluator;
+use crate::ambient::config::AmbientConfig;
 use crate::ambient::error::AmbientError;
-use crate::ambient::models::{AmbientDiagnostics, AmbientEnvironment, AmbientQuality, AmbientReading, AmbientSensorType, SensorHealth, SensorState};
+use crate::ambient::models::{
+    AmbientDiagnostics, AmbientEnvironment, AmbientQuality, AmbientReading, AmbientSensorType,
+    SensorHealth, SensorState,
+};
 use crate::ambient::registry::SensorRegistry;
 use crate::ambient::smoothing::AmbientSmoothingStrategy;
 use crate::background::models::now_ms;
@@ -13,7 +16,7 @@ pub struct AmbientManager {
     registry: SensorRegistry,
     calibration: Box<dyn CalibrationStrategy>,
     smoothing: Box<dyn AmbientSmoothingStrategy>,
-    
+
     // Health and state tracking
     health: Mutex<SensorHealth>,
     last_smoothed_lux: Mutex<Option<f32>>,
@@ -66,7 +69,7 @@ impl AmbientManager {
         let now = now_ms();
         let mut diag = self.diagnostics.lock().unwrap();
         diag.poll_count += 1;
-        
+
         let infos = self.registry.get_infos();
         diag.sensor_count = infos.len();
 
@@ -78,7 +81,7 @@ impl AmbientManager {
                 health.current_state = SensorState::Unavailable;
                 diag.sensor_available = false;
                 diag.sensor_state = SensorState::Unavailable;
-                
+
                 let fallback = AmbientReading {
                     source_id: "fallback".into(),
                     sensor_name: "Fallback".into(),
@@ -113,7 +116,7 @@ impl AmbientManager {
         } else {
             true
         };
-        
+
         let final_lux = if is_stable && last_smoothed.is_some() {
             last_smoothed.unwrap()
         } else {
@@ -122,7 +125,7 @@ impl AmbientManager {
         *last_smoothed = Some(final_lux);
 
         let mut health = self.health.lock().unwrap();
-        
+
         // Ensure state is Available
         if health.current_state != SensorState::Available {
             health.current_state = SensorState::Available;
@@ -132,7 +135,8 @@ impl AmbientManager {
         // Update health tracking if new timestamp
         if raw_reading.timestamp > health.last_update {
             if health.last_update > 0 {
-                health.update_frequency_ms = raw_reading.timestamp.saturating_sub(health.last_update);
+                health.update_frequency_ms =
+                    raw_reading.timestamp.saturating_sub(health.last_update);
             }
             health.last_update = raw_reading.timestamp;
             health.total_updates += 1;
@@ -175,7 +179,7 @@ impl AmbientManager {
     pub fn get_diagnostics(&self) -> AmbientDiagnostics {
         self.diagnostics.lock().unwrap().clone()
     }
-    
+
     pub fn get_health(&self) -> SensorHealth {
         self.health.lock().unwrap().clone()
     }

@@ -1,14 +1,14 @@
-use crate::intelligence::models::IntelligenceContext;
-use crate::intelligence::behavior::manager::BehaviorEngine;
-use crate::intelligence::learning::manager::LearningEngine;
 use crate::intelligence::analytics::manager::AnalyticsEngine;
-use crate::intelligence::insights::manager::InsightsEngine;
-use crate::intelligence::recommendations::manager::RecommendationEngine;
-use crate::intelligence::comfort_score::manager::ComfortScoreEngine;
-use crate::intelligence::application_rules::manager::ApplicationRuleEngine;
-use crate::intelligence::comfort_score::manager::ComfortScoreResult;
 use crate::intelligence::analytics::models::AnalyticsSnapshot;
+use crate::intelligence::application_rules::manager::ApplicationRuleEngine;
+use crate::intelligence::behavior::manager::BehaviorEngine;
+use crate::intelligence::comfort_score::manager::ComfortScoreEngine;
+use crate::intelligence::comfort_score::manager::ComfortScoreResult;
+use crate::intelligence::insights::manager::InsightsEngine;
 use crate::intelligence::insights::models::Insight;
+use crate::intelligence::learning::manager::LearningEngine;
+use crate::intelligence::models::IntelligenceContext;
+use crate::intelligence::recommendations::manager::RecommendationEngine;
 use crate::intelligence::recommendations::models::Recommendation;
 use serde::{Deserialize, Serialize};
 
@@ -50,14 +50,25 @@ impl IntelligenceManager {
         }
     }
 
-    pub fn generate_payload(&self, context: &IntelligenceContext, current_brightness: u8, profile: Option<crate::configuration::models::ComfortProfile>) -> IntelligencePayload {
+    pub fn generate_payload(
+        &self,
+        context: &IntelligenceContext,
+        current_brightness: u8,
+        profile: Option<crate::configuration::models::ComfortProfile>,
+    ) -> IntelligencePayload {
         let behavior = self.behavior_engine.analyze(context);
-        let learning = self.learning_engine.extract_observations(context, &behavior);
+        let learning = self
+            .learning_engine
+            .extract_observations(context, &behavior);
         let comfort_score = self.comfort_score_engine.calculate(context);
-        let analytics = self.analytics_engine.generate(context, comfort_score.total_score, &learning);
+        let analytics =
+            self.analytics_engine
+                .generate(context, comfort_score.total_score, &learning);
         let insights = self.insights_engine.generate(context);
         let recommendations = self.recommendation_engine.generate(context, &behavior);
-        let decision = self.decision_engine.evaluate(context, current_brightness, profile);
+        let decision = self
+            .decision_engine
+            .evaluate(context, current_brightness, profile);
 
         IntelligencePayload {
             comfort_score,

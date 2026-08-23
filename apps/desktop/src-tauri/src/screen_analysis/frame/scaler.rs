@@ -19,7 +19,11 @@ pub struct RawFrameBuffer {
 
 impl RawFrameBuffer {
     pub fn new(pixels: Vec<u8>, width: u32, height: u32) -> Self {
-        Self { pixels, width, height }
+        Self {
+            pixels,
+            width,
+            height,
+        }
     }
 
     /// Total number of pixels.

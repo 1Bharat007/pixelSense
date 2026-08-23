@@ -33,7 +33,10 @@ mod tests {
         let manager = make_manager((0, 0, 0), SampleResolution::Fixed64x64);
         let result = manager.analyze_display("test_disp").unwrap();
         // All-black frame: average luminance should be 0
-        assert!(result.metrics.average_luminance < 1.0, "Expected near-zero luminance");
+        assert!(
+            result.metrics.average_luminance < 1.0,
+            "Expected near-zero luminance"
+        );
         assert!(result.metrics.black_percentage > 99.0);
     }
 
@@ -42,7 +45,10 @@ mod tests {
         let manager = make_manager((255, 255, 255), SampleResolution::Fixed64x64);
         let result = manager.analyze_display("test_disp").unwrap();
         // All-white frame: average luminance should be ~100
-        assert!(result.metrics.average_luminance > 99.0, "Expected near-100 luminance");
+        assert!(
+            result.metrics.average_luminance > 99.0,
+            "Expected near-100 luminance"
+        );
         assert!(result.metrics.white_percentage > 99.0);
     }
 
@@ -52,7 +58,11 @@ mod tests {
         let result = manager.analyze_display("test_disp").unwrap();
         // Mid-grey should be around 50
         let lum = result.metrics.average_luminance;
-        assert!(lum > 45.0 && lum < 55.0, "Expected ~50 luminance, got {}", lum);
+        assert!(
+            lum > 45.0 && lum < 55.0,
+            "Expected ~50 luminance, got {}",
+            lum
+        );
     }
 
     #[test]
@@ -69,7 +79,11 @@ mod tests {
         let result = manager.analyze_display("test_disp").unwrap();
         // All pixels should be in one bucket; histogram sum should be ~1.0
         let bucket_sum: f32 = result.metrics.histogram.buckets.iter().sum();
-        assert!((bucket_sum - 1.0).abs() < 0.01, "Histogram should sum to 1.0, got {}", bucket_sum);
+        assert!(
+            (bucket_sum - 1.0).abs() < 0.01,
+            "Histogram should sum to 1.0, got {}",
+            bucket_sum
+        );
     }
 
     #[test]
@@ -78,7 +92,10 @@ mod tests {
         provider.set_available(false);
         let manager = ScreenAnalysisManager::new(AnalysisConfig::default(), provider);
         let result = manager.analyze_display("test_disp");
-        assert!(matches!(result, Err(ScreenAnalysisError::CaptureUnavailable(_))));
+        assert!(matches!(
+            result,
+            Err(ScreenAnalysisError::CaptureUnavailable(_))
+        ));
     }
 
     #[test]

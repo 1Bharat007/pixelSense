@@ -1,17 +1,17 @@
+use crate::adaptation::policy::{AdaptationPolicy, PolicyContext};
 use crate::ambient::manager::AmbientManager;
-use crate::screen_analysis::manager::ScreenAnalysisManager;
-use crate::screen_analysis::context::detect_context;
+use crate::background::event_log::{EventCategory, LogEvent, SharedEventLog};
+use crate::brightness::manager::BrightnessManager;
+use crate::commands::DashboardStatePayload;
+use crate::display::domain::{DisplayCapabilities, DisplayInfo};
 use crate::intelligence::manager::IntelligenceManager;
 use crate::intelligence::models::IntelligenceContext;
-use crate::brightness::manager::BrightnessManager;
-use crate::display::domain::{DisplayInfo, DisplayCapabilities};
-use crate::commands::DashboardStatePayload;
-use crate::transition::worker::TransitionWorker;
 use crate::platform::application::active_window::get_active_application;
-use crate::adaptation::policy::{AdaptationPolicy, PolicyContext};
-use crate::background::event_log::{EventCategory, LogEvent, SharedEventLog};
-use std::sync::{Arc, Mutex, RwLock};
+use crate::screen_analysis::context::detect_context;
+use crate::screen_analysis::manager::ScreenAnalysisManager;
+use crate::transition::worker::TransitionWorker;
 use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::{Arc, Mutex, RwLock};
 use std::time::{Duration, Instant};
 
 pub struct IntelligencePipeline {
@@ -124,7 +124,10 @@ impl IntelligencePipeline {
                     }
                 };
                 let current_lux = ambient_reading.as_ref().map(|r| r.lux).unwrap_or(0.0);
-                let current_confidence = ambient_reading.as_ref().map(|r| r.confidence).unwrap_or(0.0);
+                let current_confidence = ambient_reading
+                    .as_ref()
+                    .map(|r| r.confidence)
+                    .unwrap_or(0.0);
 
                 // ── 3. Screen Pipeline ──────────────────────────────────────────────
                 let screen_result = match screen.analyze_display("primary") {
@@ -132,7 +135,8 @@ impl IntelligencePipeline {
                         if let Ok(mut ds) = dashboard_state.lock() {
                             ds.health.screen_engine = "Running".into();
                         }
-                        current_context = detect_context(&res.metrics, last_screen_metrics.as_ref(), &active_app);
+                        current_context =
+                            detect_context(&res.metrics, last_screen_metrics.as_ref(), &active_app);
                         last_screen_metrics = Some(res.metrics.clone());
                         Some(res)
                     }
@@ -186,7 +190,8 @@ impl IntelligencePipeline {
                         total_events: total_events as usize,
                         brightness_changes_today,
                         manual_overrides_today,
-                        longest_session_minutes: (session_start_time.elapsed().as_secs() / 60) as u32,
+                        longest_session_minutes: (session_start_time.elapsed().as_secs() / 60)
+                            as u32,
                         average_ambient_lux: current_lux,
                     },
                     current_ambient_lux: current_lux,
@@ -209,7 +214,8 @@ impl IntelligencePipeline {
                     if let Some(target) = payload.current_decision.target_brightness {
                         let prev_target = last_decision_target.unwrap_or(current_brightness);
                         if (target as i32 - prev_target as i32).abs() >= 3 {
-                            let previous_target = transition.target_brightness.load(Ordering::SeqCst);
+                            let previous_target =
+                                transition.target_brightness.load(Ordering::SeqCst);
                             if target != previous_target {
                                 // Log the brightness change event with Reason
                                 if let Ok(mut log) = event_log.lock() {
@@ -237,7 +243,9 @@ impl IntelligencePipeline {
                     if let Ok(mut log) = event_log.lock() {
                         let reason = adaptation_decision.reason().to_string();
                         // Only push if different from last event
-                        let last_skip = log.get_recent().first()
+                        let last_skip = log
+                            .get_recent()
+                            .first()
                             .filter(|e| e.category == EventCategory::AdaptationSkipped)
                             .map(|e| e.description.clone());
                         if last_skip.as_deref() != Some(&reason) {
@@ -281,11 +289,11 @@ impl IntelligencePipeline {
 
                 // Adaptive sleep based on context (sub-second for active work).
                 let context_sleep_ms: u64 = match current_context.as_str() {
-                    "Video"   => 2000,  // Video: slow poll is fine
-                    "Gaming"  => 5000,  // Gaming: minimal polling
-                    "Reading" => 1000,  // Reading: moderate
-                    "Coding"  => 500,   // Coding: fast — user switches tabs frequently
-                    _         => 500,   // Default/Desktop: fast
+                    "Video" => 2000,   // Video: slow poll is fine
+                    "Gaming" => 5000,  // Gaming: minimal polling
+                    "Reading" => 1000, // Reading: moderate
+                    "Coding" => 500,   // Coding: fast — user switches tabs frequently
+                    _ => 500,          // Default/Desktop: fast
                 };
 
                 let elapsed = cycle_start.elapsed();

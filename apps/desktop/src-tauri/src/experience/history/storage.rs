@@ -1,7 +1,7 @@
-use std::fs::OpenOptions;
-use std::io::Write;
 use crate::experience::history::models::{HistoryEvent, TimestampedEvent};
 use crate::experience::history::rotation::RotationStrategy;
+use std::fs::OpenOptions;
+use std::io::Write;
 
 pub struct JsonlStorage {
     rotation: RotationStrategy,
@@ -24,7 +24,7 @@ impl JsonlStorage {
             .map_err(|e| format!("Failed to serialize event: {}", e))?;
 
         let current_file = self.rotation.get_current_file_path();
-        
+
         let mut file = OpenOptions::new()
             .create(true)
             .append(true)

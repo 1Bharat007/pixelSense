@@ -21,7 +21,6 @@ impl CalibrationStrategy for LinearCalibration {
         if raw_lux <= 0.0 {
             return 0.0;
         }
-        let clamped = raw_lux.min(self.max_lux);
-        clamped
+        raw_lux.min(self.max_lux)
     }
 }

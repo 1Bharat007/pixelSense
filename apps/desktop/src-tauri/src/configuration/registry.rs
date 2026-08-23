@@ -1,6 +1,6 @@
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::sync::RwLock;
-use serde::{Serialize, Deserialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ConfigurationSchema {
@@ -33,7 +33,7 @@ impl ConfigurationRegistry {
         if !schemas.contains_key(key) {
             return Err(format!("Configuration key {} not registered", key));
         }
-        
+
         let mut values = self.values.write().unwrap();
         values.insert(key.to_string(), value);
         Ok(())
@@ -44,7 +44,7 @@ impl ConfigurationRegistry {
         if let Some(val) = values.get(key) {
             return Some(val.clone());
         }
-        
+
         let schemas = self.schemas.read().unwrap();
         schemas.get(key).map(|s| s.default_value.clone())
     }
@@ -63,18 +63,18 @@ mod tests {
             description: "Test".into(),
             requires_restart: false,
         };
-        
+
         registry.register_schema(schema);
-        
+
         // 1. Assert default
         assert_eq!(registry.get_value("test.key"), Some("default".into()));
-        
+
         // 2. Set value
         assert!(registry.set_value("test.key", "new_value".into()).is_ok());
-        
+
         // 3. Assert new value (simulates persist -> load roundtrip integrity for the memory store)
         assert_eq!(registry.get_value("test.key"), Some("new_value".into()));
-        
+
         // 4. Set invalid key
         assert!(registry.set_value("invalid.key", "value".into()).is_err());
     }

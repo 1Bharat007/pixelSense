@@ -44,4 +44,3 @@ impl std::fmt::Display for DisplayError {
 }
 
 impl std::error::Error for DisplayError {}
-

@@ -40,11 +40,11 @@ impl LuminanceHistogram {
 ///   PixelSense should hold its adjustment and wait for stability.
 #[derive(Debug, Clone, PartialEq)]
 pub enum VisualComplexity {
-    VeryLow,   // e.g., Dark code editor, terminal
-    Low,       // e.g., White document, static webpage
-    Medium,    // e.g., Browser with mixed content, news site
-    High,      // e.g., YouTube video, game with moderate motion
-    VeryHigh,  // e.g., Action scene, rapid screen changes, strobe content
+    VeryLow,  // e.g., Dark code editor, terminal
+    Low,      // e.g., White document, static webpage
+    Medium,   // e.g., Browser with mixed content, news site
+    High,     // e.g., YouTube video, game with moderate motion
+    VeryHigh, // e.g., Action scene, rapid screen changes, strobe content
 }
 
 impl VisualComplexity {

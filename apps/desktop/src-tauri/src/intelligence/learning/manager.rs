@@ -1,6 +1,6 @@
-use crate::intelligence::models::IntelligenceContext;
 use crate::intelligence::behavior::models::UserBehaviorSnapshot;
 use crate::intelligence::learning::models::LearningObservation;
+use crate::intelligence::models::IntelligenceContext;
 
 pub struct LearningEngine;
 

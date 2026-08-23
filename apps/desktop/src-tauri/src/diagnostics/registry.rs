@@ -1,6 +1,6 @@
+use crate::diagnostics::models::{DiagnosticsSnapshot, SubsystemHealth};
 use std::collections::HashMap;
 use std::sync::{Arc, RwLock};
-use crate::diagnostics::models::{SubsystemHealth, DiagnosticsSnapshot};
 
 pub trait DiagnosticsProvider: Send + Sync {
     fn get_health(&self) -> SubsystemHealth;
@@ -25,7 +25,7 @@ impl DiagnosticsRegistry {
     pub fn generate_snapshot(&self) -> DiagnosticsSnapshot {
         let providers = self.providers.read().unwrap();
         let mut subsystems = Vec::new();
-        
+
         for provider in providers.values() {
             subsystems.push(provider.get_health());
         }
